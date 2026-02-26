@@ -1,0 +1,124 @@
+import axios, {
+  AxiosError,
+  InternalAxiosRequestConfig,
+  AxiosResponse,
+} from "axios";
+import { API_CONFIG } from "../utils/constants";
+import { storage } from "../utils/storage";
+import { ErrorResponse } from "../types/auth.types";
+import { useUserStore } from "../store/userStore";
+import { navigateAndReset } from "../utils/navigationRef";
+
+const apiClient = axios.create({
+  baseURL: API_CONFIG.BASE_URL,
+  timeout: API_CONFIG.TIMEOUT,
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+});
+
+// Request interceptor with detailed logging
+apiClient.interceptors.request.use(
+  async (config: InternalAxiosRequestConfig) => {
+    const token = await storage.getToken();
+
+    console.log("📤 API Request:", {
+      url: `${config.baseURL}${config.url}`,
+      method: config.method?.toUpperCase(),
+      hasToken: !!token,
+      headers: config.headers,
+    });
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log(token);
+    } else {
+      console.warn("⚠️ No token available for request");
+    }
+
+    return config;
+  },
+  (error: AxiosError) => {
+    console.error("❌ Request interceptor error:", error);
+    return Promise.reject(error);
+  }
+);
+
+apiClient.interceptors.response.use(
+  (response: AxiosResponse) => response,
+  async (error: AxiosError<ErrorResponse>) => {
+    const originalRequest = error.config as any;
+
+    if (error.response) {
+      // Server responded with error
+      console.error("❌ API Error Response:", {
+        url: error.config?.url,
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data,
+        headers: error.response.headers,
+      });
+    } else if (error.request) {
+      // Request made but no response
+      console.error("❌ No Response from Server:", {
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+        method: error.config?.method,
+        timeout: error.config?.timeout,
+        message: error.message,
+      });
+    } else {
+      // Something else happened
+      console.error("❌ Request Setup Error:", error.message);
+    }
+
+    // Check for 401 and ensure we haven't already tried to retry this specific request
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        console.log("🔑 Access token expired. Attempting refresh...");
+
+        // 1. Pull the stored refresh token
+        const refreshToken = await storage.getRefreshToken();
+
+        if (!refreshToken) {
+          throw new Error("No refresh token stored");
+        }
+
+        // 2. Call the refresh endpoint
+        // Use a clean axios instance to avoid interceptor interference
+        const response = await axios.post<string>(
+          `${API_CONFIG.BASE_URL}/token/refresh`,
+          { refresh_token: refreshToken }
+        );
+
+        const newAccessToken = response.data;
+
+        // 3. Save the new token to storage
+        await storage.setToken(newAccessToken);
+
+        // 4. Update the header and retry the original request
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+
+        console.log("✅ Token refreshed. Retrying original request...");
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        console.error("❌ Token refresh failed:", refreshError);
+
+        // If refresh fails, we must log out
+        const logout = useUserStore.getState().logout;
+        await logout();
+        navigateAndReset("Auth", { screen: "Login" });
+
+        return Promise.reject(refreshError);
+      }
+    }
+
+    // Handle other errors as usual
+    return Promise.reject(error);
+  }
+);
+
+export default apiClient;
