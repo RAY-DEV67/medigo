@@ -3,7 +3,7 @@ import Svg, { G, Mask, Path } from "react-native-svg";
 
 const SucccessCheckmark: React.FC = () => {
   return (
-    <Svg width={80} height={72} viewBox="0 0 80 72" fill="none">
+    <Svg width={80} height={80} viewBox="0 0 80 72" fill="none">
       <Mask
         id="mask0_1482_12625"
         maskType="luminance"

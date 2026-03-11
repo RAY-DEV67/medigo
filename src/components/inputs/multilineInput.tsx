@@ -1,8 +1,10 @@
-import { TextInput } from "react-native";
+import { Text, TextInput, View } from "react-native";
 import useTheme from "../../hooks/useThemes";
+import { commonStyles } from "../../styles/commonStyles";
 
 interface InputProps {
   placeholder?: string;
+  title?: string;
   value: string;
   onChangeText: (text: string) => void;
   disabled?: boolean;
@@ -13,30 +15,35 @@ const MultilineInput: React.FC<InputProps> = ({
   value,
   onChangeText,
   disabled = false,
+  title,
 }) => {
   const { colors } = useTheme();
+  const commonStyling = commonStyles(colors);
   return (
-    <TextInput
-      placeholderTextColor={colors.subTitleText}
-      style={[
-        {
-          borderColor: colors.stroke,
-          color: colors.titleText,
-          backgroundColor: colors.surfacePrimary,
-          borderWidth: 1,
-          height: 107,
-          textAlignVertical: "top",
-          paddingVertical: 10,
-          paddingHorizontal: 12,
-          borderRadius: 8,
-        },
-      ]}
-      placeholder={placeholder}
-      multiline
-      value={value}
-      onChangeText={onChangeText}
-      editable={!disabled}
-    />
+    <View>
+      <Text style={commonStyling.inputTitle}>{title}</Text>
+      <TextInput
+        placeholderTextColor={colors.gray}
+        style={[
+          {
+            borderColor: colors.stroke,
+            color: colors.titleText,
+            backgroundColor: colors.surfacePrimary,
+            borderWidth: 1,
+            height: 107,
+            textAlignVertical: "top",
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            borderRadius: 8,
+          },
+        ]}
+        placeholder={placeholder}
+        multiline
+        value={value}
+        onChangeText={onChangeText}
+        editable={!disabled}
+      />
+    </View>
   );
 };
 

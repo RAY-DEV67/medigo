@@ -1,8 +1,8 @@
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import useTheme from "../hooks/useThemes";
-import { useUserStore } from "../store/userStore";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
+  Dimensions,
   Platform,
   StyleSheet,
   Text,
@@ -10,23 +10,14 @@ import {
   View,
 } from "react-native";
 import React, { memo } from "react";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import Toast from "react-native-toast-message";
-import Home from "../../assets/icons/home";
-import InactiveHome from "../../assets/icons/inactiveHome";
-import Car from "../../assets/icons/car";
-import ActiveRide from "../../assets/icons/activeRide";
-import FilledWallet from "../../assets/icons/filledWallet";
-import NavbarProfile from "../../assets/icons/navbarProfile";
-import Wallet from "../../assets/icons/wallet";
+import { Plus, Home, Clock, History, User } from "lucide-react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { FONT_SIZES } from "../constants/sizes";
+
+const { width } = Dimensions.get("window");
 
 export default function Navbar({ state, navigation }: BottomTabBarProps) {
   const { colors } = useTheme();
-  const { user } = useUserStore();
-
-  // The active index is now provided directly by the navigator
   const activeIndex = state.index;
   const currentRouteName = state.routes[activeIndex].name;
 
@@ -35,143 +26,102 @@ export default function Navbar({ state, navigation }: BottomTabBarProps) {
       edges={["bottom"]}
       style={{ backgroundColor: colors.surfacePrimary }}
     >
-      <View
-        style={[
-          styles.navbarContainer,
-          {
-            backgroundColor: colors.surfacePrimary,
-            borderTopWidth: 0.2,
-            borderColor: colors.stroke,
-          },
-        ]}
-      >
-        <NavItem
-          label="Home"
-          active={currentRouteName === "Main"}
-          route="Main"
-          iconActive={<Home />}
-          iconInactive={<InactiveHome />}
-        />
+      <View style={styles.tabBarContainer}>
+        <View style={styles.tabBar}>
+          <TabItem
+            icon={<Home color="#3B82F6" size={22} />}
+            label="Home"
+            active
+            onPress={() => {
+              navigation.navigate("Main");
+            }}
+          />
+          <TabItem
+            icon={<Clock color="#64748B" size={22} />}
+            label="My Rides"
+            onPress={() => {
+              navigation.navigate("RiderRideStack", {
+                screen: "MyRidesScreen",
+              });
+            }}
+          />
 
-        <NavItem
-          label="Rides"
-          route="Rides"
-          active={currentRouteName === "Rides"}
-          iconActive={<ActiveRide />}
-          iconInactive={<Car fill={false} color={colors.navbarInactive} />}
-        />
-        <NavItem
-          label="Wallet"
-          route="Wallet"
-          active={currentRouteName === "Wallet"}
-          iconActive={<FilledWallet color={colors.buttonPrimary} />}
-          iconInactive={<Wallet />}
-        />
-        <NavItem
-          label="Profile"
-          route="Profile"
-          active={currentRouteName === "Profile"}
-          iconActive={
-            <NavbarProfile width={20} color={colors.buttonPrimary} active />
-          }
-          iconInactive={
-            <NavbarProfile width={20} color={colors.navbarInactive} />
-          }
-          userExists={!!user?.email}
-          userPhone={user?.phone_number}
-        />
-        {/* ... Repeat for other items */}
+          {/* Floating Center Button */}
+          <View style={styles.centerBtnOuter}>
+            <LinearGradient
+              colors={["#2F6FED", "#1E4DB7"]}
+              style={styles.centerBtn}
+            >
+              <TouchableOpacity>
+                <Plus color="#FFF" size={32} />
+              </TouchableOpacity>
+            </LinearGradient>
+          </View>
+
+          <TabItem
+            icon={<History color="#64748B" size={22} />}
+            label="History"
+            onPress={() => {
+              navigation.navigate("RiderRideStack", {
+                screen: "RideHistoryScreen",
+              });
+            }}
+          />
+          <TabItem
+            icon={<User color="#64748B" size={22} />}
+            label="Profile"
+            onPress={() => {
+              navigation.navigate("RiderProfileStack");
+            }}
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
 }
 
-interface NavItemProps {
-  label: string;
-  route: string;
-  active: boolean;
-  iconActive: React.ReactNode;
-  iconInactive: React.ReactNode;
-  userExists?: boolean;
-  userPhone?: string;
-}
-
-const NavItem = memo(function NavItem({
-  label,
-  route,
-  active,
-  iconActive,
-  iconInactive,
-  userExists,
-  userPhone,
-}: NavItemProps) {
-  const { colors } = useTheme();
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
-
-  const onPress = React.useCallback(() => {
-    if (route === "Profile" && !userExists) {
-      Toast.show({
-        type: "setUpProfile",
-        onPress: () => {
-          Toast.hide();
-          navigation.navigate("SetUpProfile", {
-            screen: "ProfileSetupScreen",
-            params: { onboarded: true, phone: userPhone },
-          });
-        },
-        autoHide: false,
-      });
-      return;
-    }
-
-    if (!active) {
-      navigation.navigate("AppTabs", {
-        screen: route,
-      });
-    }
-  }, [route, userExists, active, userPhone, navigation]);
-
-  return (
-    <View style={styles.navItem}>
-      <TouchableOpacity onPress={onPress} hitSlop={30}>
-        {active ? iconActive : iconInactive}
-      </TouchableOpacity>
-      <Text
-        style={[
-          styles.navText,
-          { color: active ? colors.titleText : colors.inputText },
-        ]}
-      >
-        {label}
-      </Text>
-    </View>
-  );
-});
+const TabItem = ({ icon, label, active, onPress }: any) => (
+  <TouchableOpacity style={styles.tabItem} onPress={onPress}>
+    {icon}
+    <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
+      {label}
+    </Text>
+  </TouchableOpacity>
+);
 
 const styles = StyleSheet.create({
-  topBorder: {
-    height: 2,
-    width: "100%",
-    opacity: 0.5,
+  tabBarContainer: {
+    backgroundColor: "transparent",
+    position: "absolute",
+    bottom: Platform.OS === "ios" ? 20 : 50,
+    left: 0,
+    right: 0,
+    alignItems: "center",
   },
-  navbarContainer: {
-    height: 70,
+  tabBar: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    width: width,
+    height: 70,
+    backgroundColor: "#FFF",
+    paddingHorizontal: 30,
     alignItems: "center",
-    paddingBottom: Platform.OS === "ios" ? 10 : 12,
-    paddingTop: 6,
+    justifyContent: "space-between",
   },
-  navItem: {
-    alignItems: "center",
+  tabItem: { alignItems: "center", justifyContent: "center" },
+  tabLabel: { fontSize: FONT_SIZES.SMALL, color: "#64748B", marginTop: 4 },
+  tabLabelActive: { color: "#3B82F6", fontWeight: "600" },
+  centerBtnOuter: {
+    marginTop: -50,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 50,
+    padding: 10,
+  },
+  centerBtn: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: "center",
-  },
-  navButton: {
     alignItems: "center",
-    justifyContent: "center",
-  },
-  navText: {
-    fontSize: FONT_SIZES.SMALL,
-    marginTop: 4,
+    elevation: 5,
   },
 });

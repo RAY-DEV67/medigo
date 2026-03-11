@@ -5,15 +5,22 @@ interface SearchProps {
   color?: string;
 }
 
-const RightArrow: React.FC<SearchProps> = ({ color = "#BFBFBF" }) => {
+const RightArrow: React.FC<SearchProps> = ({ color = "white" }) => {
   return (
-    <Svg width={6} height={10} viewBox="0 0 6 12" fill="none">
+    <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
       <Path
-        d="M0.75 0.75L4.75 5.75L0.75 10.75"
+        d="M5 12H19"
         stroke={color}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <Path
+        d="M12 5L19 12L12 19"
+        stroke={color}
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
       />
     </Svg>
   );

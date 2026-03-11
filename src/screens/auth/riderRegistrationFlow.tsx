@@ -11,16 +11,21 @@ import {
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  ChevronLeft,
-  Eye,
-  EyeOff,
-  ShieldCheck,
-  CreditCard,
-  X,
-} from "lucide-react-native";
+import { ChevronLeft, Eye, EyeOff, X, Mail } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import OtpInputField from "../../components/inputs/otpInput";
+import useTheme from "../../hooks/useThemes";
+import { commonStyles } from "../../styles/commonStyles";
+import { FONT_SIZES } from "../../constants/sizes";
+import Phone from "../../../assets/icons/phone";
+import Input from "../../components/inputs/input";
+import Buttons from "../../components/buttons/buttons";
+import RightArrow from "../../../assets/icons/rightArrow";
+import Padlock from "../../../assets/icons/padlock";
+import Dropdown from "../../components/inputs/dropdown";
+import MultilineInput from "../../components/inputs/multilineInput";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import BackButton from "../../components/buttons/backButton";
 
 const { width } = Dimensions.get("window");
 
@@ -31,25 +36,32 @@ export default function RiderRegistrationFlow() {
   const [step, setStep] = useState<RiderStep>("initial");
   const [showPassword, setShowPassword] = useState(false);
   const [signUpMethod, setsignUpMethod] = useState("phone");
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { colors } = useTheme();
+  const commonStyling = commonStyles(colors);
+  const [selectedGender, setselectedGender] = useState("");
 
   // Reusable Step Header
   const StepHeader = ({ current, total, title, subTitle }: any) => (
     <View style={styles.header}>
-      {/* Update the back button to use navigation.goBack() */}
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        style={styles.backBtn}
-      >
-        <ChevronLeft color="#1A1C1E" size={24} />
-      </TouchableOpacity>
+      <BackButton />
       <View style={styles.stepIndicator}>
         <Text style={styles.stepText}>
           Step {current} of {total}
         </Text>
       </View>
-      <Text style={styles.mainTitle}>{title}</Text>
-      <Text style={styles.subTitle}>{subTitle}</Text>
+      <Text
+        style={[
+          commonStyling.title,
+          styles.mainTitle,
+          {
+            marginTop: 16,
+          },
+        ]}
+      >
+        {title}
+      </Text>
+      <Text style={[commonStyling.subtitle, styles.subTitle]}>{subTitle}</Text>
     </View>
   );
 
@@ -70,20 +82,33 @@ export default function RiderRegistrationFlow() {
             }}
           >
             <View>
-              <StepHeader
-                current={1}
-                total={3}
-                title="Create Account"
-                subTitle="Sign up to book safe, reliable rides to your medical appointments."
-              />
+              <View style={styles.header}>
+                <BackButton />
+              </View>
+
+              <Text style={[commonStyling.title, styles.mainTitle]}>
+                Create Account
+              </Text>
+              <Text style={[commonStyling.subtitle, styles.subTitle]}>
+                Sign up to book safe, reliable rides to your medical
+                appointments.
+              </Text>
 
               <TouchableOpacity
                 style={{
                   flexDirection: "row",
                   borderWidth: 1,
-                  padding: 12,
-                  columnGap: 8,
-                  borderRadius: 8,
+                  padding: 16,
+                  columnGap: 12,
+                  borderRadius: 16,
+                  borderColor:
+                    signUpMethod === "phone"
+                      ? colors.primaryColor
+                      : colors.stroke,
+                  backgroundColor:
+                    signUpMethod === "phone"
+                      ? colors.highlightBlue50
+                      : colors.surfacePrimary,
                 }}
                 onPress={() => {
                   setsignUpMethod("phone");
@@ -93,13 +118,41 @@ export default function RiderRegistrationFlow() {
                   style={{
                     height: 40,
                     width: 40,
-                    backgroundColor: "blue",
+                    backgroundColor:
+                      signUpMethod === "phone"
+                        ? colors.primaryColor
+                        : colors.lightGray,
                     borderRadius: 50,
+                    justifyContent: "center",
+                    alignItems: "center",
                   }}
-                ></View>
+                >
+                  <Phone color={signUpMethod === "phone" ? "white" : "black"} />
+                </View>
                 <View>
-                  <Text>Phone Number</Text>
-                  <Text>We will send you a verification code</Text>
+                  <Text
+                    style={[
+                      commonStyling.subtitle,
+                      {
+                        color: colors.titleText,
+                        fontFamily: "Medium",
+                        marginBottom: 4,
+                      },
+                    ]}
+                  >
+                    Phone Number
+                  </Text>
+                  <Text
+                    style={[
+                      commonStyling.subtitle,
+                      {
+                        fontSize: FONT_SIZES.BODY,
+                        fontFamily: "Medium",
+                      },
+                    ]}
+                  >
+                    We will send you a verification code
+                  </Text>
                 </View>
               </TouchableOpacity>
 
@@ -107,10 +160,19 @@ export default function RiderRegistrationFlow() {
                 style={{
                   flexDirection: "row",
                   borderWidth: 1,
-                  padding: 12,
-                  columnGap: 8,
-                  borderRadius: 8,
-                  marginVertical: 16,
+                  padding: 16,
+                  columnGap: 12,
+                  borderRadius: 16,
+                  borderColor:
+                    signUpMethod === "email"
+                      ? colors.primaryColor
+                      : colors.stroke,
+                  marginTop: 16,
+                  marginBottom: 24,
+                  backgroundColor:
+                    signUpMethod === "email"
+                      ? colors.highlightBlue50
+                      : colors.surfacePrimary,
                 }}
                 onPress={() => {
                   setsignUpMethod("email");
@@ -120,40 +182,128 @@ export default function RiderRegistrationFlow() {
                   style={{
                     height: 40,
                     width: 40,
-                    backgroundColor: "blue",
+                    backgroundColor:
+                      signUpMethod === "email"
+                        ? colors.primaryColor
+                        : colors.lightGray,
                     borderRadius: 50,
+                    justifyContent: "center",
+                    alignItems: "center",
                   }}
-                ></View>
+                >
+                  <Mail color={signUpMethod === "email" ? "white" : "black"} />
+                </View>
                 <View>
-                  <Text>Email Address</Text>
-                  <Text>Sign up with your email</Text>
+                  <Text
+                    style={[
+                      commonStyling.subtitle,
+                      {
+                        color: colors.titleText,
+                        fontFamily: "Medium",
+                        marginBottom: 4,
+                      },
+                    ]}
+                  >
+                    Email Address
+                  </Text>
+                  <Text
+                    style={[
+                      commonStyling.subtitle,
+                      {
+                        fontSize: FONT_SIZES.BODY,
+                        fontFamily: "Medium",
+                      },
+                    ]}
+                  >
+                    Sign up with your email
+                  </Text>
                 </View>
               </TouchableOpacity>
+
               {signUpMethod === "phone" && (
-                <InputLabel
-                  label="Phone Number"
-                  icon="phone"
+                <Input
+                  title="Phone Number"
                   placeholder="(555) 000-0000"
+                  value=""
+                  onChangeText={() => {}}
                 />
               )}
               {signUpMethod === "email" && (
-                <InputLabel
-                  label="Email Address"
-                  icon="mail"
+                <Input
+                  title="Email Address"
                   placeholder="you@example.com"
+                  value=""
+                  onChangeText={() => {}}
                 />
               )}
-              <Text style={styles.legalText}>
+              <Text
+                style={[
+                  commonStyling.subtitle,
+                  styles.legalText,
+                  {
+                    fontSize: FONT_SIZES.BODY,
+                  },
+                ]}
+              >
                 By signing up, you agree to our{" "}
-                <Text style={styles.link}>Terms of Service</Text> and{" "}
-                <Text style={styles.link}>Privacy Policy</Text>.
+                <Text
+                  style={{
+                    color: colors.primaryColor,
+                    fontFamily: "Medium",
+                  }}
+                >
+                  Terms of Service
+                </Text>{" "}
+                and{" "}
+                <Text
+                  style={{
+                    color: colors.primaryColor,
+                    fontFamily: "Medium",
+                  }}
+                >
+                  Privacy Policy
+                </Text>
+                . Your health information is protected under HIPAA.
               </Text>
             </View>
-            <PrimaryButton
-              text="Continue"
-              onPress={() => setStep("otp")}
-              active
-            />
+
+            <View>
+              <Buttons
+                title="Continue"
+                onPress={() => setStep("otp")}
+                rightIcon={<RightArrow />}
+              />
+
+              <TouchableOpacity
+                style={{ marginTop: 16 }}
+                onPress={() => {
+                  navigation.navigate("Login");
+                }}
+              >
+                <Text
+                  style={[
+                    commonStyling.subtitle,
+                    styles.footerText,
+                    {
+                      fontSize: FONT_SIZES.BODY,
+                      fontFamily: "SemiBold",
+                    },
+                  ]}
+                >
+                  Already have an account?{" "}
+                  <Text
+                    style={[
+                      styles.linkText,
+                      {
+                        color: colors.primaryColor,
+                      },
+                    ]}
+                  >
+                    Log in
+                  </Text>
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
@@ -183,14 +333,35 @@ export default function RiderRegistrationFlow() {
                   justifyContent: "space-between",
                 }}
               >
-                <Text style={styles.resendText}>Code expires in 0:56 </Text>
-                <Text style={styles.link}>Resend Code</Text>
+                <Text
+                  style={[
+                    commonStyling.subtitle,
+                    styles.resendText,
+                    {
+                      fontSize: FONT_SIZES.BODY,
+                    },
+                  ]}
+                >
+                  Code expires in 0:56{" "}
+                </Text>
+                <Text
+                  style={[
+                    commonStyling.subtitle,
+                    {
+                      color: colors.primaryColor,
+                      fontSize: FONT_SIZES.BODY,
+                    },
+                  ]}
+                >
+                  Resend Code
+                </Text>
               </View>
             </View>
-            <PrimaryButton
-              text="Verify and Continue"
+
+            <Buttons
+              title="Verify and Continue"
               onPress={() => setStep("password")}
-              active
+              rightIcon={<RightArrow />}
             />
           </View>
         )}
@@ -251,18 +422,56 @@ export default function RiderRegistrationFlow() {
                   </TouchableOpacity>
                 </View>
               </View>
-              <View style={styles.securityNote}>
-                <ShieldCheck size={16} color="#3B82F6" />
-                <Text style={styles.securityText}>
-                  Your password is encrypted using industry-standard security
-                  protocols.
-                </Text>
+              <View
+                style={[
+                  {
+                    backgroundColor: colors.highlightBlue50,
+                    flexDirection: "row",
+                    columnGap: 8,
+                    alignItems: "flex-start",
+                    padding: 16,
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: "#2F6FED33",
+                  },
+                ]}
+              >
+                <Padlock />
+                <View>
+                  <Text
+                    style={[
+                      commonStyling.title,
+                      {
+                        fontSize: FONT_SIZES.SUBTITLE,
+                        color: colors.primaryColor,
+                        fontFamily: "Medium",
+                        marginBottom: 8,
+                      },
+                    ]}
+                  >
+                    Encryption & Security
+                  </Text>
+                  <Text
+                    style={[
+                      commonStyling.subtitle,
+                      {
+                        fontSize: FONT_SIZES.BODY,
+                        color: colors.primaryColor,
+                        lineHeight: 20,
+                      },
+                    ]}
+                  >
+                    Your password is encrypted using industry-standard security
+                    protocols.
+                  </Text>
+                </View>
               </View>
             </View>
-            <PrimaryButton
-              text="Create Account"
+
+            <Buttons
+              title="Create Account"
               onPress={() => setStep("bio")}
-              active
+              rightIcon={<RightArrow />}
             />
           </View>
         )}
@@ -277,129 +486,111 @@ export default function RiderRegistrationFlow() {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.header}>
-              <TouchableOpacity
-                onPress={() => navigation.goBack()}
-                style={styles.backBtn}
-              >
-                <ChevronLeft color="#1A1C1E" size={24} />
-              </TouchableOpacity>
+              <BackButton />
             </View>
 
-            <Text
-              style={[
-                styles.mainTitle,
-                {
-                  marginTop: -16,
-                },
-              ]}
-            >
+            <Text style={[commonStyling.title, styles.mainTitle]}>
               Your Information
             </Text>
-            <Text style={styles.subTitle}>
+            <Text style={[commonStyling.subtitle, styles.subTitle]}>
               Help us provide you with the best care during your rides.
             </Text>
             <View style={styles.row}>
               <View style={{ flex: 1, marginRight: 10 }}>
-                <InputLabel label="First Name" placeholder="John" />
+                <Input
+                  title="First Name"
+                  placeholder="Jhon"
+                  value=""
+                  onChangeText={() => {}}
+                />
               </View>
               <View style={{ flex: 1 }}>
-                <InputLabel label="Last Name" placeholder="Doe" />
+                <Input
+                  title="Last Name"
+                  placeholder="Doe"
+                  value=""
+                  onChangeText={() => {}}
+                />
               </View>
             </View>
-            <InputLabel label="Date of Birth" placeholder="MM/DD/YYYY" />
-            <InputLabel label="Gender" placeholder="Select your gender" />
-            <InputLabel
-              label="Emergency Contact (Optional)"
-              icon="phone"
+            <Dropdown
+              label="Gender"
+              data={["Male", "Female", "Others"]}
+              selected={selectedGender}
+              onSelect={(val) => setselectedGender(val)}
+            />
+            <Input
+              title="Emergency Contact (Optional)"
               placeholder="(555) 000-0000"
+              value=""
+              onChangeText={() => {}}
             />
-            <InputLabel label="Medical Notes (Optional)" placeholder="John" />
 
-            <View style={styles.securityNote}>
-              <ShieldCheck size={16} color="#3B82F6" />
-              <Text style={styles.securityText}>
-                Your password is encrypted using industry-standard security
-                protocols.
-              </Text>
+            <View
+              style={{
+                marginTop: 12,
+              }}
+            >
+              <MultilineInput
+                title="Medical Notes (Optional)"
+                value=""
+                onChangeText={() => {}}
+                placeholder="Any special requirements or medical conditions we should know about..."
+              />
             </View>
-            <PrimaryButton
-              text="Continue"
-              onPress={() => setStep("payment")}
-              active
-            />
-          </ScrollView>
-        )}
 
-        {step === "payment" && (
-          <ScrollView
-            style={{
-              flex: 1,
-              paddingHorizontal: 24,
-              paddingBottom: 40,
-            }}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.header}>
-              <TouchableOpacity
-                onPress={() => navigation.goBack()}
-                style={styles.backBtn}
-              >
-                <ChevronLeft color="#1A1C1E" size={24} />
-              </TouchableOpacity>
-            </View>
-            <Text
+            <View
               style={[
-                styles.mainTitle,
                 {
-                  marginTop: -16,
+                  backgroundColor: colors.highlightBlue50,
+                  flexDirection: "row",
+                  columnGap: 8,
+                  alignItems: "flex-start",
+                  padding: 16,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: "#2F6FED33",
+                  marginTop: 32,
+                  marginBottom: 16,
                 },
               ]}
             >
-              Payment Method
-            </Text>
-            <Text style={styles.subTitle}>
-              Add a payment method to complete your setup.
-            </Text>
-            <View style={styles.creditCardVisual}>
-              <CreditCard color="#FFF" size={32} />
-              <Text style={styles.cardDigits}>**** **** **** 3456</Text>
-              <View style={styles.cardRow}>
-                <Text style={styles.cardInfo}>JOHN DOE</Text>
-                <Text style={styles.cardInfo}>05/28</Text>
+              <Padlock />
+              <View>
+                <Text
+                  style={[
+                    commonStyling.title,
+                    {
+                      fontSize: FONT_SIZES.SUBTITLE,
+                      color: colors.primaryColor,
+                      fontFamily: "Medium",
+                      marginBottom: 8,
+                    },
+                  ]}
+                >
+                  Privacy Protected
+                </Text>
+                <Text
+                  style={[
+                    commonStyling.subtitle,
+                    {
+                      fontSize: FONT_SIZES.BODY,
+                      color: colors.primaryColor,
+                      lineHeight: 20,
+                    },
+                  ]}
+                >
+                  Your information is encrypted and HIPAA compliant. Only shared
+                  with your assigned driver for safety.
+                </Text>
               </View>
             </View>
-            <InputLabel label="Card Number" placeholder="1234 5678 9012 3456" />
-            <View style={styles.row}>
-              <View style={{ flex: 1, marginRight: 10 }}>
-                <InputLabel label="Expiry date" placeholder="mm/yy" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <InputLabel label="CVV" placeholder="123" />
-              </View>
-            </View>
-            <InputLabel label="Cardholder Name" placeholder="Jhon" />
-            <View style={styles.securityNote}>
-              <ShieldCheck size={16} color="#3B82F6" />
-              <Text style={styles.securityText}>
-                Your password is encrypted using industry-standard security
-                protocols.
-              </Text>
-            </View>
-            <View>
-              <PrimaryButton
-                text="Save & Continue"
-                onPress={() => setStep("success")}
-                active
-              />
-              <Text
-                style={{
-                  marginTop: 16,
-                  textAlign: "center",
-                }}
-              >
-                Skip for now
-              </Text>
-            </View>
+
+            <Buttons
+              title="Continue"
+              rightIcon={<RightArrow />}
+              onPress={() => navigation.navigate("ReviewAndAccept")}
+            />
           </ScrollView>
         )}
       </KeyboardAvoidingView>
@@ -445,14 +636,11 @@ const styles = StyleSheet.create({
   },
   stepText: { color: "#3B82F6", fontSize: 12, fontWeight: "700" },
   mainTitle: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: "#1A1C1E",
+    fontSize: FONT_SIZES.HERO,
+    fontFamily: "Bold",
     marginBottom: 8,
   },
   subTitle: {
-    fontSize: 15,
-    color: "#6C7278",
     lineHeight: 22,
     marginBottom: 20,
   },
@@ -489,40 +677,18 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
   },
-  securityNote: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F8FAFC",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 32,
-  },
-  securityText: { fontSize: 12, color: "#6C7278", marginLeft: 8, flex: 1 },
+
   btn: { padding: 18, borderRadius: 50, alignItems: "center", marginTop: 10 },
   btnActive: { backgroundColor: "#3B82F6" },
   btnInactive: { backgroundColor: "#BFDBFE" },
   btnText: { color: "#FFF", fontWeight: "700", fontSize: 16 },
   legalText: {
-    fontSize: 12,
-    color: "#6C7278",
     marginBottom: 24,
   },
-  link: { color: "#3B82F6", fontWeight: "700" },
   row: { flexDirection: "row", marginBottom: 10 },
-  creditCardVisual: {
-    backgroundColor: "#1E3A8A",
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 24,
-  },
-  cardDigits: {
-    color: "#FFF",
-    fontSize: 22,
-    fontWeight: "700",
-    marginVertical: 20,
-    letterSpacing: 2,
-  },
-  cardRow: { flexDirection: "row", justifyContent: "space-between" },
-  cardInfo: { color: "#FFF", fontSize: 12, opacity: 0.8 },
-  resendText: { textAlign: "center", color: "#6C7278" },
+
+  resendText: { textAlign: "center" },
+  // footerContainer: { marginTop: "auto", paddingBottom: 20 },
+  footerText: { textAlign: "center" },
+  linkText: { fontWeight: "700" },
 });

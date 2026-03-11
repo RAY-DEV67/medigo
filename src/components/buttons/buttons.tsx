@@ -19,6 +19,7 @@ interface ButtonsProps {
   onPress: (event: GestureResponderEvent) => void;
   type?: ButtonType;
   icon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
   height?: number;
   loading?: boolean;
 }
@@ -28,8 +29,9 @@ const Buttons: React.FC<ButtonsProps> = ({
   onPress,
   type = "primary",
   icon,
-  height = 50,
+  height = 60,
   loading,
+  rightIcon,
 }) => {
   const { colors } = useTheme();
   const commonStyling = commonStyles(colors);
@@ -45,7 +47,7 @@ const Buttons: React.FC<ButtonsProps> = ({
     }
   > = {
     primary: {
-      backgroundColor: colors.buttonSecondary,
+      backgroundColor: colors.primaryColor,
       textColor: colors.buttonPrimaryText,
     },
     danger: {
@@ -124,16 +126,25 @@ const Buttons: React.FC<ButtonsProps> = ({
                 {
                   color: current.textColor,
                   textAlign: "center",
-                  fontSize:
-                    title === "Sign up with Google" ||
-                    title === "Sign up with Apple"
-                      ? FONT_SIZES.SUBTITLE
-                      : FONT_SIZES.BUTTONTEXT,
+                  fontSize: FONT_SIZES.BUTTONTEXT
+                  ,
                 },
               ]}
             >
               {title}
             </Text>
+
+            {rightIcon && (
+              <View
+                style={{
+                  marginLeft: 6,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {rightIcon}
+              </View>
+            )}
           </View>
         )}
       </View>

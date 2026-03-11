@@ -33,7 +33,7 @@ const Input: React.FC<InputProps> = ({
       <TextInput
         style={commonStyling.input}
         placeholder={placeholder}
-        placeholderTextColor={colors.titleText}
+        placeholderTextColor={colors.gray}
         keyboardType={keyboardType}
         value={value}
         editable={!disabled}

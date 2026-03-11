@@ -1,341 +1,3 @@
-// import React, { useState, useEffect } from "react";
-// import {
-//   StyleSheet,
-//   View,
-//   Text,
-//   TouchableOpacity,
-//   Image,
-//   Dimensions,
-//   StatusBar,
-// } from "react-native";
-// import { LinearGradient } from "expo-linear-gradient";
-// import { ShieldCheck, MapPin, Car, ChevronRight } from "lucide-react-native";
-// import { SafeAreaView } from "react-native-safe-area-context";
-// import { useNavigation } from "@react-navigation/native";
-
-// const { width, height } = Dimensions.get("window");
-
-// // --- Types ---
-// type ScreenStep =
-//   | "splash1"
-//   | "splash2"
-//   | "onboarding1"
-//   | "onboarding2"
-//   | "onboarding3"
-//   | "selection";
-
-// export default function MediGoApp() {
-//   const [step, setStep] = useState<ScreenStep>("splash1");
-//   // Auto-advance Splash Screens
-//   useEffect(() => {
-//     if (step === "splash1") {
-//       setTimeout(() => setStep("splash2"), 1500);
-//     } else if (step === "splash2") {
-//       setTimeout(() => setStep("onboarding1"), 1500);
-//     }
-//   }, [step]);
-
-//   // --- Sub-Components ---
-
-//   const Pagination = ({ activeIndex }: { activeIndex: number }) => (
-//     <View style={styles.paginationContainer}>
-//       {[0, 1, 2].map((i) => (
-//         <View
-//           key={i}
-//           style={[
-//             styles.dot,
-//             activeIndex === i ? styles.activeDot : styles.inactiveDot,
-//           ]}
-//         />
-//       ))}
-//     </View>
-//   );
-
-//   // --- Screen Renders ---
-
-//   if (step === "splash1" || step === "splash2") {
-//     return (
-//       <LinearGradient colors={["#1A3B8E", "#06102B"]} style={styles.fullScreen}>
-//         <StatusBar barStyle="light-content" />
-//         {step === "splash2" && (
-//           <View style={styles.logoContainer}>
-//             <Image
-//               source={{ uri: "https://i.imgur.com/your_logo_here.png" }} // Replace with actual asset
-//               style={styles.logoPlaceholder}
-//               resizeMode="contain"
-//             />
-//             <Text style={styles.splashText}>MediGo</Text>
-//           </View>
-//         )}
-//       </LinearGradient>
-//     );
-//   }
-
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       <StatusBar barStyle="dark-content" />
-
-//       {step !== "selection" ? (
-//         <>
-//           <View style={styles.illustrationArea}>
-//             {step === "onboarding1" && (
-//               <Image
-//                 source={{ uri: "https://placeholder.com/hospital" }}
-//                 style={styles.illustration}
-//               />
-//             )}
-//             {step === "onboarding2" && (
-//               <ShieldCheck size={120} color="#6390F2" strokeWidth={1} />
-//             )}
-//             {step === "onboarding3" && (
-//               <MapPin size={120} color="#6390F2" strokeWidth={1} />
-//             )}
-//           </View>
-
-//           <View style={styles.contentCard}>
-//             <Pagination
-//               activeIndex={
-//                 step === "onboarding1" ? 0 : step === "onboarding2" ? 1 : 2
-//               }
-//             />
-
-//             {step === "onboarding1" && (
-//               <OnboardingContent
-//                 title="Safe Medical Rides"
-//                 desc="..."
-//                 btnText="Continue"
-//                 onPress={() => setStep("onboarding2")}
-//               />
-//             )}
-//             {step === "onboarding2" && (
-//               <OnboardingContent
-//                 title="Verified Trusted Drivers"
-//                 desc="..."
-//                 btnText="Continue"
-//                 onPress={() => setStep("onboarding3")}
-//               />
-//             )}
-//             {step === "onboarding3" && (
-//               <OnboardingContent
-//                 title="Simple Ride Booking"
-//                 desc="..."
-//                 btnText="Get Started"
-//                 onPress={() => setStep("selection")}
-//               />
-//             )}
-//           </View>
-//         </>
-//       ) : (
-//         /* SELECTION SCREEN LAYOUT
-//            This renders without the illustrationArea, starting from the top.
-//         */
-//         <View style={styles.selectionWrapper}>
-//           <RoleSelection />
-//         </View>
-//       )}
-//     </SafeAreaView>
-//   );
-// }
-
-// // --- Helper Components ---
-
-// const OnboardingContent = ({ title, desc, btnText, onPress }: any) => (
-//   <View style={styles.innerContent}>
-//     <Text style={styles.title}>{title}</Text>
-//     <Text style={styles.description}>{desc}</Text>
-//     <TouchableOpacity style={styles.primaryButton} onPress={onPress}>
-//       <Text style={styles.buttonText}>{btnText}</Text>
-//       <ChevronRight color="#FFF" size={20} />
-//     </TouchableOpacity>
-//   </View>
-// );
-
-// const RoleSelection = () => {
-//   const navigation = useNavigation<any>();
-
-//   <View>
-//     <Text style={styles.titleLeft}>How will you use MediGo?</Text>
-//     <Text style={styles.descriptionLeft}>Select how you'll use Mediride.</Text>
-
-//     <TouchableOpacity
-//       style={styles.roleCardPrimary}
-//       onPress={() => {
-//         navigation.navigate("RiderRegistrationFlow");
-//       }}
-//     >
-//       <View style={styles.iconBoxLight}>
-//         <Car color="#FFF" size={24} />
-//       </View>
-//       <View
-//         style={{
-//           flexDirection: "row",
-//           flex: 1,
-//           marginTop: 16,
-//           justifyContent: "space-between",
-//           width: "100%",
-//         }}
-//       >
-//         <View>
-//           <Text style={styles.roleTitleLight}>Book a Ride</Text>
-//           <Text style={styles.roleDescLight}>
-//             Request safe medical transportation.
-//           </Text>
-//         </View>
-//         <ChevronRight color="#FFF" size={20} />
-//       </View>
-//     </TouchableOpacity>
-
-//     <TouchableOpacity style={styles.roleCardSecondary}>
-//       <View style={styles.iconBoxBlue}>
-//         <ShieldCheck color="#3B82F6" size={24} />
-//       </View>
-//       <View
-//         style={{
-//           flexDirection: "row",
-//           flex: 1,
-//           marginTop: 16,
-//           justifyContent: "space-between",
-//           width: "100%",
-//         }}
-//       >
-//         <View>
-//           <Text style={styles.roleTitleDark}>Drive with MediGo</Text>
-//           <Text style={styles.roleDescDark}>
-//             For pre-approved drivers only.
-//           </Text>
-//         </View>
-//         <ChevronRight color="#3B82F6" size={20} />
-//       </View>
-//     </TouchableOpacity>
-
-//     <Text style={styles.footerText}>
-//       Already have an account? <Text style={styles.linkText}>Log in</Text>
-//     </Text>
-//   </View>;
-// };
-
-// // --- Styles ---
-
-// const styles = StyleSheet.create({
-//   fullScreen: { flex: 1, justifyContent: "center", alignItems: "center" },
-//   container: { flex: 1, backgroundColor: "#F8FAFC" },
-//   logoContainer: { alignItems: "center" },
-//   logoPlaceholder: { width: 150, height: 80 },
-//   splashText: {
-//     color: "white",
-//     fontSize: 32,
-//     fontWeight: "bold",
-//     marginTop: 10,
-//   },
-
-//   illustrationArea: { flex: 1, justifyContent: "center", alignItems: "center" },
-//   illustration: {
-//     width: width * 0.7,
-//     height: width * 0.7,
-//     resizeMode: "contain",
-//   },
-//   selectionWrapper: {
-//     flex: 1,
-//     paddingHorizontal: 30,
-//     paddingTop: 40,
-//   },
-
-//   contentCard: { paddingHorizontal: 30, paddingBottom: 40 },
-
-//   paginationContainer: {
-//     flexDirection: "row",
-//     justifyContent: "center",
-//     marginBottom: 30,
-//   },
-//   dot: { height: 6, borderRadius: 3, marginHorizontal: 3 },
-//   activeDot: { width: 20, backgroundColor: "#3B82F6" },
-//   inactiveDot: { width: 6, backgroundColor: "#CBD5E1" },
-
-//   innerContent: { alignItems: "center" },
-//   title: {
-//     fontSize: 24,
-//     fontWeight: "800",
-//     color: "#1E293B",
-//     textAlign: "center",
-//     marginBottom: 15,
-//   },
-//   description: {
-//     fontSize: 15,
-//     color: "#64748B",
-//     textAlign: "center",
-//     lineHeight: 22,
-//     marginBottom: 40,
-//   },
-
-//   titleLeft: {
-//     fontSize: 24,
-//     fontWeight: "800",
-//     color: "#1E293B",
-//     alignSelf: "flex-start",
-//     marginBottom: 8,
-//   },
-//   descriptionLeft: {
-//     fontSize: 14,
-//     color: "#64748B",
-//     alignSelf: "flex-start",
-//     marginBottom: 30,
-//   },
-
-//   primaryButton: {
-//     backgroundColor: "#3B82F6",
-//     width: "100%",
-//     padding: 18,
-//     borderRadius: 12,
-//     flexDirection: "row",
-//     justifyContent: "center",
-//     alignItems: "center",
-//     shadowColor: "#3B82F6",
-//     shadowOffset: { width: 0, height: 4 },
-//     shadowOpacity: 0.3,
-//     shadowRadius: 8,
-//   },
-//   buttonText: {
-//     color: "#FFF",
-//     fontWeight: "700",
-//     fontSize: 16,
-//     marginRight: 8,
-//   },
-
-//   roleCardPrimary: {
-//     backgroundColor: "#3B82F6",
-//     width: "100%",
-//     padding: 20,
-//     borderRadius: 16,
-//     alignItems: "flex-start",
-//     marginBottom: 15,
-//     minHeight: 150,
-//   },
-//   roleCardSecondary: {
-//     backgroundColor: "#FFF",
-//     width: "100%",
-//     padding: 20,
-//     borderRadius: 16,
-//     alignItems: "flex-start",
-//     height: 150,
-//     borderColor: "#E2E8F0",
-//     marginBottom: 30,
-//   },
-//   iconBoxLight: {
-//     backgroundColor: "rgba(255,255,255,0.2)",
-//     padding: 8,
-//     borderRadius: 8,
-//   },
-//   iconBoxBlue: { backgroundColor: "#EFF6FF", padding: 8, borderRadius: 8 },
-
-//   roleTitleLight: { color: "#FFF", fontWeight: "700", fontSize: 16 },
-//   roleDescLight: { color: "rgba(255,255,255,0.8)", fontSize: 12, marginTop: 8 },
-//   roleTitleDark: { color: "#1E293B", fontWeight: "700", fontSize: 16 },
-//   roleDescDark: { color: "#64748B", fontSize: 12, marginTop: 2 },
-
-//   footerText: { color: "#64748B", fontSize: 13, textAlign: "center" },
-//   linkText: { color: "#3B82F6", fontWeight: "700" },
-// });
-
 import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
@@ -350,6 +12,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import { ShieldCheck, MapPin, Car, ChevronRight } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
+import Buttons from "../../components/buttons/buttons";
+import RightArrow from "../../../assets/icons/rightArrow";
+import { FONT_SIZES } from "../../constants/sizes";
+import useTheme from "../../hooks/useThemes";
+import { commonStyles } from "../../styles/commonStyles";
 
 const { width } = Dimensions.get("window");
 
@@ -363,7 +30,8 @@ type ScreenStep =
 
 export default function MediGoApp() {
   const [step, setStep] = useState<ScreenStep>("splash1");
-
+  const { colors } = useTheme();
+  const commonStyling = commonStyles(colors);
   useEffect(() => {
     if (step === "splash1") {
       setTimeout(() => setStep("splash2"), 1500);
@@ -380,6 +48,10 @@ export default function MediGoApp() {
           style={[
             styles.dot,
             activeIndex === i ? styles.activeDot : styles.inactiveDot,
+            {
+              backgroundColor:
+                activeIndex === i ? colors.primaryColor : colors.stroke,
+            },
           ]}
         />
       ))}
@@ -405,7 +77,14 @@ export default function MediGoApp() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.surfacePrimary,
+        },
+      ]}
+    >
       <StatusBar barStyle="dark-content" />
 
       {step !== "selection" ? (
@@ -413,15 +92,21 @@ export default function MediGoApp() {
           <View style={styles.illustrationArea}>
             {step === "onboarding1" && (
               <Image
-                source={{ uri: "https://placeholder.com/hospital" }}
+                source={require("../../../assets/images/onboarding1.png")}
                 style={styles.illustration}
               />
             )}
             {step === "onboarding2" && (
-              <ShieldCheck size={120} color="#6390F2" strokeWidth={1} />
+              <Image
+                source={require("../../../assets/images/onboarding2.png")}
+                style={styles.illustration}
+              />
             )}
             {step === "onboarding3" && (
-              <MapPin size={120} color="#6390F2" strokeWidth={1} />
+              <Image
+                source={require("../../../assets/images/onboarding3.png")}
+                style={styles.illustration}
+              />
             )}
           </View>
 
@@ -439,7 +124,13 @@ export default function MediGoApp() {
                     ? "Verified Trusted Drivers"
                     : "Simple Ride Booking"
               }
-              desc="Reliable transportation to hospitals, clinics, and care centers."
+              desc={
+                step === "onboarding1"
+                  ? "Reliable transportation to hospitals, clinics, and care centers."
+                  : step === "onboarding2"
+                    ? "All drivers are pre-approved and background-checked for your safety."
+                    : "Request a ride instantly and track your driver in real time."
+              }
               btnText={step === "onboarding3" ? "Get Started" : "Continue"}
               onPress={() =>
                 setStep(
@@ -462,74 +153,138 @@ export default function MediGoApp() {
   );
 }
 
-// --- Helper Components ---
-
-const OnboardingContent = ({ title, desc, btnText, onPress }: any) => (
-  <View style={styles.innerContent}>
-    <Text style={styles.title}>{title}</Text>
-    <Text style={styles.description}>{desc}</Text>
-    <TouchableOpacity style={styles.primaryButton} onPress={onPress}>
-      <Text style={styles.buttonText}>{btnText}</Text>
-      <ChevronRight color="#FFF" size={20} />
-    </TouchableOpacity>
-  </View>
-);
-
-const RoleSelection = () => {
-  const navigation = useNavigation<any>(); // Access navigation here
+const OnboardingContent = ({ title, desc, btnText, onPress }: any) => {
+  const { colors } = useTheme();
+  const commonStyling = commonStyles(colors);
 
   return (
+    <View style={styles.innerContent}>
+      <Text style={[commonStyling.title, styles.title]}>{title}</Text>
+      <Text style={[commonStyling.subtitle, styles.description]}>{desc}</Text>
+
+      <View style={{ width: "100%" }}>
+        <Buttons title={btnText} onPress={onPress} rightIcon={<RightArrow />} />
+      </View>
+    </View>
+  );
+};
+
+const RoleSelection = () => {
+  const navigation = useNavigation<any>();
+  const { colors } = useTheme();
+  const commonStyling = commonStyles(colors);
+  return (
     <View style={styles.selectionInner}>
-      <Text style={styles.titleLeft}>How will you use MediGo?</Text>
-      <Text style={styles.descriptionLeft}>
-        Select how you'll use Mediride.
+      <Text style={[commonStyling.title, styles.titleLeft]}>
+        How will you use MediGo?
+      </Text>
+      <Text style={[commonStyling.subtitle, styles.descriptionLeft]}>
+        Select how you'll use MediGo.
       </Text>
 
       <TouchableOpacity
-        style={styles.roleCardPrimary}
+        style={[
+          styles.roleCardPrimary,
+          {
+            backgroundColor: colors.primaryColor,
+          },
+        ]}
         onPress={() => navigation.navigate("RiderRegistrationFlow")}
       >
         <View style={styles.iconBoxLight}>
-          <Car color="#FFF" size={24} />
+          <Car color="#FFF" size={32} />
         </View>
         <View style={styles.roleRow}>
           <View>
-            <Text style={styles.roleTitleLight}>Book a Ride</Text>
-            <Text style={styles.roleDescLight}>
+            <Text
+              style={[
+                commonStyling.title,
+                styles.roleTitleLight,
+                {
+                  fontFamily: "Bold",
+                  fontSize: FONT_SIZES.TITLE,
+                },
+              ]}
+            >
+              Book a Ride
+            </Text>
+            <Text style={[commonStyling.subtitle, styles.roleDescLight]}>
               Request safe medical transportation.
             </Text>
           </View>
-          <ChevronRight color="#FFF" size={20} />
+          <RightArrow />
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.roleCardSecondary}>
+      <TouchableOpacity
+        style={[
+          styles.roleCardSecondary,
+          {
+            borderColor: colors.stroke,
+          },
+        ]}
+      >
         <View style={styles.iconBoxBlue}>
-          <ShieldCheck color="#3B82F6" size={24} />
+          <ShieldCheck color="#3B82F6" size={32} />
         </View>
         <View style={styles.roleRow}>
           <View>
-            <Text style={styles.roleTitleDark}>Drive with MediGo</Text>
-            <Text style={styles.roleDescDark}>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontFamily: "Bold",
+                  fontSize: FONT_SIZES.TITLE,
+                  color: colors.titleText,
+                },
+              ]}
+            >
+              Drive with MediGo
+            </Text>
+            <Text style={[commonStyling.subtitle, styles.roleDescDark]}>
               For pre-approved drivers only.
             </Text>
           </View>
-          <ChevronRight color="#3B82F6" size={20} />
+          <RightArrow color={colors.titleText} />
         </View>
       </TouchableOpacity>
 
-      <View style={styles.footerContainer}>
-        <Text style={styles.footerText}>
-          Already have an account? <Text style={styles.linkText}>Log in</Text>
+      <TouchableOpacity
+        style={styles.footerContainer}
+        onPress={() => {
+          navigation.navigate("Login");
+        }}
+      >
+        <Text
+          style={[
+            commonStyling.subtitle,
+            styles.footerText,
+            {
+              fontSize: FONT_SIZES.BODY,
+              fontFamily: "SemiBold",
+            },
+          ]}
+        >
+          Already have an account?{" "}
+          <Text
+            style={[
+              styles.linkText,
+              {
+                color: colors.primaryColor,
+              },
+            ]}
+          >
+            Log in
+          </Text>
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   fullScreen: { flex: 1, justifyContent: "center", alignItems: "center" },
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
+  container: { flex: 1 },
   logoContainer: { alignItems: "center" },
   logoPlaceholder: { width: 150, height: 80 },
   splashText: {
@@ -540,13 +295,12 @@ const styles = StyleSheet.create({
   },
   illustrationArea: { flex: 1, justifyContent: "center", alignItems: "center" },
   illustration: {
-    width: width * 0.7,
+    width: width,
     height: width * 0.7,
     resizeMode: "contain",
   },
 
-  // Design 100% Match: Starts from top, clears illustrationArea
-  selectionWrapper: { flex: 1, paddingHorizontal: 30, paddingTop: 20 },
+  selectionWrapper: { flex: 1, paddingHorizontal: 30, paddingTop: 30 },
   selectionInner: { flex: 1 },
 
   contentCard: { paddingHorizontal: 30, paddingBottom: 40 },
@@ -556,100 +310,77 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   dot: { height: 6, borderRadius: 3, marginHorizontal: 3 },
-  activeDot: { width: 20, backgroundColor: "#3B82F6" },
-  inactiveDot: { width: 6, backgroundColor: "#CBD5E1" },
+  activeDot: { width: 20 },
+  inactiveDot: { width: 6 },
 
   innerContent: { alignItems: "center" },
   title: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: "#1E293B",
+    fontSize: FONT_SIZES.HERO,
     textAlign: "center",
     marginBottom: 15,
+    fontFamily: "Bold",
   },
   description: {
-    fontSize: 15,
-    color: "#64748B",
     textAlign: "center",
     lineHeight: 22,
     marginBottom: 40,
   },
 
   titleLeft: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: "#1E293B",
+    fontSize: FONT_SIZES.HERO,
+    fontFamily: "Bold",
     alignSelf: "flex-start",
     marginBottom: 8,
   },
   descriptionLeft: {
-    fontSize: 14,
-    color: "#64748B",
     alignSelf: "flex-start",
     marginBottom: 32,
   },
 
-  primaryButton: {
-    backgroundColor: "#3B82F6",
-    width: "100%",
-    padding: 18,
-    borderRadius: 12,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#FFF",
-    fontWeight: "700",
-    fontSize: 16,
-    marginRight: 8,
-  },
-
   roleCardPrimary: {
-    backgroundColor: "#3B82F6",
     width: "100%",
     padding: 20,
     borderRadius: 16,
     marginBottom: 16,
-    minHeight: 140,
+    minHeight: 200,
   },
   roleCardSecondary: {
-    backgroundColor: "#FFF",
     width: "100%",
     padding: 20,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
     marginBottom: 30,
-    minHeight: 140,
+    height: 200,
   },
   roleRow: {
     flexDirection: "row",
     flex: 1,
-    marginTop: 16,
     justifyContent: "space-between",
     alignItems: "center",
   },
 
   iconBoxLight: {
     backgroundColor: "rgba(255,255,255,0.2)",
-    padding: 8,
     borderRadius: 8,
-    alignSelf: "flex-start",
+    height: 64,
+    width: 64,
+    justifyContent: "center",
+    alignItems: "center",
   },
   iconBoxBlue: {
-    backgroundColor: "#EFF6FF",
-    padding: 8,
+    backgroundColor: "#E8F1FF",
+    height: 64,
+    width: 64,
     borderRadius: 8,
-    alignSelf: "flex-start",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
-  roleTitleLight: { color: "#FFF", fontWeight: "700", fontSize: 18 },
-  roleDescLight: { color: "rgba(255,255,255,0.8)", fontSize: 13, marginTop: 4 },
-  roleTitleDark: { color: "#1E293B", fontWeight: "700", fontSize: 18 },
-  roleDescDark: { color: "#64748B", fontSize: 13, marginTop: 4 },
+  roleTitleLight: { color: "#FFF" },
+  roleDescLight: { color: "rgba(255,255,255,0.8)", marginTop: 8 },
+  roleDescDark: { marginTop: 8 },
 
   footerContainer: { marginTop: "auto", paddingBottom: 20 },
-  footerText: { color: "#64748B", fontSize: 13, textAlign: "center" },
-  linkText: { color: "#3B82F6", fontWeight: "700" },
+  footerText: { textAlign: "center" },
+  linkText: { fontWeight: "700" },
 });

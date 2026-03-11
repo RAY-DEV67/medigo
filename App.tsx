@@ -7,6 +7,12 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 import AuthStack from "./src/navigations/authStack";
+import RiderMainStack from "./src/navigations/RiderMainStack";
+import RiderRideStack from "./src/navigations/riderRideStack";
+import RiderProfileStack from "./src/navigations/riderProfileStack";
+import RiderProfileContentsStack from "./src/navigations/riderProfileContentsStack";
+import RiderRideDetailsStack from "./src/navigations/riderRideDetailsStack";
+import RiderNotificationStack from "./src/navigations/riderNotificationStack";
 import ThemeProvider from "./src/context/themeProvider";
 import { AuthProvider } from "./src/context/authContext";
 import { toastConfig } from "./src/components/toastConfig";
@@ -21,6 +27,7 @@ import RouteHeaderCard from "./src/components/map/routeHeaderCard";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useOTAUpdate } from "./src/hooks/useOTAUpdates";
 import { navigationRef } from "./src/utils/navigationRef";
+import Navbar from "./src/components/navbar";
 
 enableScreens(true);
 
@@ -30,10 +37,34 @@ const Stack = createNativeStackNavigator();
 
 const Tab = createBottomTabNavigator();
 
+const RiderMainTabs = () => (
+  <Tab.Navigator
+    tabBar={(props) => <Navbar {...props} />}
+    screenOptions={{ headerShown: false }}
+  >
+    <Tab.Screen name="Main" component={RiderMainStack} />
+    <Tab.Screen name="RiderRideStack" component={RiderRideStack} />
+    <Tab.Screen name="RiderProfileStack" component={RiderProfileStack} />
+  </Tab.Navigator>
+);
+
 const AppNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="RiderMainTabs" component={RiderMainTabs} />
       <Stack.Screen name="Auth" component={AuthStack} />
+      <Stack.Screen
+        name="RiderNotificationStack"
+        component={RiderNotificationStack}
+      />
+      <Stack.Screen
+        name="RiderRideDetailsStack"
+        component={RiderRideDetailsStack}
+      />
+      <Stack.Screen
+        name="RiderProfileContentsStack"
+        component={RiderProfileContentsStack}
+      />
     </Stack.Navigator>
   );
 };
@@ -47,10 +78,10 @@ const AppNavigator = () => {
 const App: React.FC = () => {
   useOTAUpdate();
   const [fontsLoaded] = useFonts({
-    Regular: require("./assets/fonts/Geist-Regular.ttf"),
-    Medium: require("./assets/fonts/Geist-Medium.ttf"),
-    Bold: require("./assets/fonts/Geist-Bold.ttf"),
-    SemiBold: require("./assets/fonts/Geist-SemiBold.ttf"),
+    Regular: require("./assets/fonts/Inter_18pt-Regular.ttf"),
+    Medium: require("./assets/fonts/Inter_18pt-Medium.ttf"),
+    Bold: require("./assets/fonts/Inter_24pt-Bold.ttf"),
+    SemiBold: require("./assets/fonts/Inter_18pt-SemiBold.ttf"),
   });
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [isReady, setIsReady] = useState(false);

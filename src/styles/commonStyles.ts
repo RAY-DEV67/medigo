@@ -22,7 +22,7 @@ export const commonStyles = (colors: ColorsType) =>
     input: {
       borderRadius: 5,
       borderWidth: 1,
-      marginBottom: 16,
+      marginBottom: 8,
       color: colors.inputText,
       paddingHorizontal: 10,
       fontSize: FONT_SIZES.BODY,
@@ -32,10 +32,10 @@ export const commonStyles = (colors: ColorsType) =>
       fontFamily: "Regular",
     },
     inputTitle: {
-      fontSize: FONT_SIZES.BODY,
+      fontSize: FONT_SIZES.SUBTITLE,
       color: colors.titleText,
       marginBottom: 8,
-      fontFamily: "Regular",
+      fontFamily: "Medium",
     },
     overlay: {
       flex: 1,

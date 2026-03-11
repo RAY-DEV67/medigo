@@ -32,10 +32,10 @@ export const FONT_SIZES = {
   BODY: getFontSize(12),
   SUBTITLE: getFontSize(14),
   BODYTITLE: getFontSize(18),
-  BUTTONTEXT: getFontSize(18),
+  BUTTONTEXT: getFontSize(16),
   BUTTON: getFontSize(16),
   TITLE: getFontSize(20),
   TITLE2: getFontSize(23),
   HERO: getFontSize(32),
-  HERO2: getFontSize(35),
+  HERO2: getFontSize(36),
 };
