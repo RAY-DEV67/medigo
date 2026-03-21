@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   View,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import {
   ChevronLeft,
@@ -15,82 +16,111 @@ import {
   Info,
   Banknote,
   Gift,
+  Bell,
 } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { SafeAreaView } from "react-native-safe-area-context";
+import useTheme from "../../../hooks/useThemes";
+import { commonStyles } from "../../../styles/commonStyles";
+import Header from "../../../components/reuseables/header";
+import { FONT_SIZES } from "../../../constants/sizes";
+import { useNotifications } from "../../../hooks/queries/useNotifications";
+import { formatDistanceToNow } from "date-fns";
 
 const NotificationsScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { colors, theme } = useTheme();
+  const commonStyling = commonStyles(colors);
+  const [unreadOnly, setUnreadOnly] = useState(false);
+  const { data, isLoading } = useNotifications({
+    unread_only: unreadOnly,
+    limit: 20,
+  });
+
+  // Helper to get Icon and Color based on type
+  const getNotificationStyles = (type: string) => {
+    switch (type?.toLowerCase()) {
+      case "ride":
+        return { icon: <Calendar size={20} color="#3B82F6" />, bg: "#EFF6FF" };
+      case "payment":
+        return { icon: <Banknote size={20} color="#10B981" />, bg: "#ECFDF5" };
+      case "safety":
+        return { icon: <Shield size={20} color="#8B5CF6" />, bg: "#F5F3FF" };
+      case "promo":
+        return { icon: <Gift size={20} color="#F59E0B" />, bg: "#FFFBEB" };
+      default:
+        return { icon: <Info size={20} color="#3B82F6" />, bg: "#EFF6FF" };
+    }
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
-          <ChevronLeft color="#1A1C1E" size={24} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Notifications</Text>
-        <View style={{ width: 40 }} />
-      </View>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.surfacePrimary }]}
+    >
+      <StatusBar
+        barStyle={theme === "light" ? "dark-content" : "light-content"}
+      />
+      <Header title="Notifications" />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <Text style={styles.description}>
+        <Text
+          style={[
+            styles.description,
+            commonStyling.subtitle,
+            { paddingHorizontal: 20 },
+          ]}
+        >
           View all notifications for your rides and account here
         </Text>
-        <Text style={styles.sectionTitle}>Unread</Text>
-        <NotificationItem
-          icon={<Calendar color="#3B82F6" size={20} />}
-          iconBg="#EFF6FF"
-          title="Ride Completed"
-          description="Your ride to Springfield General Hospital has been completed successfully."
-          time="30 minutes ago"
-          unread
-          onPress={() => {
-            navigation.navigate("RideCompletedDetails");
-          }}
-        />
-        <NotificationItem
-          icon={<Banknote color="#10B981" size={20} />}
-          iconBg="#ECFDF5"
-          title="Payment Successful"
-          description="Your payment of $28.50 for the ride on March 3 has been processed."
-          time="1 day ago"
-          unread
-          onPress={() => {
-            navigation.navigate("PaymentSuccessfulNotificationDetail");
-          }}
-        />
-        <NotificationItem
-          icon={<Shield color="#8B5CF6" size={20} />}
-          iconBg="#F5F3FF"
-          title="Safety Feature Update"
-          description="New safety features have been added to your account"
-          time="3 days ago"
-          unread
-        />
-        <Text style={styles.sectionTitle}>Today</Text>
-        <NotificationItem
-          icon={<Gift color="#F59E0B" size={20} />}
-          iconBg="#FFFBEB"
-          title="Special Offer: 20% Off!"
-          description="Enjoy 20% off your next medical appointment ride. Valid until March 10."
-          time="2 hours ago"
-        />
 
-        {/* Section: Previously */}
-        <Text style={styles.sectionTitle}>Previously</Text>
-        <NotificationItem
-          icon={<Info color="#3B82F6" size={20} />}
-          iconBg="#EFF6FF"
-          title="Emergency Contact Updated"
-          description="Your emergency contact information has been successfully updated."
-          time="2 days ago"
-        />
+        {isLoading ? (
+          <ActivityIndicator
+            size="large"
+            color={colors.primaryColor}
+            style={{ marginTop: 50 }}
+          />
+        ) : data?.data && data.data.length > 0 ? (
+          data.data.map((item) => {
+            const { icon, bg } = getNotificationStyles(item.notification_type);
+
+            return (
+              <NotificationItem
+                key={item.id}
+                icon={icon}
+                iconBg={bg}
+                title={item.title}
+                description={item.body}
+                // Formatting "2026-03-17..." to "2 hours ago"
+                time={formatDistanceToNow(new Date(item.created_at), {
+                  addSuffix: true,
+                })}
+                unread={!item.is_read}
+                onPress={() => {
+                  // Handle navigation based on item.data or type
+                  if (item.notification_type === "ride")
+                    navigation.navigate("RideDetails", {
+                      id: item.data.ride_id,
+                    });
+                }}
+              />
+            );
+          })
+        ) : (
+          <View>
+            <Text
+              style={[
+                commonStyling.subtitle,
+                { marginTop: 16, textAlign: "center" },
+              ]}
+            >
+              No notifications yet
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -105,57 +135,76 @@ const NotificationItem = ({
   time,
   unread,
   onPress,
-}: any) => (
-  <TouchableOpacity style={styles.itemWrapper} onPress={onPress}>
-    <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
-      {icon}
-    </View>
-    <View style={styles.textWrapper}>
-      <View style={styles.titleRow}>
-        <Text style={styles.itemTitle}>{title}</Text>
-        {unread && <View style={styles.unreadDot} />}
+}: any) => {
+  const { colors } = useTheme();
+  const commonStyling = commonStyles(colors);
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.itemWrapper,
+        {
+          backgroundColor: colors.surfaceElevated,
+          paddingHorizontal: 20,
+          borderBottomColor: colors.lightPrimaryBlueBorder,
+        },
+      ]}
+      onPress={onPress}
+    >
+      <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
+        {icon}
       </View>
-      <Text style={styles.itemDescription} numberOfLines={2}>
-        {description}
-      </Text>
-      <Text style={styles.timeText}>{time}</Text>
-    </View>
-    <ChevronRight color="#94A3B8" size={18} />
-  </TouchableOpacity>
-);
+      <View style={styles.textWrapper}>
+        <View style={styles.titleRow}>
+          <Text
+            style={[
+              commonStyling.title,
+              {
+                fontSize: 16,
+                fontFamily: "SemiBold",
+              },
+            ]}
+          >
+            {title}
+          </Text>
+          {unread && <View style={styles.unreadDot} />}
+        </View>
+        <Text
+          style={[
+            styles.itemDescription,
+            commonStyling.subtitle,
+            {
+              fontSize: 14,
+              fontFamily: "Medium",
+            },
+          ]}
+          numberOfLines={2}
+        >
+          {description}
+        </Text>
+        <Text
+          style={[
+            styles.itemDescription,
+            commonStyling.subtitle,
+            {
+              fontSize: FONT_SIZES.SMALL,
+            },
+          ]}
+        >
+          {time}
+        </Text>
+      </View>
+      <ChevronRight color="#94A3B8" size={18} />
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 20,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  headerTitle: { fontSize: 20, fontWeight: "800", color: "#1E293B" },
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
-  description: { fontSize: 14, color: "#64748B", marginBottom: 24 },
+  container: { flex: 1 },
+
+  scrollContent: { paddingBottom: 40 },
+  description: { marginBottom: 24 },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#1E293B",
     marginTop: 12,
     marginBottom: 16,
   },
@@ -165,7 +214,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
   },
   iconContainer: {
     width: 48,
@@ -176,7 +224,6 @@ const styles = StyleSheet.create({
   },
   textWrapper: { flex: 1, marginLeft: 16, marginRight: 8 },
   titleRow: { flexDirection: "row", alignItems: "center" },
-  itemTitle: { fontSize: 16, fontWeight: "700", color: "#1E293B" },
   unreadDot: {
     width: 8,
     height: 8,
@@ -185,8 +232,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   itemDescription: {
-    fontSize: 14,
-    color: "#64748B",
     marginTop: 4,
     lineHeight: 20,
   },

@@ -17,7 +17,7 @@ export const commonStyles = (colors: ColorsType) =>
     subtitle: {
       fontSize: FONT_SIZES.SUBTITLE,
       fontFamily: "Regular",
-      color: colors.subTitleText,
+      color: colors.textSecondary,
     },
     input: {
       borderRadius: 5,

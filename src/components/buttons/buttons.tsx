@@ -48,7 +48,7 @@ const Buttons: React.FC<ButtonsProps> = ({
   > = {
     primary: {
       backgroundColor: colors.primaryColor,
-      textColor: colors.buttonPrimaryText,
+      textColor: "#ffffff",
     },
     danger: {
       backgroundColor: colors.buttonDanger,
@@ -126,8 +126,8 @@ const Buttons: React.FC<ButtonsProps> = ({
                 {
                   color: current.textColor,
                   textAlign: "center",
-                  fontSize: FONT_SIZES.BUTTONTEXT
-                  ,
+                  fontSize: 18,
+                  fontFamily: "SemiBold",
                 },
               ]}
             >

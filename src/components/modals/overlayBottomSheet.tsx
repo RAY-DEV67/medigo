@@ -365,7 +365,7 @@ const OverlayBottomSheet = forwardRef<OverlayBottomSheetRef, Props>(
             {
               height: height + insets.bottom,
               transform: [{ translateY }],
-              backgroundColor: backgroundColor || colors.lightGray,
+              backgroundColor: colors.surfacePrimary,
             },
           ]}
         >

@@ -7,65 +7,74 @@ import {
   AuthResponse,
   ResendOTPPayload,
   OTPResponse,
+  RegisterPayload,
+  RegisterResponse,
+  VerifyOTPResponse,
+  ResendOtpParams,
+  ResendOtpResponse,
+  DriverRegisterRequest,
+  DriverRegisterResponse,
 } from "../../types/auth.types";
+import {
+  ForgotPasswordRequest,
+  ForgotPasswordResponse,
+} from "../../types/user.types";
 
 const authService = {
-  requestOTP: async (payload: RequestOTPPayload): Promise<OTPResponse> => {
-    const response: AxiosResponse<OTPResponse> = await apiClient.post(
-      AUTH_ENDPOINTS.REQUEST_OTP,
-      {
-        phone_number: payload.phone_number,
-        otp_delivery_method: payload.otp_delivery_method,
-      },
-    );
-    return response.data;
-  },
-
-  loginRequestOTP: async (payload: RequestOTPPayload): Promise<string> => {
-    const response: AxiosResponse<string> = await apiClient.post(
-      AUTH_ENDPOINTS.LOGIN_REQUEST_OTP,
+  register: async (payload: RegisterPayload): Promise<RegisterResponse> => {
+    const response: AxiosResponse<RegisterResponse> = await apiClient.post(
+      AUTH_ENDPOINTS.REGISTER,
       payload,
     );
     return response.data;
   },
 
-  verifyOTP: async (payload: VerifyOTPPayload): Promise<AuthResponse> => {
-    const response: AxiosResponse<AuthResponse> = await apiClient.post(
+  login: async (payload: any): Promise<any> => {
+    const response: AxiosResponse<any> = await apiClient.post(
+      AUTH_ENDPOINTS.LOGIN,
+      payload,
+    );
+    return response.data;
+  },
+
+  verifyRegistrationOTP: async (payload: any): Promise<VerifyOTPResponse> => {
+    const response: AxiosResponse<VerifyOTPResponse> = await apiClient.post(
       AUTH_ENDPOINTS.VERIFY_OTP,
+      payload,
+    );
+    return response.data;
+  },
+
+  forgotPassword: async (
+    data: ForgotPasswordRequest,
+  ): Promise<ForgotPasswordResponse> => {
+    const response: AxiosResponse<ForgotPasswordResponse> =
+      await apiClient.post("/auth/forgot-password", data);
+    return response.data;
+  },
+
+  resendOtp: async ({
+    user_id,
+    purpose = "registration",
+  }: ResendOtpParams): Promise<ResendOtpResponse> => {
+    const response: AxiosResponse<ResendOtpResponse> = await apiClient.post(
+      "/auth/resend-otp",
+      null, // No request body
       {
-        phone_number: payload.phoneNumber,
-        otp: payload.otp,
-        device_id: payload.device_id,
+        params: {
+          user_id,
+          purpose,
+        },
       },
     );
     return response.data;
   },
 
-  resendOTP: async (payload: ResendOTPPayload): Promise<OTPResponse> => {
-    const response: AxiosResponse<OTPResponse> = await apiClient.post(
-      AUTH_ENDPOINTS.REQUEST_OTP,
-      {
-        phone_number: payload.phoneNumber,
-        otp_delivery_method: payload.otp_delivery_method,
-      },
-    );
-
-    return response.data;
-  },
-
-  logout: async (refreshToken: string): Promise<void> => {
-    await apiClient.post(AUTH_ENDPOINTS.LOGOUT, {
-      refresh_token: refreshToken,
-    });
-  },
-
-  refreshToken: async (refreshToken: string): Promise<AuthResponse> => {
-    const response: AxiosResponse<AuthResponse> = await apiClient.post(
-      AUTH_ENDPOINTS.REFRESH_TOKEN,
-      {
-        refresh_token: refreshToken,
-      },
-    );
+  registerDriver: async (
+    data: DriverRegisterRequest,
+  ): Promise<DriverRegisterResponse> => {
+    const response: AxiosResponse<DriverRegisterResponse> =
+      await apiClient.post("/auth/driver/register", data);
     return response.data;
   },
 };

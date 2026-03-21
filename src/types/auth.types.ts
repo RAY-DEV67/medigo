@@ -20,12 +20,6 @@ export interface RequestOTPPayload {
   role: "rider";
 }
 
-export interface VerifyOTPPayload {
-  phoneNumber: string;
-  otp: string;
-  device_id: string;
-}
-
 export interface ResendOTPPayload {
   phoneNumber: string;
   otp_delivery_method: string;
@@ -34,13 +28,6 @@ export interface ResendOTPPayload {
 export interface LoginPayload {
   email: string;
   password: string;
-}
-
-export interface RegisterPayload {
-  phone_number: string;
-  email?: string;
-  name?: string;
-  password?: string;
 }
 
 export interface ValidationError {
@@ -55,4 +42,96 @@ export interface ErrorResponse {
 export interface OTPResponse {
   message: string;
   status?: string; // Optional if not always present
+}
+
+export interface RegisterPayload {
+  email: string;
+  phone: string;
+  password: string;
+  role: "rider" | "driver";
+}
+
+export interface RegisterResponse {
+  success: boolean;
+  message: string;
+  data: {
+    user_id: string;
+    message: string;
+  };
+}
+
+export interface VerifyOTPPayload {
+  user_id: string;
+  code: string;
+  purpose: "registration" | "login" | "password_reset";
+}
+
+export interface VerifyOTPResponse {
+  success: boolean;
+  message: string;
+  data: {
+    verified: boolean;
+    message: string;
+  };
+}
+
+export interface UpdateProfilePayload {
+  first_name: string;
+  last_name: string;
+  date_of_birth: string; // Format: YYYY-MM-DD
+  gender: string;
+  avatar_url?: string;
+  home_address: string;
+  medical_notes?: string;
+}
+
+export interface UserProfileResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: string;
+    email: string;
+    phone: string;
+    first_name: string;
+    last_name: string;
+    date_of_birth: string;
+    gender: string;
+    avatar_url: string;
+    home_address: string;
+    medical_notes: string;
+    role: string;
+    onboarding_step: number;
+    onboarding_completed: boolean;
+  };
+}
+
+export type OtpPurpose =
+  | "registration"
+  | "forgot_password"
+  | "login"
+  | "change_phone";
+
+export interface ResendOtpParams {
+  user_id: string; // UUID
+  purpose?: OtpPurpose;
+}
+
+export interface ResendOtpResponse {
+  success: boolean;
+  message: string;
+  data: string;
+}
+
+export interface DriverRegisterRequest {
+  invite_token: string;
+  password: string;
+}
+
+export interface DriverRegisterResponse {
+  success: boolean;
+  message: string;
+  data: {
+    user_id: string; // UUID
+    message: string;
+  };
 }

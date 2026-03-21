@@ -14,12 +14,43 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import ModalComponent from "../../components/modals/modal";
+import { useAddPaymentMutation } from "../../hooks/mutations/usePayments";
 
 const PaymentMethod = () => {
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
   const [showModal, setShowModal] = useState(false);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const [cardData, setcardData] = useState<any>({
+    method_type: "string",
+    card_number: "stringstrings",
+    expiry_month: "2",
+    expiry_year: "3854",
+    holder_name: "string",
+    cvd: "stri",
+  });
+
+  const updateCardFields = (fields: Partial<any>) => {
+    setcardData((prev) => ({ ...prev, ...fields }));
+  };
+
+  const paymentMutation = useAddPaymentMutation();
+
+  // Inside your component's submit handler for the Payment step
+  const handlePaymentSubmit = () => {
+    paymentMutation.mutate(cardData, {
+      onSuccess: () => {
+        setShowModal(true);
+      },
+      onError: (err) => {
+        // You might want to show a specific toast or alert here
+        alert(
+          "Payment failed: " +
+            (err.response?.data?.detail?.[0]?.msg || "Invalid card details"),
+        );
+      },
+    });
+  };
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -43,7 +74,9 @@ const PaymentMethod = () => {
         backgroundColor: colors.surfacePrimary,
       }}
     >
-      <StatusBar barStyle="dark-content" />
+      <StatusBar
+        barStyle={theme === "light" ? "dark-content" : "light-content"}
+      />
 
       {/* Header */}
       <View style={styles.header}>
@@ -111,57 +144,54 @@ const PaymentMethod = () => {
           placeholder="1234 5678 9012 3456"
           value=""
           onChangeText={() => {}}
+          value={cardData.card_number}
+          onChangeText={(val) => updateCardFields({ card_number: val })}
         />
         <View style={styles.row}>
           <View style={{ flex: 1, marginRight: 10 }}>
             <Input
               title="Expiry date"
               placeholder="mm/yy"
-              value=""
-              onChangeText={() => {}}
+              value={cardData.expiry_month}
+              onChangeText={(val) => updateCardFields({ expiry_month: val })}
             />
           </View>
           <View style={{ flex: 1 }}>
             <Input
               title="CVV"
               placeholder="123"
-              value=""
-              onChangeText={() => {}}
+              value={cardData.cvd}
+              onChangeText={(val) => updateCardFields({ cvd: val })}
             />
           </View>
         </View>
         <Input
           title="Cardholder Name"
           placeholder="Jhon"
-          value=""
-          onChangeText={() => {}}
+          value={cardData.holder_name}
+          onChangeText={(val) => updateCardFields({ holder_name: val })}
         />
+
         <View
           style={[
+            styles.privacyBanner,
             {
-              backgroundColor: colors.highlightBlue50,
-              flexDirection: "row",
-              columnGap: 8,
-              alignItems: "flex-start",
-              padding: 16,
-              borderRadius: 16,
-              borderWidth: 1,
-              borderColor: "#2F6FED33",
-              marginTop: 16,
-              marginBottom: 32,
+              backgroundColor: colors.surfaceBrand,
+              marginTop: 32,
             },
           ]}
         >
-          <Shield color="#3B82F6" size={20} />
-          <View>
+          <View style={styles.lockIconWrapper}>
+            <Shield color="#3B82F6" size={20} />
+          </View>
+          <View style={styles.bannerTextContainer}>
             <Text
               style={[
+                styles.bannerTitle,
                 commonStyling.title,
                 {
-                  fontSize: FONT_SIZES.SUBTITLE,
                   color: colors.primaryColor,
-                  fontFamily: "Medium",
-                  marginBottom: 8,
+                  fontSize: FONT_SIZES.BODY,
                 },
               ]}
             >
@@ -169,11 +199,11 @@ const PaymentMethod = () => {
             </Text>
             <Text
               style={[
+                styles.bannerSub,
                 commonStyling.subtitle,
                 {
+                  color: colors.lightPrimaryBlue,
                   fontSize: FONT_SIZES.BODY,
-                  color: colors.primaryColor,
-                  lineHeight: 20,
                 },
               ]}
             >
@@ -182,13 +212,19 @@ const PaymentMethod = () => {
             </Text>
           </View>
         </View>
-        <View>
+
+        <View
+          style={{
+            marginTop: 64,
+          }}
+        >
           <Buttons
             title="Save & Continue"
             onPress={() => {
-              setShowModal(true);
+              handlePaymentSubmit();
             }}
             rightIcon={<RightArrow />}
+            loading={paymentMutation.isPending}
           />
         </View>
       </ScrollView>
@@ -223,7 +259,7 @@ const PaymentMethod = () => {
 };
 
 const styles = StyleSheet.create({
-  header: { paddingHorizontal: 20, paddingTop: 10 },
+  header: { paddingHorizontal: 20, paddingVertical: 10 },
 
   scrollContent: { paddingHorizontal: 24, paddingBottom: 100 },
   title: { marginTop: 24, fontSize: FONT_SIZES.HERO, fontFamily: "Bold" },
@@ -263,6 +299,17 @@ const styles = StyleSheet.create({
   padlockContainer: {
     alignItems: "center",
   },
+  privacyBanner: {
+    flexDirection: "row",
+    padding: 16,
+    borderRadius: 16,
+    marginTop: 4,
+    alignItems: "flex-start",
+  },
+  lockIconWrapper: { marginTop: 2 },
+  bannerTextContainer: { flex: 1, marginLeft: 12 },
+  bannerTitle: { color: "#1E3A8A" },
+  bannerSub: { color: "#3B82F6", marginTop: 4, lineHeight: 18 },
 });
 
 export default PaymentMethod;

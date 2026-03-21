@@ -38,7 +38,6 @@ export interface GoogleInputProps {
   onPlaceSelected: (coords: Coordinates) => void;
   onPress?: () => void;
   dropdown: boolean;
-  setShowStaticSuggestions: (val: boolean) => void;
   onFocus?: () => void;
   loading: boolean;
   setLoading: (val: boolean) => void;
@@ -55,7 +54,6 @@ export default function GoogleInput({
   onPress,
   dropdown,
   onFocus,
-  setShowStaticSuggestions,
   setLoading,
   loading,
 }: GoogleInputProps) {
@@ -63,7 +61,7 @@ export default function GoogleInput({
 
   // 🔹 Fallback internal predictions when not passed from outside
   const [localPredictions, setLocalPredictions] = useState<PredictionItem[]>(
-    []
+    [],
   );
 
   const finalPredictions = predictions ?? localPredictions;
@@ -76,7 +74,6 @@ export default function GoogleInput({
     async (text: string) => {
       if (text.length < 2) {
         finalSetPredictions([]);
-        setShowStaticSuggestions(true);
         return;
       }
 
@@ -84,12 +81,11 @@ export default function GoogleInput({
 
       try {
         const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
-          text
-        )}&key=${GOOGLE_KEY}&components=country:ng`;
+          text,
+        )}&key=${GOOGLE_KEY}`;
 
         const res = await fetch(url);
         const json = await res.json();
-        setShowStaticSuggestions(false);
         finalSetPredictions(json.predictions || []);
       } catch (e) {
         console.warn("Autocomplete error:", e);
@@ -97,7 +93,7 @@ export default function GoogleInput({
         setLoading(false);
       }
     },
-    [finalSetPredictions]
+    [finalSetPredictions],
   );
 
   const handlePlaceDetails = async (placeId: string) => {
@@ -110,8 +106,10 @@ export default function GoogleInput({
   return (
     <View
       style={[
-        styles.wrapper,
-        { backgroundColor: colors.surfacePrimary, borderColor },
+        styles.searchContainer,
+        {
+          backgroundColor: colors.surfaceSecondary,
+        },
       ]}
     >
       <TextInput
@@ -120,17 +118,14 @@ export default function GoogleInput({
         value={inputValue}
         onChangeText={(text) => {
           setinputValue(text);
-          if (text.length > 1) {
-            setShowStaticSuggestions(false); // 🔥 hide static suggestions
-          }
+
           fetchPredictionsFn(text);
         }}
         onFocus={onFocus}
         style={[
-          styles.input,
+          styles.searchInput,
           {
-            backgroundColor: colors.surfacePrimary,
-            color: colors.titleText,
+            color: colors.subTitleText,
           },
         ]}
       />
@@ -212,5 +207,13 @@ const styles = StyleSheet.create({
   predictionText: {
     fontSize: 14,
     color: "#222",
+  },
+  searchInput: { flex: 1, fontSize: 15 },
+  searchContainer: {
+    height: 56,
+    borderRadius: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
   },
 });

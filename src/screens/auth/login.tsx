@@ -18,15 +18,45 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { commonStyles } from "../../styles/commonStyles";
 import BackButton from "../../components/buttons/backButton";
 import Input from "../../components/inputs/input";
+import { useLogin } from "../../hooks/mutations/useAuth";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const { colors } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const commonStyling = commonStyles(colors);
+  const { mutate, isPending } = useLogin();
+
+  const [formData, setFormData] = useState<any>({
+    identifier: "",
+    password: "",
+  });
+
+  const updateFields = (fields: Partial<any>) => {
+    setFormData((prev: any) => ({ ...prev, ...fields }));
+  };
+
+  const handleLogin = () => {
+    // Simple logic to determine if input is email or phone
+    const isEmail = formData.identifier.includes("@");
+    const payload = isEmail
+      ? { email: formData.identifier, password: formData.password }
+      : { phone: formData.identifier, password: formData.password };
+
+    mutate(payload, {
+      onSuccess: () => navigation.navigate("RiderMainTabs"),
+    });
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.surfacePrimary,
+        },
+      ]}
+    >
       <View
         style={{
           flex: 1,
@@ -34,6 +64,7 @@ function Login() {
           flexDirection: "column",
           justifyContent: "space-between",
           paddingBottom: 30,
+          paddingTop: 16,
         }}
       >
         <View>
@@ -46,6 +77,8 @@ function Login() {
                 styles.mainTitle,
                 {
                   marginTop: 16,
+                  fontSize: 30,
+                  fontFamily: "Bold",
                 },
               ]}
             >
@@ -58,20 +91,32 @@ function Login() {
           <View>
             <View style={styles.inputContainer}>
               <Input
-                title="Phone Number"
+                title="Phone number / Email address"
                 placeholder="(555) 000-0000"
-                value=""
-                onChangeText={() => {}}
+                value={formData.identifier}
+                onChangeText={(val) => updateFields({ identifier: val })}
               />
             </View>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Password</Text>
+              <Text
+                style={[
+                  styles.label,
+                  commonStyling.title,
+                  {
+                    fontSize: 16,
+                  },
+                ]}
+              >
+                Password
+              </Text>
               <View style={styles.passwordWrapper}>
                 <TextInput
                   secureTextEntry={!showPassword}
-                  style={styles.inputFlex}
+                  style={[styles.inputFlex, commonStyling.subtitle]}
+                  value={formData.password}
                   placeholder="Enter your password"
+                  onChangeText={(val) => updateFields({ password: val })}
                 />
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
@@ -85,11 +130,12 @@ function Login() {
               </View>
             </View>
 
-            <View
+            <TouchableOpacity
               style={{
                 marginBottom: 32,
                 alignItems: "flex-end",
               }}
+              onPress={() => navigation.navigate("ForgotPassword")}
             >
               <Text
                 style={[
@@ -101,7 +147,7 @@ function Login() {
               >
                 Forgot Password?
               </Text>
-            </View>
+            </TouchableOpacity>
 
             <View
               style={[
@@ -123,10 +169,10 @@ function Login() {
                   style={[
                     commonStyling.title,
                     {
-                      fontSize: FONT_SIZES.SUBTITLE,
+                      fontSize: 14,
                       color: colors.primaryColor,
                       fontFamily: "Medium",
-                      marginBottom: 8,
+                      marginBottom: 2,
                     },
                   ]}
                 >
@@ -136,7 +182,7 @@ function Login() {
                   style={[
                     commonStyling.subtitle,
                     {
-                      fontSize: FONT_SIZES.BODY,
+                      fontSize: 12,
                       color: colors.primaryColor,
                       lineHeight: 20,
                       paddingRight: 16,
@@ -153,7 +199,8 @@ function Login() {
         <View>
           <Buttons
             title="Log in"
-            onPress={() => navigation.navigate("RiderMain")}
+            onPress={handleLogin}
+            loading={isPending}
             rightIcon={<RightArrow />}
           />
           <TouchableOpacity
@@ -192,7 +239,7 @@ function Login() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFF" },
+  container: { flex: 1 },
   scrollContent: { padding: 24 },
   header: { marginBottom: 24 },
   backBtn: { marginBottom: 20 },
@@ -206,16 +253,13 @@ const styles = StyleSheet.create({
   },
   stepText: { color: "#3B82F6", fontSize: 12, fontWeight: "700" },
   mainTitle: {
-    fontSize: FONT_SIZES.HERO,
-    fontFamily: "Bold",
     marginBottom: 8,
   },
   subTitle: {
     lineHeight: 22,
-    marginBottom: 20,
   },
   inputContainer: { marginBottom: 20 },
-  label: { fontSize: 14, fontWeight: "600", color: "#1A1C1E", marginBottom: 8 },
+  label: { marginBottom: 8 },
   input: {
     borderWidth: 1,
     borderColor: "#E5E9EF",
@@ -228,7 +272,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#E5E9EF",
-    borderRadius: 12,
+    borderRadius: 4,
     paddingHorizontal: 16,
   },
   inputFlex: { flex: 1, paddingVertical: 16, fontSize: 16 },

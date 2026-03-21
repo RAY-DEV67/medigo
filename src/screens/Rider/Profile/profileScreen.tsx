@@ -8,9 +8,9 @@ import {
   StatusBar,
   Image,
   Switch,
+  Dimensions,
 } from "react-native";
 import {
-  ChevronLeft,
   ChevronRight,
   User,
   MapPin,
@@ -25,23 +25,39 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import useTheme from "../../../hooks/useThemes";
+import Header from "../../../components/reuseables/header";
+import { commonStyles } from "../../../styles/commonStyles";
+import { useUserProfile } from "../../../hooks/queries/useUserProfile";
+import { useUserStore } from "../../../store/userStore";
+import ModalComponent from "../../../components/modals/modal";
+import Buttons from "../../../components/buttons/buttons";
+
+const { width } = Dimensions.get("window");
 
 const ProfileScreen = () => {
-  const [isLightMode, setIsLightMode] = useState(true);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { colors, toggleTheme, theme } = useTheme();
+  const isLight = theme === "light";
+  const commonStyling = commonStyles(colors);
+  const { data, isLoading } = useUserProfile();
+  const logout = useUserStore((state) => state.logout);
+  const [showLogoutModal, setshowLogoutModal] = useState(false);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.surfacePrimary,
+        },
+      ]}
+    >
+      <StatusBar
+        barStyle={theme === "light" ? "dark-content" : "light-content"}
+      />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
-          <ChevronLeft color="#1A1C1E" size={24} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profile</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <Header title="Profile" />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -49,17 +65,65 @@ const ProfileScreen = () => {
       >
         {/* User Profile Info */}
         <View style={styles.profileSection}>
-          <Image
-            source={{ uri: "https://i.pravatar.cc/150?u=sarah" }}
-            style={styles.avatar}
-          />
-          <Text style={styles.userName}>Sarah Johnson</Text>
-          <Text style={styles.userEmail}>sarah.johnson@email.com</Text>
+          {data?.data.avatar_url ? (
+            <Image
+              source={{ uri: data.data.avatar_url }}
+              style={styles.avatar}
+            />
+          ) : (
+            <Image
+              source={require("../../../../assets/images/noProfileImage.jpg")}
+              style={styles.avatar}
+            />
+          )}
+          <View>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontFamily: "Bold",
+                  fontSize: 24,
+                },
+              ]}
+            >
+              {data?.data.first_name} {data?.data.last_name}
+            </Text>
+            <Text
+              style={[
+                commonStyling.subtitle,
+                {
+                  fontSize: 14,
+                  marginTop: 4,
+                },
+              ]}
+            >
+              {data?.data.email}
+            </Text>
+          </View>
         </View>
 
         {/* --- ACCOUNT SECTION --- */}
-        <Text style={styles.categoryLabel}>ACCOUNT</Text>
-        <View style={styles.settingsGroup}>
+        <Text
+          style={[
+            styles.categoryLabel,
+            commonStyling.subtitle,
+            {
+              fontFamily: "SemiBold",
+              fontSize: 11,
+            },
+          ]}
+        >
+          ACCOUNT
+        </Text>
+        <View
+          style={[
+            styles.settingsGroup,
+            {
+              backgroundColor: colors.surfaceSecondary,
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
           <MenuOption
             icon={<User size={20} color="#64748B" />}
             label="Personal Information"
@@ -69,7 +133,14 @@ const ProfileScreen = () => {
               });
             }}
           />
-          <View style={styles.divider} />
+          <View
+            style={[
+              styles.divider,
+              {
+                backgroundColor: colors.lightPrimaryBlueBorder,
+              },
+            ]}
+          />
           <MenuOption
             icon={<MapPin size={20} color="#64748B" />}
             label="Saved Locations"
@@ -79,7 +150,14 @@ const ProfileScreen = () => {
               });
             }}
           />
-          <View style={styles.divider} />
+          <View
+            style={[
+              styles.divider,
+              {
+                backgroundColor: colors.lightPrimaryBlueBorder,
+              },
+            ]}
+          />
           <MenuOption
             icon={<CreditCard size={20} color="#64748B" />}
             label="Payment Methods"
@@ -92,8 +170,27 @@ const ProfileScreen = () => {
         </View>
 
         {/* --- SAFETY SECTION --- */}
-        <Text style={styles.categoryLabel}>SAFETY</Text>
-        <View style={styles.settingsGroup}>
+        <Text
+          style={[
+            styles.categoryLabel,
+            commonStyling.subtitle,
+            {
+              fontFamily: "SemiBold",
+              fontSize: 11,
+            },
+          ]}
+        >
+          SAFETY
+        </Text>
+        <View
+          style={[
+            styles.settingsGroup,
+            {
+              backgroundColor: colors.surfaceSecondary,
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
           <MenuOption
             icon={<Heart size={20} color="#64748B" />}
             label="Emergency Contacts"
@@ -103,16 +200,47 @@ const ProfileScreen = () => {
               });
             }}
           />
-          <View style={styles.divider} />
+          <View
+            style={[
+              styles.divider,
+              {
+                backgroundColor: colors.lightPrimaryBlueBorder,
+              },
+            ]}
+          />
           <MenuOption
             icon={<Shield size={20} color="#64748B" />}
             label="Safety Center"
+            onPress={() => {
+              navigation.navigate("RiderProfileContentsStack", {
+                screen: "SafetyCenterScreen",
+              });
+            }}
           />
         </View>
 
         {/* --- PREFERENCES SECTION --- */}
-        <Text style={styles.categoryLabel}>PREFERENCES</Text>
-        <View style={styles.settingsGroup}>
+        <Text
+          style={[
+            styles.categoryLabel,
+            commonStyling.subtitle,
+            {
+              fontFamily: "SemiBold",
+              fontSize: 11,
+            },
+          ]}
+        >
+          PREFERENCES
+        </Text>
+        <View
+          style={[
+            styles.settingsGroup,
+            {
+              backgroundColor: colors.surfaceSecondary,
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
           <MenuOption
             icon={<Bell size={20} color="#64748B" />}
             label="Notifications"
@@ -125,8 +253,27 @@ const ProfileScreen = () => {
         </View>
 
         {/* --- SUPPORT SECTION --- */}
-        <Text style={styles.categoryLabel}>SUPPORT</Text>
-        <View style={styles.settingsGroup}>
+        <Text
+          style={[
+            styles.categoryLabel,
+            commonStyling.subtitle,
+            {
+              fontFamily: "SemiBold",
+              fontSize: 11,
+            },
+          ]}
+        >
+          SUPPORT
+        </Text>
+        <View
+          style={[
+            styles.settingsGroup,
+            {
+              backgroundColor: colors.surfaceSecondary,
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
           <MenuOption
             icon={<HelpCircle size={20} color="#64748B" />}
             label="Help Center"
@@ -134,26 +281,73 @@ const ProfileScreen = () => {
         </View>
 
         {/* --- APP PREFERENCES SECTION --- */}
-        <Text style={styles.categoryLabel}>APP PREFERENCES</Text>
-        <View style={styles.settingsGroup}>
+        <Text
+          style={[
+            styles.categoryLabel,
+            commonStyling.subtitle,
+            {
+              fontFamily: "SemiBold",
+              fontSize: 11,
+            },
+          ]}
+        >
+          APP PREFERENCES
+        </Text>
+        <View
+          style={[
+            styles.settingsGroup,
+            {
+              backgroundColor: colors.surfaceSecondary,
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
           <View style={styles.toggleRow}>
             <View style={styles.iconCircleYellow}>
               <Sun size={20} color="#F59E0B" />
             </View>
             <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={styles.optionLabel}>Light Mode</Text>
-              <Text style={styles.optionSub}>Currently using light theme</Text>
+              <Text
+                style={[
+                  styles.optionLabel,
+                  commonStyling.title,
+                  {
+                    fontSize: 16,
+                  },
+                ]}
+              >
+                Light mode
+              </Text>
+              <Text
+                style={[
+                  styles.optionSub,
+                  commonStyling.subtitle,
+                  {
+                    fontSize: 12,
+                    fontFamily: "Medium",
+                  },
+                ]}
+              >
+                Currently using {isLight ? "light" : "dark"} theme
+              </Text>
             </View>
             <Switch
-              value={isLightMode}
-              onValueChange={setIsLightMode}
+              value={isLight}
+              onValueChange={() => {
+                toggleTheme();
+              }}
               trackColor={{ false: "#E2E8F0", true: "#3B82F6" }}
             />
           </View>
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutBtn}>
+        <TouchableOpacity
+          style={styles.logoutBtn}
+          onPress={() => {
+            setshowLogoutModal(true);
+          }}
+        >
           <LogOut size={20} color="#EF4444" />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
@@ -163,21 +357,93 @@ const ProfileScreen = () => {
           © 2026 MediGo. All rights reserved.
         </Text>
       </ScrollView>
+
+      <ModalComponent
+        visible={showLogoutModal}
+        onClose={() => setshowLogoutModal(false)}
+        title="Log out"
+      >
+        <Text style={[commonStyling.subtitle, styles.modalSubtitle]}>
+          Are you sure you want to log out?
+        </Text>
+
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: 16,
+          }}
+        >
+          <View
+            style={{
+              width: width * 0.38,
+            }}
+          >
+            <Buttons
+              type="inactive"
+              title="No"
+              onPress={() => {
+                setshowLogoutModal(false);
+              }}
+            />
+          </View>
+          <View
+            style={{
+              width: width * 0.38,
+            }}
+          >
+            <Buttons
+              type="danger"
+              title="Yes"
+              onPress={async () => {
+                await logout();
+                navigation.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: "Auth",
+                      params: { screen: "Login" },
+                    },
+                  ],
+                });
+
+                setshowLogoutModal(false);
+              }}
+            />
+          </View>
+        </View>
+      </ModalComponent>
     </SafeAreaView>
   );
 };
 
 // --- Helpers ---
-const MenuOption = ({ icon, label, onPress }: any) => (
-  <TouchableOpacity style={styles.optionRow} onPress={onPress}>
-    <View style={styles.iconWrapper}>{icon}</View>
-    <Text style={styles.optionLabel}>{label}</Text>
-    <ChevronRight size={18} color="#CBD5E1" />
-  </TouchableOpacity>
-);
+const MenuOption = ({ icon, label, onPress }: any) => {
+  const { colors } = useTheme();
+  const commonStyling = commonStyles(colors);
+
+  return (
+    <TouchableOpacity style={styles.optionRow} onPress={onPress}>
+      <View style={styles.iconWrapper}>{icon}</View>
+      <Text
+        style={[
+          styles.optionLabel,
+          commonStyling.title,
+          {
+            fontSize: 16,
+          },
+        ]}
+      >
+        {label}
+      </Text>
+      <ChevronRight size={18} color="#CBD5E1" />
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" },
+  container: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -198,36 +464,31 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 18, fontWeight: "800", color: "#1E293B" },
 
   scrollContent: { paddingHorizontal: 20, paddingBottom: 150 },
-  profileSection: { alignItems: "center", marginVertical: 24 },
-  avatar: { width: 100, height: 100, borderRadius: 50, marginBottom: 16 },
-  userName: { fontSize: 22, fontWeight: "800", color: "#1E293B" },
-  userEmail: { fontSize: 14, color: "#64748B", marginTop: 4 },
+  profileSection: {
+    marginVertical: 24,
+    flexDirection: "row",
+    columnGap: 24,
+    alignItems: "center",
+  },
+  avatar: { width: 80, height: 80, borderRadius: 50 },
 
   categoryLabel: {
-    fontSize: 11,
-    fontWeight: "800",
-    color: "#94A3B8",
     letterSpacing: 1,
     marginTop: 24,
     marginBottom: 12,
   },
   settingsGroup: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
     overflow: "hidden",
   },
   optionRow: { flexDirection: "row", alignItems: "center", padding: 16 },
   iconWrapper: { width: 24, alignItems: "center" },
   optionLabel: {
     flex: 1,
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#1E293B",
     marginLeft: 12,
   },
-  divider: { height: 1, backgroundColor: "#F1F5F9", marginHorizontal: 16 },
+  divider: { height: 1, marginHorizontal: 16 },
 
   toggleRow: { flexDirection: "row", alignItems: "center", padding: 16 },
   iconCircleYellow: {
@@ -238,7 +499,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  optionSub: { fontSize: 12, color: "#64748B", marginTop: 2 },
+  optionSub: { marginTop: 2 },
 
   logoutBtn: {
     flexDirection: "row",
@@ -264,6 +525,10 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#CBD5E1",
     marginTop: 4,
+  },
+  modalSubtitle: {
+    marginBottom: 20,
+    marginTop: 16,
   },
 });
 

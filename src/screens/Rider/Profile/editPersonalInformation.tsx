@@ -9,31 +9,84 @@ import {
   StatusBar,
   Image,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { ChevronLeft, Camera, Lock, ChevronDown } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import useTheme from "../../../hooks/useThemes";
+import { commonStyles } from "../../../styles/commonStyles";
+import Header from "../../../components/reuseables/header";
+import { useUserProfile } from "../../../hooks/queries/useUserProfile";
+import { UpdateProfilePayload } from "../../../types/auth.types";
+import { useUpdateProfileMutation } from "../../../hooks/mutations/useUser";
+import Buttons from "../../../components/buttons/buttons";
 
 const EditProfileScreen = () => {
-  // State for form inputs
+  const { data, isLoading } = useUserProfile();
   const [form, setForm] = useState({
-    firstName: "Sarah",
-    lastName: "Johnson",
-    email: "sarah.johnson@email.com",
-    phone: "+1 (555) 234-5678",
+    firstName: data?.data.first_name,
+    lastName: data?.data.last_name,
+    email: data?.data.email,
+    phone: data?.data.phone,
     medicalNotes: "",
+    avatar_url: data?.data.avatar_url,
   });
+  const updateProfileMutation = useUpdateProfileMutation();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { colors, theme } = useTheme();
+  const commonStyling = commonStyles(colors);
+
+  const updateBioFields = (fields: Partial<any>) => {
+    setForm((prev) => ({ ...prev, ...fields }));
+  };
+
+  const handleBioSubmit = () => {
+    const profileData: UpdateProfilePayload = {
+      first_name: form.firstName, // Pull these from your local component state
+      last_name: form.lastName,
+      medical_notes: form.medical_notes,
+      avatar_url: form.avatar_url,
+    };
+
+    console.log(profileData);
+
+    updateProfileMutation.mutate(profileData, {
+      onSuccess: () => {
+        navigation.goBack();
+      },
+    });
+  };
+
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"], // Updated syntax for newer versions
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      // result.assets[0].uri is the local path to the image
+      setForm({ ...form, avatar_url: result.assets[0].uri });
+    }
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.surfacePrimary,
+        },
+      ]}
+    >
+      <StatusBar
+        barStyle={theme === "light" ? "dark-content" : "light-content"}
+      />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
-          <ChevronLeft color="#1A1C1E" size={24} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Personal Information</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <Header title="Personal Information" />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -43,80 +96,195 @@ const EditProfileScreen = () => {
         <View style={styles.profileContainer}>
           <View style={styles.imageWrapper}>
             <Image
-              source={{ uri: "https://i.pravatar.cc/150?u=sarah" }}
+              source={
+                form.avatar_url
+                  ? { uri: form.avatar_url }
+                  : data?.data.avatar_url
+                    ? { uri: data.data.avatar_url }
+                    : require("../../../../assets/images/noProfileImage.jpg")
+              }
               style={styles.avatar}
             />
-            <TouchableOpacity style={styles.cameraBtn}>
+
+            {/* 2. Add the onPress trigger */}
+            <TouchableOpacity style={styles.cameraBtn} onPress={pickImage}>
               <Camera size={16} color="#1E293B" />
             </TouchableOpacity>
           </View>
         </View>
 
-        <Text style={styles.sectionLabel}>Personal Details</Text>
+        <Text
+          style={[
+            styles.sectionLabel,
+            commonStyling.subtitle,
+            {
+              fontSize: 13,
+              fontFamily: "SemiBold",
+            },
+          ]}
+        >
+          Personal Details
+        </Text>
 
         {/* Name Row */}
         <View style={styles.row}>
           <View style={styles.flex1}>
-            <Text style={styles.inputLabel}>
+            <Text
+              style={[
+                styles.inputLabel,
+                commonStyling.title,
+                {
+                  fontSize: 14,
+                },
+              ]}
+            >
               First Name<Text style={styles.required}>*</Text>
             </Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.surfaceElevated,
+                  borderColor: colors.lightPrimaryBlueBorder,
+                  color: colors.titleText,
+                  fontFamily: "Regular",
+                },
+              ]}
               value={form.firstName}
-              onChangeText={(t) => setForm({ ...form, firstName: t })}
+              onChangeText={(val) => updateBioFields({ firstName: val })}
             />
           </View>
           <View style={styles.flex1}>
-            <Text style={styles.inputLabel}>
+            <Text
+              style={[
+                styles.inputLabel,
+                commonStyling.title,
+                {
+                  fontSize: 14,
+                },
+              ]}
+            >
               Last Name<Text style={styles.required}>*</Text>
             </Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.surfaceElevated,
+                  borderColor: colors.lightPrimaryBlueBorder,
+                  color: colors.titleText,
+                  fontFamily: "Regular",
+                },
+              ]}
               value={form.lastName}
-              onChangeText={(t) => setForm({ ...form, lastName: t })}
+              onChangeText={(val) => updateBioFields({ lastName: val })}
             />
           </View>
         </View>
 
         {/* Email Input */}
-        <Text style={styles.inputLabel}>
+        <Text
+          style={[
+            styles.inputLabel,
+            commonStyling.title,
+            {
+              fontSize: 14,
+            },
+          ]}
+        >
           Email<Text style={styles.required}>*</Text>
         </Text>
         <TextInput
-          style={styles.input}
-          value={form.email}
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.surfaceElevated,
+              borderColor: colors.lightPrimaryBlueBorder,
+              color: colors.titleText,
+              fontFamily: "Regular",
+            },
+          ]}
           keyboardType="email-address"
-          onChangeText={(t) => setForm({ ...form, email: t })}
+          value={form.email}
+          onChangeText={(val) => updateBioFields({ email: val })}
         />
 
         {/* Phone Input with Dropdown */}
-        <Text style={styles.inputLabel}>
+        <Text
+          style={[
+            styles.inputLabel,
+            commonStyling.title,
+            {
+              fontSize: 14,
+            },
+          ]}
+        >
           Phone Number<Text style={styles.required}>*</Text>
         </Text>
-        <View style={styles.phoneInputContainer}>
+        <View
+          style={[
+            styles.phoneInputContainer,
+            {
+              backgroundColor: colors.surfaceElevated,
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
           <TextInput
-            style={styles.phoneInput}
-            value={form.phone}
+            style={[
+              styles.phoneInput,
+              {
+                backgroundColor: colors.surfaceElevated,
+                borderColor: colors.lightPrimaryBlueBorder,
+                color: colors.titleText,
+                fontFamily: "Regular",
+              },
+            ]}
             keyboardType="phone-pad"
-            onChangeText={(t) => setForm({ ...form, phone: t })}
+            value={form.phone}
+            onChangeText={(val) => updateBioFields({ phone: val })}
           />
           <ChevronDown size={20} color="#CBD5E1" style={{ marginRight: 12 }} />
         </View>
 
         {/* Medical Info Section */}
-        <Text style={[styles.sectionLabel, { marginTop: 24 }]}>
+        <Text
+          style={[
+            styles.sectionLabel,
+            commonStyling.subtitle,
+            {
+              fontSize: 13,
+              fontFamily: "SemiBold",
+              marginTop: 24,
+            },
+          ]}
+        >
           Medical Information
         </Text>
-        <View style={styles.medicalBox}>
-          <Text style={styles.fieldLabelSmall}>Medical Notes (Optional)</Text>
-          <TextInput
-            style={styles.medicalInput}
-            placeholder="No medical notes added"
-            placeholderTextColor="#94A3B8"
-            multiline
-            value={form.medicalNotes}
-            onChangeText={(t) => setForm({ ...form, medicalNotes: t })}
-          />
+        <View
+          style={[
+            styles.infoCard,
+            {
+              backgroundColor: colors.homelightPrimaryBlue50,
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
+          <View style={styles.fieldContainer}>
+            <Text
+              style={[
+                styles.fieldLabel,
+                commonStyling.subtitle,
+                {
+                  fontSize: 13,
+                  fontFamily: "Medium",
+                },
+              ]}
+            >
+              Medical Notes (Optional)
+            </Text>
+            <Text style={styles.fieldValueGray}>No medical notes added</Text>
+          </View>
         </View>
 
         {/* Privacy Banner */}
@@ -137,16 +305,20 @@ const EditProfileScreen = () => {
         </View>
 
         {/* Action Button */}
-        <TouchableOpacity style={styles.saveBtn}>
-          <Text style={styles.saveBtnText}>Save changes</Text>
-        </TouchableOpacity>
+        <View style={styles.saveBtn}>
+          <Buttons
+            title="Save changes"
+            onPress={handleBioSubmit}
+            loading={updateProfileMutation.isPending}
+          />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" },
+  container: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -188,49 +360,34 @@ const styles = StyleSheet.create({
   },
 
   sectionLabel: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: "#94A3B8",
     marginBottom: 16,
   },
   row: { flexDirection: "row", gap: 12 },
   flex1: { flex: 1 },
 
   inputLabel: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#1E293B",
     marginBottom: 8,
     marginTop: 16,
   },
   required: { color: "#EF4444" },
   input: {
     height: 56,
-    backgroundColor: "#FFFFFF",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
     paddingHorizontal: 16,
     fontSize: 15,
-    color: "#1E293B",
-    fontWeight: "500",
   },
 
   phoneInputContainer: {
     height: 56,
-    backgroundColor: "#FFFFFF",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
     flexDirection: "row",
     alignItems: "center",
   },
   phoneInput: {
     flex: 1,
     paddingHorizontal: 16,
-    fontSize: 15,
-    color: "#1E293B",
-    fontWeight: "500",
   },
 
   medicalBox: {
@@ -257,14 +414,18 @@ const styles = StyleSheet.create({
   bannerSub: { fontSize: 12, color: "#3B82F6", marginTop: 4, lineHeight: 18 },
 
   saveBtn: {
-    height: 56,
-    backgroundColor: "#3B82F6",
-    borderRadius: 28,
-    justifyContent: "center",
-    alignItems: "center",
     marginTop: 32,
   },
   saveBtnText: { color: "#FFF", fontSize: 16, fontWeight: "800" },
+
+  infoCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  fieldContainer: { padding: 16 },
+  fieldLabel: { marginBottom: 6 },
+  fieldValueGray: { fontSize: 14, color: "#94A3B8" },
 });
 
 export default EditProfileScreen;

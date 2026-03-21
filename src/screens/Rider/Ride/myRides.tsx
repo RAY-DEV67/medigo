@@ -8,138 +8,222 @@ import {
   StatusBar,
   Image,
 } from "react-native";
-import {
-  ChevronLeft,
-  Bell,
-  Calendar,
-  Clock,
-  Headphones,
-  Plus,
-  Home,
-  History,
-  User,
-} from "lucide-react-native";
+import { Bell, Calendar, Headphones } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import useTheme from "../../../hooks/useThemes";
+import { commonStyles } from "../../../styles/commonStyles";
+import Header from "../../../components/reuseables/header";
+import { FONT_SIZES } from "../../../constants/sizes";
+import { useMyRides } from "../../../hooks/queries/useMyRides";
 
 const MyRidesScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+  const { colors, theme } = useTheme();
+  const commonStyling = commonStyles(colors);
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
-          <ChevronLeft color="#1A1C1E" size={24} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Rides</Text>
-        <TouchableOpacity style={styles.notifButton}>
-          <Bell color="#1A1C1E" size={24} />
-          <View style={styles.notifBadge} />
-        </TouchableOpacity>
-      </View>
+  const { data: upcomingData, isLoading: loadingUpcoming } = useMyRides({
+    status: "scheduled",
+  });
+  const { data: activeData, isLoading: loadingActive } = useMyRides({
+    status: "in_progress",
+  });
+
+  const activeRide = activeData?.data?.[0];
+  const upcomingRides = upcomingData?.data || [];
+
+  return (
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.surfacePrimary,
+        },
+      ]}
+    >
+      <StatusBar
+        barStyle={theme === "light" ? "dark-content" : "light-content"}
+      />
+
+      <Header
+        title="My Rides"
+        rightText={
+          <TouchableOpacity
+            style={styles.notifButton}
+            onPress={() => {
+              navigation.navigate("RiderNotificationStack");
+            }}
+          >
+            <Bell color={colors.titleText} size={24} />
+            <View style={styles.notifBadge} />
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <Text style={styles.description}>Manage your upcoming rides</Text>
+        <Text
+          style={[
+            styles.description,
+            commonStyling.subtitle,
+            {
+              fontSize: 14,
+            },
+          ]}
+        >
+          Manage your upcoming rides
+        </Text>
 
         {/* --- Active Ride Section --- */}
-        <Text style={styles.sectionTitle}>Active Ride</Text>
-        <View style={styles.activeCard}>
-          <View style={styles.activeHeader}>
-            <View style={styles.statusRow}>
-              <View style={styles.pulseDot} />
-              <Text style={styles.activeStatusText}>En Route</Text>
-            </View>
-            <View style={styles.etaBadge}>
-              <Text style={styles.etaText}>ETA • 8 mins</Text>
-            </View>
-          </View>
+        <View
+          style={{
+            borderBottomWidth: 1,
+            borderColor: colors.lightPrimaryBlueBorder,
+            paddingBottom: 32,
+          }}
+        >
+          <Text
+            style={[
+              styles.sectionTitle,
+              commonStyling.title,
+              {
+                fontSize: 14,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            Active Ride
+          </Text>
 
-          {/* Active Timeline */}
-          <View style={styles.activeRoute}>
-            <View style={styles.timelineActive}>
-              <View style={styles.dotWhite} />
-              <View style={styles.lineDashed} />
-              <View style={styles.dotWhite} />
-            </View>
-            <View style={styles.addressWrapper}>
-              <Text style={styles.activeAddressLabel}>Pickup</Text>
-              <Text style={styles.activeAddressText}>2847 Maple Avenue</Text>
-              <Text style={[styles.activeAddressLabel, { marginTop: 12 }]}>
-                Destination
+          {activeRide ? (
+            <View style={[styles.activeCard]}>
+              <View style={styles.activeHeader}>
+                <View style={styles.statusRow}>
+                  <View style={styles.pulseDot} />
+                  <Text style={[styles.activeStatusText]}>En Route</Text>
+                </View>
+                <View style={styles.etaBadge}>
+                  <Text style={styles.etaText}>ETA • 8 mins</Text>
+                </View>
+              </View>
+
+              {/* Active Timeline */}
+              <View style={styles.activeRoute}>
+                <View style={styles.timelineActive}>
+                  <View style={styles.dotWhite} />
+                  <View style={styles.lineDashed} />
+                  <View style={styles.dotWhite} />
+                </View>
+                <View style={styles.addressWrapper}>
+                  <Text style={styles.activeAddressLabel}>Pickup</Text>
+                  <Text
+                    style={[
+                      styles.activeAddressText,
+                      commonStyling.title,
+                      {
+                        color: "#FFF",
+                        fontSize: 14,
+                      },
+                    ]}
+                  >
+                    2847 Maple Avenue
+                  </Text>
+                  <Text style={[styles.activeAddressLabel, { marginTop: 12 }]}>
+                    Destination
+                  </Text>
+                  <Text
+                    style={[
+                      styles.activeAddressText,
+                      commonStyling.title,
+                      {
+                        color: "#FFF",
+                        fontSize: 14,
+                      },
+                    ]}
+                  >
+                    Springfield General Hospital
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.activeDivider} />
+
+              {/* Driver Mini Profile */}
+              <View style={styles.driverRow}>
+                <Image
+                  source={{ uri: "https://i.pravatar.cc/100?u=john" }}
+                  style={styles.driverAvatar}
+                />
+                <View style={styles.driverInfo}>
+                  <Text style={styles.driverName}>John Smith</Text>
+                  <Text style={styles.driverSub}>Your Driver</Text>
+                </View>
+              </View>
+              <Text style={styles.driverStatusMsg}>
+                Driver is on the way...
               </Text>
-              <Text style={styles.activeAddressText}>
-                Springfield General Hospital
-              </Text>
+
+              <TouchableOpacity style={styles.trackButton}>
+                <Text style={styles.trackButtonText}>Track Ride</Text>
+              </TouchableOpacity>
             </View>
-          </View>
-
-          <View style={styles.activeDivider} />
-
-          {/* Driver Mini Profile */}
-          <View style={styles.driverRow}>
-            <Image
-              source={{ uri: "https://i.pravatar.cc/100?u=john" }}
-              style={styles.driverAvatar}
-            />
-            <View style={styles.driverInfo}>
-              <Text style={styles.driverName}>John Smith</Text>
-              <Text style={styles.driverSub}>Your Driver</Text>
-            </View>
-          </View>
-          <Text style={styles.driverStatusMsg}>Driver is on the way...</Text>
-
-          <TouchableOpacity style={styles.trackButton}>
-            <Text style={styles.trackButtonText}>Track Ride</Text>
-          </TouchableOpacity>
+          ) : (
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: 14,
+                  textAlign: "center",
+                },
+              ]}
+            >
+              No active ride
+            </Text>
+          )}
         </View>
-
         {/* --- Upcoming Rides Section --- */}
-        <Text style={styles.sectionTitle}>Upcoming Rides</Text>
+        <Text
+          style={[
+            styles.sectionTitle,
+            commonStyling.title,
+            {
+              fontSize: 14,
+              fontFamily: "Bold",
+              marginTop: 32,
+            },
+          ]}
+        >
+          Upcoming Rides
+        </Text>
 
-        <UpcomingRideCard
-          date="Today"
-          time="2:30 PM"
-          status="Confirmed"
-          statusColor="#DCFCE7"
-          statusTextColor="#10B981"
-          destination="Springfield General Hospital"
-          onPress={() => {
-            navigation.navigate("RiderRideDetailsStack");
-          }}
-        />
-
-        <UpcomingRideCard
-          date="Tomorrow"
-          time="10:00 AM"
-          status="Scheduled"
-          statusColor="#EFF6FF"
-          statusTextColor="#3B82F6"
-          destination="Downtown Medical Center"
-          isAssigning
-          onPress={() => {
-            navigation.navigate("RiderRideDetailsStack");
-          }}
-        />
-
-        <UpcomingRideCard
-          date="Feb 24"
-          time="10:00 AM"
-          status="Scheduled"
-          statusColor="#EFF6FF"
-          statusTextColor="#3B82F6"
-          pickup="150 Tech Park Drive"
-          destination="City Clinic"
-          isAssigning
-          onPress={() => {
-            navigation.navigate("RiderRideDetailsStack");
-          }}
-        />
+        {upcomingRides.length > 0 ? (
+          upcomingRides.map((ride) => (
+            <UpcomingRideCard
+              key={ride.id}
+              ride={ride}
+              onPress={() =>
+                navigation.navigate("RiderRideDetailsStack", {
+                  rideId: ride.id,
+                })
+              }
+            />
+          ))
+        ) : (
+          <Text
+            style={[
+              commonStyling.title,
+              {
+                fontSize: 14,
+                textAlign: "center",
+              },
+            ]}
+          >
+            No upcoming rides
+          </Text>
+        )}
       </ScrollView>
 
       {/* Floating Support */}
@@ -161,58 +245,138 @@ const UpcomingRideCard = ({
   destination,
   isAssigning,
   onPress,
-}: any) => (
-  <View style={styles.upcomingCard}>
-    <View style={styles.upcomingHeader}>
-      <View style={styles.upcomingDateRow}>
-        <View style={styles.iconBox}>
-          <Calendar color="#3B82F6" size={18} />
+}: any) => {
+  const { colors } = useTheme();
+  const commonStyling = commonStyles(colors);
+  return (
+    <View
+      style={[
+        styles.upcomingCard,
+        {
+          backgroundColor: colors.homelightPrimaryBlue50,
+          borderColor: colors.lightPrimaryBlueBorder,
+        },
+      ]}
+    >
+      <View style={styles.upcomingHeader}>
+        <View style={styles.upcomingDateRow}>
+          <View
+            style={[
+              styles.iconBox,
+              {
+                backgroundColor: colors.surfaceElevated,
+              },
+            ]}
+          >
+            <Calendar color="#3B82F6" size={18} />
+          </View>
+          <View style={{ marginLeft: 10 }}>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: 15,
+                  fontWeight: "700",
+                  fontFamily: "Bold",
+                  marginBottom: 4,
+                },
+              ]}
+            >
+              {date}
+            </Text>
+            <Text
+              style={[
+                commonStyling.subtitle,
+                {
+                  fontSize: 12,
+                },
+              ]}
+            >
+              {time}
+            </Text>
+          </View>
         </View>
-        <View style={{ marginLeft: 10 }}>
-          <Text style={styles.upcomingDateText}>{date}</Text>
-          <Text style={styles.upcomingTimeText}>{time}</Text>
+        <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
+          <Text style={[styles.statusBadgeText, { color: statusTextColor }]}>
+            {status}
+          </Text>
         </View>
       </View>
-      <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-        <Text style={[styles.statusBadgeText, { color: statusTextColor }]}>
-          {status}
-        </Text>
+
+      <View style={styles.routeContainer}>
+        <View style={styles.timeline}>
+          <View style={styles.dotBlue} />
+          <View style={styles.line} />
+          <View style={styles.dotBlue} />
+        </View>
+        <View style={styles.addressContainer}>
+          <View>
+            <Text
+              style={[
+                commonStyling.subtitle,
+                {
+                  fontSize: FONT_SIZES.SMALL,
+                },
+              ]}
+            >
+              Pickup
+            </Text>
+            <Text
+              style={[
+                styles.addressText,
+                commonStyling.title,
+                {
+                  fontSize: FONT_SIZES.SMALL,
+                },
+              ]}
+            >
+              2847 Maple Avenue
+            </Text>
+          </View>
+          <View style={[{ marginTop: 20 }]}>
+            <Text
+              style={[
+                commonStyling.subtitle,
+                {
+                  fontSize: FONT_SIZES.SMALL,
+                },
+              ]}
+            >
+              Destination
+            </Text>
+            <Text
+              style={[
+                styles.addressText,
+                commonStyling.title,
+                {
+                  fontSize: FONT_SIZES.SMALL,
+                },
+              ]}
+            >
+              Springfield General Hospital
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <Text style={styles.driverAssignText}>
+        {isAssigning ? "Assigning driver" : "Driver • John Smith"}
+      </Text>
+
+      <View style={styles.upcomingActions}>
+        <TouchableOpacity style={styles.detailsBtn} onPress={onPress}>
+          <Text style={styles.detailsBtnText}>View Details</Text>
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Text style={styles.cancelText}>Cancel</Text>
+        </TouchableOpacity>
       </View>
     </View>
-
-    <View style={styles.upcomingRoute}>
-      <View style={styles.timelineUpcoming}>
-        <View style={styles.dotSmallBlue} />
-        <View style={styles.lineSmall} />
-        <View style={styles.dotSmallDark} />
-      </View>
-      <View style={{ marginLeft: 12 }}>
-        <Text style={styles.upcomingAddrLabel}>PICKUP</Text>
-        <Text style={styles.upcomingAddrText}>{pickup}</Text>
-        <Text style={[styles.upcomingAddrLabel, { marginTop: 12 }]}>
-          DESTINATION
-        </Text>
-        <Text style={styles.upcomingAddrText}>{destination}</Text>
-      </View>
-    </View>
-
-    <Text style={styles.driverAssignText}>
-      {isAssigning ? "Assigning driver" : "Driver • John Smith"}
-    </Text>
-
-    <View style={styles.upcomingActions}>
-      <TouchableOpacity style={styles.detailsBtn} onPress={onPress}>
-        <Text style={styles.detailsBtnText}>View Details</Text>
-      </TouchableOpacity>
-      <TouchableOpacity>
-        <Text style={styles.cancelText}>Cancel</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
+  container: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -250,11 +414,8 @@ const styles = StyleSheet.create({
   },
 
   scrollContent: { paddingHorizontal: 20, paddingBottom: 150 },
-  description: { fontSize: 14, color: "#64748B", marginBottom: 20 },
+  description: { marginBottom: 20 },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#1E293B",
     marginTop: 10,
     marginBottom: 16,
   },
@@ -277,13 +438,18 @@ const styles = StyleSheet.create({
   },
   statusRow: { flexDirection: "row", alignItems: "center" },
   pulseDot: {
-    width: 8,
-    height: 8,
+    width: 9,
+    height: 9,
     borderRadius: 4,
     backgroundColor: "#FFF",
     marginRight: 8,
   },
-  activeStatusText: { color: "#FFF", fontWeight: "600", fontSize: 14 },
+  activeStatusText: {
+    color: "#FFF",
+    fontWeight: "600",
+    fontSize: 15,
+    fontFamily: "Bold",
+  },
   etaBadge: {
     backgroundColor: "rgba(255,255,255,0.2)",
     paddingHorizontal: 12,
@@ -305,10 +471,7 @@ const styles = StyleSheet.create({
   addressWrapper: { marginLeft: 15 },
   activeAddressLabel: { color: "rgba(255,255,255,0.7)", fontSize: 11 },
   activeAddressText: {
-    color: "#FFF",
-    fontSize: 14,
-    fontWeight: "600",
-    marginTop: 2,
+    marginTop: 4,
   },
   activeDivider: {
     height: 1,
@@ -324,12 +487,13 @@ const styles = StyleSheet.create({
     borderColor: "#FFF",
   },
   driverInfo: { marginLeft: 12 },
-  driverName: { color: "#FFF", fontSize: 15, fontWeight: "700" },
-  driverSub: { color: "rgba(255,255,255,0.7)", fontSize: 12 },
+  driverName: { color: "#FFF", fontSize: 15, fontFamily: "Bold" },
+  driverSub: { color: "rgba(255,255,255,0.7)", fontSize: 12, marginTop: 4 },
   driverStatusMsg: {
     color: "rgba(255,255,255,0.9)",
     fontSize: 13,
     marginTop: 12,
+    fontFamily: "Regular",
   },
   trackButton: {
     backgroundColor: "#FFF",
@@ -339,16 +503,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 20,
   },
-  trackButtonText: { color: "#3B82F6", fontWeight: "700", fontSize: 15 },
+  trackButtonText: {
+    color: "#3B82F6",
+    fontWeight: "700",
+    fontSize: 15,
+    fontFamily: "Bold",
+  },
 
   // Upcoming Card Styles
   upcomingCard: {
-    backgroundColor: "#FFF",
     borderRadius: 20,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
   },
   upcomingHeader: {
     flexDirection: "row",
@@ -360,15 +527,13 @@ const styles = StyleSheet.create({
   iconBox: {
     width: 36,
     height: 36,
-    backgroundColor: "#EFF6FF",
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
   },
-  upcomingDateText: { fontSize: 15, fontWeight: "700", color: "#1E293B" },
-  upcomingTimeText: { fontSize: 12, color: "#64748B" },
+
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  statusBadgeText: { fontSize: 11, fontWeight: "700" },
+  statusBadgeText: { fontSize: 11, fontFamily: "SemiBold" },
   upcomingRoute: { flexDirection: "row", marginBottom: 16 },
   timelineUpcoming: { width: 8, alignItems: "center", marginTop: 4 },
   dotSmallBlue: {
@@ -401,6 +566,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginTop: 16,
   },
   detailsBtn: {
     backgroundColor: "#3B82F6",
@@ -408,6 +574,8 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 12,
     justifyContent: "center",
+    width: "75%",
+    alignItems: "center",
   },
   detailsBtnText: { color: "#FFF", fontWeight: "700", fontSize: 14 },
   cancelText: { color: "#EF4444", fontWeight: "700", fontSize: 14 },
@@ -425,6 +593,16 @@ const styles = StyleSheet.create({
     elevation: 5,
     shadowOpacity: 0.1,
     shadowRadius: 10,
+  },
+
+  routeContainer: { flexDirection: "row", marginBottom: 16 },
+  timeline: { alignItems: "center", width: 20, marginTop: 5 },
+  dotBlue: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#3B82F6" },
+  dotRed: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#EF4444" },
+  line: { width: 1, flex: 1, backgroundColor: "#E2E8F0", marginVertical: 4 },
+  addressContainer: { flex: 1, marginLeft: 12 },
+  addressText: {
+    marginTop: 2,
   },
 });
 

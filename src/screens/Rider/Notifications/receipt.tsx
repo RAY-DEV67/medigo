@@ -20,20 +20,64 @@ import {
   Download,
 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import useTheme from "../../../hooks/useThemes";
+import { commonStyles } from "../../../styles/commonStyles";
+import { FONT_SIZES } from "../../../constants/sizes";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 const ReceiptScreen = () => {
+  const { colors, theme } = useTheme();
+  const commonStyling = commonStyles(colors);
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.surfacePrimary,
+        },
+      ]}
+    >
+      <StatusBar
+        barStyle={theme === "light" ? "dark-content" : "light-content"}
+      />
 
       {/* Header with Close Button */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Receipt</Text>
-          <Text style={styles.tripId}>Trip #000001</Text>
+          <Text
+            style={[
+              commonStyling.title,
+              {
+                fontSize: FONT_SIZES.TITLE2,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            Receipt
+          </Text>
+          <Text
+            style={[
+              styles.tripId,
+              commonStyling.subtitle,
+              {
+                color: colors.textSecondary,
+                fontSize: FONT_SIZES.BODY,
+              },
+            ]}
+          >
+            Trip #000001
+          </Text>
         </View>
-        <TouchableOpacity style={styles.closeButton}>
-          <X color="#64748B" size={24} />
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={() => {
+            navigation.goBack();
+          }}
+        >
+          <X color={colors.textSecondary} size={24} />
         </TouchableOpacity>
       </View>
 
@@ -43,7 +87,14 @@ const ReceiptScreen = () => {
       >
         {/* Payment Status Badge */}
         <View style={styles.badgeContainer}>
-          <View style={styles.successBadge}>
+          <View
+            style={[
+              styles.successBadge,
+              {
+                backgroundColor: colors.darkGreen,
+              },
+            ]}
+          >
             <Text style={styles.successBadgeText}>✓ PAYMENT COMPLETE</Text>
           </View>
         </View>
@@ -74,12 +125,50 @@ const ReceiptScreen = () => {
           </View>
           <View style={styles.addressWrapper}>
             <View>
-              <Text style={styles.addressLabel}>PICKUP</Text>
-              <Text style={styles.addressText}>2847 Maple Avenue</Text>
+              <Text
+                style={[
+                  commonStyling.subtitle,
+                  {
+                    fontSize: FONT_SIZES.SMALL,
+                  },
+                ]}
+              >
+                PICKUP
+              </Text>
+              <Text
+                style={[
+                  styles.addressText,
+                  commonStyling.title,
+                  {
+                    fontSize: FONT_SIZES.SMALL,
+                    fontFamily: "SemiBold",
+                  },
+                ]}
+              >
+                2847 Maple Avenue
+              </Text>
             </View>
             <View style={[{ marginTop: 16 }]}>
-              <Text style={styles.addressLabel}>DESTINATION</Text>
-              <Text style={styles.addressText}>
+              <Text
+                style={[
+                  commonStyling.subtitle,
+                  {
+                    fontSize: FONT_SIZES.SMALL,
+                  },
+                ]}
+              >
+                DESTINATION
+              </Text>
+              <Text
+                style={[
+                  styles.addressText,
+                  commonStyling.title,
+                  {
+                    fontSize: FONT_SIZES.SMALL,
+                    fontFamily: "SemiBold",
+                  },
+                ]}
+              >
                 Springfield General Hospital
               </Text>
             </View>
@@ -97,7 +186,12 @@ const ReceiptScreen = () => {
           value="Standard Ride"
         />
 
-        <View style={styles.sectionDivider} />
+        <View
+          style={[
+            styles.sectionDivider,
+            { backgroundColor: colors.lightPrimaryBlueBorder },
+          ]}
+        />
 
         {/* FARE BREAKDOWN Section */}
         <SectionHeader
@@ -105,30 +199,96 @@ const ReceiptScreen = () => {
           title="FARE BREAKDOWN"
         />
 
-        <View style={styles.breakdownCard}>
+        <View
+          style={[
+            styles.breakdownCard,
+            {
+              backgroundColor: colors.surfaceElevated,
+            },
+          ]}
+        >
           <View style={styles.fareRow}>
-            <Text style={styles.fareLabel}>Base Fare</Text>
-            <Text style={styles.fareValue}>$38.25</Text>
+            <Text style={[commonStyling.subtitle]}>Base Fare</Text>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: FONT_SIZES.BODY,
+                  fontFamily: "SemiBold",
+                },
+              ]}
+            >
+              $38.25
+            </Text>
           </View>
           <View style={styles.fareRow}>
-            <Text style={styles.fareLabel}>Service Fee</Text>
-            <Text style={styles.fareValue}>$6.75</Text>
+            <Text style={[commonStyling.subtitle]}>Service Fee</Text>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: FONT_SIZES.BODY,
+                  fontFamily: "SemiBold",
+                },
+              ]}
+            >
+              $6.75
+            </Text>
           </View>
           <View style={styles.totalDivider} />
           <View style={styles.fareRow}>
-            <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>$45.00</Text>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: FONT_SIZES.BODY,
+                  fontFamily: "Bold",
+                },
+              ]}
+            >
+              Total
+            </Text>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: FONT_SIZES.TITLE,
+                  color: colors.primaryColor,
+                  fontFamily: "Bold",
+                },
+              ]}
+            >
+              $45.00
+            </Text>
           </View>
         </View>
 
         {/* Payment Method Card */}
-        <View style={styles.paymentMethodCard}>
+        <View
+          style={[
+            styles.paymentMethodCard,
+            {
+              backgroundColor: colors.surfaceBrand,
+            },
+          ]}
+        >
           <View style={styles.iconBox}>
             <CreditCard color="#3B82F6" size={20} />
           </View>
           <View style={{ marginLeft: 12 }}>
             <Text style={styles.paidWithLabel}>Paid with</Text>
-            <Text style={styles.cardInfo}>Visa •••• 4242</Text>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  color: colors.primaryColor,
+                  fontSize: FONT_SIZES.BODY,
+                  fontFamily: "SemiBold",
+                },
+              ]}
+            >
+              Visa •••• 4242
+            </Text>
           </View>
         </View>
 
@@ -138,54 +298,119 @@ const ReceiptScreen = () => {
       </ScrollView>
 
       {/* Action Buttons */}
-      <View style={styles.footerActions}>
+      <View
+        style={[
+          styles.footerActions,
+          {
+            backgroundColor: colors.surfacePrimary,
+            borderTopColor: colors.lightPrimaryBlueBorder,
+          },
+        ]}
+      >
         <TouchableOpacity style={styles.outlineButton}>
-          <Share2 color="#64748B" size={20} />
-          <Text style={styles.outlineButtonText}>Share</Text>
+          <Share2 color={colors.titleText} size={20} />
+          <Text
+            style={[
+              commonStyling.title,
+              {
+                fontSize: FONT_SIZES.SUBTITLE,
+              },
+            ]}
+          >
+            Share
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.filledButton}>
           <Download color="#FFF" size={20} />
-          <Text style={styles.filledButtonText}>Download PDF</Text>
+          <Text
+            style={[
+              commonStyling.title,
+              {
+                fontSize: FONT_SIZES.SUBTITLE,
+                color: "#ffffff",
+              },
+            ]}
+          >
+            Download PDF
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 };
 
-// Helpers
-const SectionHeader = ({ icon, title }: any) => (
-  <View style={styles.sectionHeader}>
-    {icon}
-    <Text style={styles.sectionHeaderText}>{title}</Text>
-  </View>
-);
+const SectionHeader = ({ icon, title }: any) => {
+  const { colors } = useTheme();
+  const commonStyling = commonStyles(colors);
 
-const DetailRow = ({ icon, label, value }: any) => (
-  <View style={styles.detailRow}>
-    <View>{icon}</View>
-    <View style={{ marginLeft: 12 }}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue}>{value}</Text>
+  return (
+    <View style={styles.sectionHeader}>
+      {icon}
+      <Text
+        style={[
+          styles.sectionHeaderText,
+          commonStyling.title,
+          {
+            fontSize: FONT_SIZES.BODY,
+            fontFamily: "SemiBold",
+          },
+        ]}
+      >
+        {title}
+      </Text>
     </View>
-  </View>
-);
+  );
+};
+
+const DetailRow = ({ icon, label, value }: any) => {
+  const { colors } = useTheme();
+  const commonStyling = commonStyles(colors);
+  return (
+    <View style={styles.detailRow}>
+      <View>{icon}</View>
+      <View style={{ marginLeft: 12 }}>
+        <Text
+          style={[
+            styles.rowLabel,
+            commonStyling.subtitle,
+            {
+              fontSize: FONT_SIZES.BODY,
+            },
+          ]}
+        >
+          {label}
+        </Text>
+        <Text
+          style={[
+            styles.rowValue,
+            commonStyling.title,
+            {
+              fontSize: FONT_SIZES.BODY,
+              fontFamily: "SemiBold",
+            },
+          ]}
+        >
+          {value}
+        </Text>
+      </View>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" },
+  container: { flex: 1 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     padding: 24,
     alignItems: "center",
   },
-  headerTitle: { fontSize: 24, fontWeight: "800", color: "#1E293B" },
-  tripId: { fontSize: 14, color: "#94A3B8", marginTop: 2 },
+  tripId: { marginTop: 2 },
   closeButton: { padding: 8 },
 
   scrollContent: { paddingHorizontal: 24, paddingBottom: 120 },
   badgeContainer: { marginBottom: 32 },
   successBadge: {
-    backgroundColor: "#DCFCE7",
     alignSelf: "flex-start",
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -202,7 +427,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 13,
     fontWeight: "800",
-    color: "#1E293B",
     letterSpacing: 0.5,
   },
 
@@ -223,24 +447,20 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  sectionDivider: { height: 1, backgroundColor: "#F1F5F9", marginVertical: 24 },
+  sectionDivider: { height: 1, marginVertical: 24 },
 
-  breakdownCard: { backgroundColor: "#F8FAFC", borderRadius: 16, padding: 20 },
+  breakdownCard: { borderRadius: 16, padding: 20 },
   fareRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginVertical: 4,
   },
-  fareLabel: { fontSize: 15, color: "#64748B" },
-  fareValue: { fontSize: 15, fontWeight: "700", color: "#1E293B" },
   totalDivider: { height: 1, backgroundColor: "#E2E8F0", marginVertical: 12 },
   totalLabel: { fontSize: 18, fontWeight: "800", color: "#1E293B" },
-  totalValue: { fontSize: 22, fontWeight: "800", color: "#3B82F6" },
 
   paymentMethodCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#EFF6FF",
     padding: 16,
     borderRadius: 16,
     marginTop: 16,
@@ -254,7 +474,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   paidWithLabel: { fontSize: 12, color: "#3B82F6" },
-  cardInfo: { fontSize: 15, fontWeight: "700", color: "#1E293B" },
 
   footerContact: {
     textAlign: "center",
@@ -269,9 +488,7 @@ const styles = StyleSheet.create({
     width: "100%",
     flexDirection: "row",
     padding: 20,
-    backgroundColor: "#FFF",
     borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
     gap: 12,
   },
   outlineButton: {
@@ -285,7 +502,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
-  outlineButtonText: { fontSize: 16, fontWeight: "700", color: "#1E293B" },
   filledButton: {
     flex: 1,
     flexDirection: "row",

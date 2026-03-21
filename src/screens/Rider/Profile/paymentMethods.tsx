@@ -5,18 +5,18 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  CreditCard,
-  Lock,
-} from "lucide-react-native";
+import { ChevronRight, Plus, CreditCard, Lock } from "lucide-react-native";
+import { usePaymentMethods } from "../../../hooks/queries/usePaymentMethods";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import useTheme from "../../../hooks/useThemes";
+import { commonStyles } from "../../../styles/commonStyles";
+import Header from "../../../components/reuseables/header";
 
-// Simple placeholder for PayPal/Apple Pay brand logos
 const BrandLogo = ({ type }: { type: "paypal" | "apple" }) => (
   <View
     style={[
@@ -29,89 +29,255 @@ const BrandLogo = ({ type }: { type: "paypal" | "apple" }) => (
 );
 
 const PaymentMethodsScreen = () => {
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+  const { data, isLoading } = usePaymentMethods();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { colors, theme } = useTheme();
+  const commonStyling = commonStyles(colors);
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
-          <ChevronLeft color="#1A1C1E" size={24} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Payment Methods</Text>
-        <View style={{ width: 40 }} />
-      </View>
+  const paymentMethods = data?.data || [];
+
+  // Helper to format brand names and handle icons
+  const getBrandDetails = (brand: string) => {
+    const b = brand?.toLowerCase();
+    if (b === "visa") return { label: "Visa", color: "#1A1F71" };
+    if (b === "mastercard") return { label: "Mastercard", color: "#EB001B" };
+    return { label: brand, color: "#64748B" };
+  };
+
+  return (
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.surfacePrimary }]}
+    >
+      <StatusBar
+        barStyle={theme === "light" ? "dark-content" : "light-content"}
+      />
+      <Header title="Payment Methods" />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         {/* SAVED CARDS SECTION */}
-        <Text style={styles.categoryLabel}>Saved Cards</Text>
-        <View style={styles.cardGroup}>
-          {/* Default Card */}
-          <TouchableOpacity style={styles.paymentRow}>
-            <View style={styles.iconContainer}>
-              <CreditCard size={20} color="#64748B" />
-            </View>
-            <View style={styles.textContent}>
-              <View style={styles.titleRow}>
-                <Text style={styles.paymentTitle}>Visa •••• 4242</Text>
-                <View style={styles.defaultBadge}>
-                  <Text style={styles.defaultText}>DEFAULT</Text>
-                </View>
-              </View>
-              <Text style={styles.paymentSub}>Expires 12/25</Text>
-            </View>
-            <ChevronRight size={18} color="#CBD5E1" />
-          </TouchableOpacity>
+        <Text
+          style={[
+            styles.categoryLabel,
+            commonStyling.subtitle,
+            { fontSize: 13, fontFamily: "SemiBold" },
+          ]}
+        >
+          Saved Cards
+        </Text>
 
-          <View style={styles.divider} />
+        <View
+          style={[
+            styles.cardGroup,
+            { borderColor: colors.lightPrimaryBlueBorder },
+          ]}
+        >
+          {isLoading ? (
+            <ActivityIndicator
+              style={{ padding: 20 }}
+              color={colors.primaryColor}
+            />
+          ) : paymentMethods.length > 0 ? (
+            paymentMethods.map((method, index) => {
+              const brand = getBrandDetails(method.brand);
+              const isLast = index === paymentMethods.length - 1;
 
-          {/* Secondary Card */}
-          <TouchableOpacity style={styles.paymentRow}>
-            <View style={styles.iconContainer}>
-              <CreditCard size={20} color="#64748B" />
-            </View>
-            <View style={styles.textContent}>
-              <Text style={styles.paymentTitle}>Mastercard •••• 8888</Text>
-              <Text style={styles.paymentSub}>Expires 09/26</Text>
-            </View>
-            <ChevronRight size={18} color="#CBD5E1" />
-          </TouchableOpacity>
+              return (
+                <React.Fragment key={method.id}>
+                  <TouchableOpacity
+                    style={styles.paymentRow}
+                    onPress={() =>
+                      navigation.navigate("PaymentDetailsScreen", {
+                        id: method.id,
+                      })
+                    }
+                  >
+                    <View
+                      style={[
+                        styles.iconContainer,
+                        { backgroundColor: colors.homelightPrimaryBlue50 },
+                      ]}
+                    >
+                      <CreditCard size={20} color={brand.color} />
+                    </View>
+
+                    <View style={styles.textContent}>
+                      <View style={styles.titleRow}>
+                        <Text
+                          style={[
+                            commonStyling.title,
+                            { fontSize: 15, fontFamily: "SemiBold" },
+                          ]}
+                        >
+                          {brand.label} •••• {method.last_four}
+                        </Text>
+                        {method.is_default && (
+                          <View style={styles.defaultBadge}>
+                            <Text style={styles.defaultText}>DEFAULT</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text
+                        style={[
+                          commonStyling.subtitle,
+                          { fontSize: 13, fontFamily: "Medium", marginTop: 2 },
+                        ]}
+                      >
+                        {method.holder_name}
+                      </Text>
+                    </View>
+                    <ChevronRight size={18} color="#CBD5E1" />
+                  </TouchableOpacity>
+
+                  {!isLast && (
+                    <View
+                      style={[
+                        styles.divider,
+                        { backgroundColor: colors.lightPrimaryBlueBorder },
+                      ]}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })
+          ) : (
+            <Text
+              style={{
+                padding: 20,
+                textAlign: "center",
+                color: colors.subTitleText,
+              }}
+            >
+              No cards saved yet.
+            </Text>
+          )}
         </View>
 
         {/* ADD PAYMENT SECTION */}
-        <Text style={styles.categoryLabel}>Add Payment Method</Text>
-        <TouchableOpacity style={styles.addMethodCard}>
+        <Text
+          style={[
+            styles.categoryLabel,
+            commonStyling.subtitle,
+            { fontSize: 13, fontFamily: "SemiBold" },
+          ]}
+        >
+          Add Payment Method
+        </Text>
+        <TouchableOpacity
+          style={[
+            styles.addMethodCard,
+            { borderColor: colors.lightPrimaryBlueBorder },
+          ]}
+          onPress={() =>
+            navigation.navigate("Auth", {
+              screen: "PaymentMethod",
+            })
+          }
+        >
           <View style={styles.plusWrapper}>
             <Plus size={20} color="#3B82F6" />
           </View>
-          <Text style={styles.addMethodText}>Add Credit or Debit Card</Text>
+          <Text
+            style={[
+              styles.addMethodText,
+              commonStyling.title,
+              { fontFamily: "SemiBold", fontSize: 15 },
+            ]}
+          >
+            Add Credit or Debit Card
+          </Text>
           <ChevronRight size={18} color="#CBD5E1" />
         </TouchableOpacity>
 
-        {/* OTHER OPTIONS SECTION */}
-        <Text style={styles.categoryLabel}>Other Options</Text>
-        <View style={styles.cardGroup}>
+        <Text
+          style={[
+            styles.categoryLabel,
+            commonStyling.subtitle,
+            {
+              fontSize: 13,
+              fontFamily: "SemiBold",
+            },
+          ]}
+        >
+          Other Options
+        </Text>
+        <View
+          style={[
+            styles.cardGroup,
+            {
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
           {/* PayPal */}
           <TouchableOpacity style={styles.paymentRow}>
             <BrandLogo type="paypal" />
             <View style={styles.textContent}>
-              <Text style={styles.paymentTitle}>PayPal</Text>
-              <Text style={styles.paymentSub}>Link your PayPal account</Text>
+              <Text
+                style={[
+                  commonStyling.title,
+                  {
+                    fontSize: 15,
+                    fontFamily: "SemiBold",
+                  },
+                ]}
+              >
+                PayPal
+              </Text>
+              <Text
+                style={[
+                  commonStyling.subtitle,
+                  {
+                    fontSize: 13,
+                    fontFamily: "Medium",
+                    marginTop: 2,
+                  },
+                ]}
+              >
+                Link your PayPal account
+              </Text>
             </View>
             <ChevronRight size={18} color="#CBD5E1" />
           </TouchableOpacity>
 
-          <View style={styles.divider} />
+          <View
+            style={[
+              styles.divider,
+              {
+                backgroundColor: colors.lightPrimaryBlueBorder,
+              },
+            ]}
+          />
 
           {/* Apple Pay */}
           <TouchableOpacity style={styles.paymentRow}>
             <BrandLogo type="apple" />
             <View style={styles.textContent}>
-              <Text style={styles.paymentTitle}>Apple Pay</Text>
-              <Text style={styles.paymentSub}>Fast and secure checkout</Text>
+              <Text
+                style={[
+                  commonStyling.title,
+                  {
+                    fontSize: 15,
+                    fontFamily: "SemiBold",
+                  },
+                ]}
+              >
+                Apple Pay
+              </Text>
+              <Text
+                style={[
+                  commonStyling.subtitle,
+                  {
+                    fontSize: 13,
+                    fontFamily: "Medium",
+                    marginTop: 2,
+                  },
+                ]}
+              >
+                Fast and secure checkout
+              </Text>
             </View>
             <ChevronRight size={18} color="#CBD5E1" />
           </TouchableOpacity>
@@ -121,8 +287,17 @@ const PaymentMethodsScreen = () => {
         <View style={styles.securityFooter}>
           <Lock size={14} color="#94A3B8" />
           <View style={styles.securityTextContainer}>
-            <Text style={styles.securityTitle}>Secure Payment</Text>
-            <Text style={styles.securitySub}>
+            <Text
+              style={[
+                commonStyling.subtitle,
+                { fontSize: 12, fontFamily: "SemiBold" },
+              ]}
+            >
+              Secure Payment
+            </Text>
+            <Text
+              style={[commonStyling.subtitle, { fontSize: 12, marginTop: 2 }]}
+            >
               Your payment information is encrypted and PCI-compliant.
             </Text>
           </View>
@@ -133,7 +308,7 @@ const PaymentMethodsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" },
+  container: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -155,18 +330,13 @@ const styles = StyleSheet.create({
 
   scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
   categoryLabel: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: "#94A3B8",
     marginTop: 24,
     marginBottom: 12,
   },
 
   cardGroup: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
     overflow: "hidden",
   },
   paymentRow: { flexDirection: "row", alignItems: "center", padding: 16 },
@@ -174,15 +344,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: "#F1F5F9",
     justifyContent: "center",
     alignItems: "center",
   },
   textContent: { flex: 1, marginLeft: 12 },
   titleRow: { flexDirection: "row", alignItems: "center" },
-  paymentTitle: { fontSize: 15, fontWeight: "700", color: "#1E293B" },
-  paymentSub: { fontSize: 12, color: "#94A3B8", marginTop: 2 },
-  divider: { height: 1, backgroundColor: "#F1F5F9", marginHorizontal: 16 },
+
+  divider: { height: 1, marginHorizontal: 16 },
 
   defaultBadge: {
     backgroundColor: "#DCFCE7",
@@ -197,10 +365,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
   },
   plusWrapper: {
     width: 40,
@@ -212,9 +378,6 @@ const styles = StyleSheet.create({
   },
   addMethodText: {
     flex: 1,
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#1E293B",
     marginLeft: 12,
   },
 
@@ -231,8 +394,6 @@ const styles = StyleSheet.create({
 
   securityFooter: { flexDirection: "row", marginTop: 32, paddingHorizontal: 4 },
   securityTextContainer: { marginLeft: 10, flex: 1 },
-  securityTitle: { fontSize: 12, fontWeight: "700", color: "#64748B" },
-  securitySub: { fontSize: 11, color: "#94A3B8", marginTop: 2, lineHeight: 16 },
 });
 
 export default PaymentMethodsScreen;

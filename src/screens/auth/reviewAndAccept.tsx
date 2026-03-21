@@ -22,6 +22,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Buttons from "../../components/buttons/buttons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useUpdateConsentMutation } from "../../hooks/mutations/useUser";
 
 const ReviewAndAccept = () => {
   const { colors } = useTheme();
@@ -37,7 +38,23 @@ const ReviewAndAccept = () => {
     setAgreements((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const isAllAccepted = Object.values(agreements).every((v) => v === true);
+  const consentMutation = useUpdateConsentMutation();
+
+  const handleAcceptAll = () => {
+    const payload = {
+      consent_emergency_services: agreements.emergency,
+      consent_privacy_policy: agreements.privacy,
+      consent_terms_of_service: agreements.terms,
+      consent_data_location: agreements.location,
+    };
+
+    consentMutation.mutate(payload, {
+      onSuccess: () => {
+        // Redirect to Dashboard or Success Screen
+        navigation.navigate("PaymentMethod");
+      },
+    });
+  };
 
   return (
     <SafeAreaView
@@ -70,7 +87,6 @@ const ReviewAndAccept = () => {
             styles.card,
             {
               backgroundColor: colors.highlightRed50,
-              borderColor: colors.stroke,
             },
           ]}
         >
@@ -115,7 +131,12 @@ const ReviewAndAccept = () => {
             </View>
           </View>
           <TouchableOpacity
-            style={styles.checkboxRow}
+            style={[
+              styles.checkboxRow,
+              {
+                opacity: 10,
+              },
+            ]}
             onPress={() => toggleAgreement("emergency")}
           >
             <View
@@ -130,7 +151,7 @@ const ReviewAndAccept = () => {
                 {
                   fontSize: FONT_SIZES.BODY,
                   lineHeight: 20,
-                  color: "#1E293B",
+                  color: colors.titleText,
                   fontFamily: "Medium",
                   flex: 1,
                 },
@@ -148,6 +169,7 @@ const ReviewAndAccept = () => {
           icon={<Shield color="#3B82F6" size={20} />}
           isSelected={agreements.privacy}
           onToggle={() => toggleAgreement("privacy")}
+          navDestination="PrivacyPolicyScreen"
         />
 
         {/* 3. Terms of Service */}
@@ -157,6 +179,7 @@ const ReviewAndAccept = () => {
           icon={<FileText color="#3B82F6" size={20} />}
           isSelected={agreements.terms}
           onToggle={() => toggleAgreement("terms")}
+          navDestination="TermsOfServiceScreen"
         />
 
         {/* 4. Data & Location Consent */}
@@ -166,14 +189,23 @@ const ReviewAndAccept = () => {
           icon={<MapPin color="#3B82F6" size={20} />}
           isSelected={agreements.location}
           onToggle={() => toggleAgreement("location")}
+          navDestination="LocationConsentScreen"
         />
       </ScrollView>
 
       {/* Fixed Bottom Button */}
-      <View style={styles.footer}>
+      <View
+        style={[
+          styles.footer,
+          {
+            backgroundColor: colors.surfacePrimary,
+          },
+        ]}
+      >
         <Buttons
           title="Accept all agreement to continue"
-          onPress={() => navigation.navigate("PaymentMethod")}
+          onPress={handleAcceptAll}
+          loading={consentMutation.isPending}
         />
       </View>
     </SafeAreaView>
@@ -181,17 +213,24 @@ const ReviewAndAccept = () => {
 };
 
 // --- Reusable Sub-component for White Cards ---
-const AgreementCard = ({ title, desc, icon, isSelected, onToggle }: any) => {
+const AgreementCard = ({
+  title,
+  desc,
+  icon,
+  isSelected,
+  onToggle,
+  navDestination,
+}: any) => {
   const { colors } = useTheme();
   const commonStyling = commonStyles(colors);
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
 
   return (
     <View
       style={[
         styles.card,
         {
-          backgroundColor: colors.gray1,
-          borderColor: colors.stroke,
+          backgroundColor: colors.lightGray,
         },
       ]}
     >
@@ -221,7 +260,12 @@ const AgreementCard = ({ title, desc, icon, isSelected, onToggle }: any) => {
           >
             {desc}
           </Text>
-          <TouchableOpacity style={styles.viewLinkRow}>
+          <TouchableOpacity
+            style={styles.viewLinkRow}
+            onPress={() => {
+              navigation.navigate(navDestination);
+            }}
+          >
             <Text
               style={[
                 styles.viewLinkText,
@@ -248,7 +292,7 @@ const AgreementCard = ({ title, desc, icon, isSelected, onToggle }: any) => {
             {
               fontSize: FONT_SIZES.BODY,
               lineHeight: 20,
-              color: "#1E293B",
+              color: colors.titleText,
               fontFamily: "Medium",
               flex: 1,
             },
@@ -262,7 +306,7 @@ const AgreementCard = ({ title, desc, icon, isSelected, onToggle }: any) => {
 };
 
 const styles = StyleSheet.create({
-  header: { paddingHorizontal: 20, paddingTop: 10 },
+  header: { paddingHorizontal: 20, paddingVertical: 10 },
   backButton: {
     width: 40,
     height: 40,
@@ -330,7 +374,7 @@ const styles = StyleSheet.create({
   checkboxRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FFFFFF33",
     padding: 12,
     borderRadius: 12,
     width: "100%",
@@ -355,11 +399,12 @@ const styles = StyleSheet.create({
   checkboxActive: { backgroundColor: "#3B82F6", borderColor: "#3B82F6" },
 
   footer: {
-    padding: 24,
+    paddingTop: 24,
+    paddingBottom: 48,
+    paddingHorizontal: 24,
     position: "absolute",
     bottom: 0,
     width: "100%",
-    backgroundColor: "#FFFFFF",
   },
   primaryButton: {
     backgroundColor: "#3B82F6",

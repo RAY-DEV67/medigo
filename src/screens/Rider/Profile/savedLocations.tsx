@@ -6,177 +6,197 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import {
-  ChevronLeft,
   ChevronRight,
   Plus,
   Home,
   Building2,
   MapPin,
   Star,
+  Briefcase,
 } from "lucide-react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { SafeAreaView } from "react-native-safe-area-context";
+import useTheme from "../../../hooks/useThemes";
+import { commonStyles } from "../../../styles/commonStyles";
+import Header from "../../../components/reuseables/header";
+import { useSavedLocations } from "../../../hooks/queries/useSavedLocations";
+import { format } from "date-fns";
+import LocationCard from "../../../components/cards/locationCard";
+import { getLocationTypeStyles } from "../../../utils/getLocationTypeStyles";
 
 const SavedLocationsScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+  const { colors, theme } = useTheme();
+  const commonStyling = commonStyles(colors);
+  const { data, isLoading } = useSavedLocations();
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
-          <ChevronLeft color="#1A1C1E" size={24} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Saved Locations</Text>
-        <View style={{ width: 40 }} />
-      </View>
+  const savedLocations = data?.data || [];
+  const favoriteLocations = savedLocations.filter((loc) => loc.is_default);
+  const regularLocations = savedLocations.filter((loc) => !loc.is_default);
+
+  return (
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.surfacePrimary }]}
+    >
+      <StatusBar
+        barStyle={theme === "light" ? "dark-content" : "light-content"}
+      />
+      <Header title="Saved Locations" />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <Text style={styles.description}>
+        <Text
+          style={[
+            styles.description,
+            commonStyling.subtitle,
+            { fontSize: 14, fontFamily: "Medium" },
+          ]}
+        >
           Manage your favorite pickup and destination locations
         </Text>
 
         {/* Action: Add New Location */}
         <TouchableOpacity
-          style={styles.addLocationCard}
-          onPress={() => {
+          style={[
+            styles.addLocationCard,
+            {
+              backgroundColor: colors.homelightPrimaryBlue50,
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+          onPress={() =>
             navigation.navigate("RiderProfileContentsStack", {
               screen: "AddLocationScreen",
-            });
-          }}
+            })
+          }
         >
           <View style={styles.plusIconWrapper}>
             <Plus size={24} color="#3B82F6" />
           </View>
           <View style={styles.textContent}>
-            <Text style={styles.addTitle}>Add New Location</Text>
-            <Text style={styles.addSub}>Save a new pickup or destination</Text>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontFamily: "Bold",
+                  fontSize: 16,
+                  color: colors.primaryColor,
+                },
+              ]}
+            >
+              Add New Location
+            </Text>
+            <Text
+              style={[
+                styles.addSub,
+                commonStyling.subtitle,
+                { fontFamily: "Medium", fontSize: 14 },
+              ]}
+            >
+              Save a new pickup or destination
+            </Text>
           </View>
         </TouchableOpacity>
 
-        {/* --- FAVORITES SECTION --- */}
-        <View style={styles.sectionHeader}>
-          <Star size={16} color="#F59E0B" fill="#F59E0B" />
-          <Text style={styles.sectionLabel}>FAVORITES</Text>
-        </View>
+        {isLoading ? (
+          <ActivityIndicator
+            size="large"
+            color={colors.primaryColor}
+            style={{ marginTop: 20 }}
+          />
+        ) : (
+          <>
+            {/* --- FAVORITES SECTION --- */}
+            {favoriteLocations.length > 0 && (
+              <>
+                <View style={styles.sectionHeader}>
+                  <Star size={16} color="#F59E0B" fill="#F59E0B" />
+                  <Text
+                    style={[
+                      styles.sectionLabel,
+                      commonStyling.title,
+                      { fontSize: 13, fontFamily: "Bold" },
+                    ]}
+                  >
+                    FAVORITES
+                  </Text>
+                </View>
+                {favoriteLocations.map((loc) => {
+                  const { icon, bg } = getLocationTypeStyles(loc.location_type);
+                  return (
+                    <LocationCard
+                      key={loc.id}
+                      icon={icon}
+                      bgColor={bg}
+                      title={loc.label}
+                      address={loc.address}
+                      lastUsed={`Updated ${format(new Date(loc.updated_at), "MMM d, yyyy")}`}
+                      isFavorite={true}
+                      onPress={() =>
+                        navigation.navigate("LocationDetailsScreen", {
+                          locationId: loc.id,
+                        })
+                      }
+                    />
+                  );
+                })}
+              </>
+            )}
 
-        <LocationCard
-          icon={<Home size={20} color="#3B82F6" />}
-          bgColor="#EFF6FF"
-          title="Home"
-          address="2847 Maple Avenue,"
-          lastUsed="Last used Feb 20, 2026"
-          isFavorite
-          onPress={() => {
-            navigation.navigate("RiderProfileContentsStack", {
-              screen: "LocationDetailsScreen",
-            });
-          }}
-        />
-
-        <LocationCard
-          icon={<Building2 size={20} color="#10B981" />}
-          bgColor="#ECFDF5"
-          title="Springfield General"
-          address="Springfield General"
-          lastUsed="Last used Feb 22, 2026"
-          isFavorite
-          onPress={() => {
-            navigation.navigate("RiderProfileContentsStack", {
-              screen: "LocationDetailsScreen",
-            });
-          }}
-        />
-
-        <LocationCard
-          icon={<MapPin size={20} color="#F59E0B" />}
-          bgColor="#FFFBEB"
-          title="Mom's House"
-          address="456 Oak Street,"
-          lastUsed="Last used Feb 12, 2026"
-          isFavorite
-          onPress={() => {
-            navigation.navigate("RiderProfileContentsStack", {
-              screen: "LocationDetailsScreen",
-            });
-          }}
-        />
-
-        {/* --- ALL LOCATIONS SECTION --- */}
-        <Text style={[styles.sectionLabel, { marginLeft: 0, marginTop: 12 }]}>
-          ALL LOCATIONS
-        </Text>
-
-        <LocationCard
-          icon={<Building2 size={20} color="#8B5CF6" />}
-          bgColor="#F5F3FF"
-          title="Work Office"
-          address="150 Tech Park Drive, Suite"
-          lastUsed="Last used Feb 18, 2026"
-          onPress={() => {
-            navigation.navigate("RiderProfileContentsStack", {
-              screen: "LocationDetailsScreen",
-            });
-          }}
-        />
-
-        <LocationCard
-          icon={<Building2 size={20} color="#10B981" />}
-          bgColor="#ECFDF5"
-          title="City Medical Plaza"
-          address="City Medical Plaza, 1234"
-          lastUsed="Last used Feb 15, 2026"
-          onPress={() => {
-            navigation.navigate("RiderProfileContentsStack", {
-              screen: "LocationDetailsScreen",
-            });
-          }}
-        />
+            {/* --- ALL LOCATIONS SECTION --- */}
+            <Text
+              style={[
+                styles.sectionLabel,
+                commonStyling.title,
+                { fontSize: 13, fontFamily: "Bold", marginVertical: 12 },
+              ]}
+            >
+              ALL LOCATIONS
+            </Text>
+            {regularLocations.length > 0
+              ? regularLocations.map((loc) => {
+                  const { icon, bg } = getLocationTypeStyles(loc.location_type);
+                  return (
+                    <LocationCard
+                      key={loc.id}
+                      icon={icon}
+                      bgColor={bg}
+                      title={loc.label}
+                      address={loc.address}
+                      lastUsed={`Saved ${format(new Date(loc.created_at), "MMM d, yyyy")}`}
+                      onPress={() =>
+                        navigation.navigate("LocationDetailsScreen", {
+                          locationId: loc.id,
+                        })
+                      }
+                    />
+                  );
+                })
+              : !favoriteLocations.length && (
+                  <Text
+                    style={[
+                      commonStyling.subtitle,
+                      { textAlign: "center", marginTop: 20 },
+                    ]}
+                  >
+                    No saved locations yet.
+                  </Text>
+                )}
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-// --- Sub-component for Location Items ---
-const LocationCard = ({
-  icon,
-  bgColor,
-  title,
-  address,
-  lastUsed,
-  isFavorite,
-  onPress,
-}: any) => (
-  <TouchableOpacity style={styles.locationCard} onPress={onPress}>
-    <View style={[styles.iconWrapper, { backgroundColor: bgColor }]}>
-      {icon}
-    </View>
-    <View style={styles.textContent}>
-      <Text style={styles.locationTitle}>{title}</Text>
-      <Text style={styles.locationAddress}>{address}</Text>
-      <Text style={styles.lastUsedText}>{lastUsed}</Text>
-    </View>
-    {isFavorite && (
-      <Star
-        size={18}
-        color="#F59E0B"
-        fill="#F59E0B"
-        style={{ marginRight: 12 }}
-      />
-    )}
-    <ChevronRight size={18} color="#CBD5E1" />
-  </TouchableOpacity>
-);
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" },
+  container: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -198,8 +218,6 @@ const styles = StyleSheet.create({
 
   scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
   description: {
-    fontSize: 14,
-    color: "#64748B",
     marginBottom: 24,
     textAlign: "left",
   },
@@ -210,7 +228,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
     marginBottom: 24,
   },
   plusIconWrapper: {
@@ -222,8 +239,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   textContent: { flex: 1, marginLeft: 16 },
-  addTitle: { fontSize: 15, fontWeight: "800", color: "#3B82F6" },
-  addSub: { fontSize: 12, color: "#64748B", marginTop: 4 },
+  addSub: { marginTop: 4 },
 
   sectionHeader: {
     flexDirection: "row",
@@ -231,9 +247,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionLabel: {
-    fontSize: 12,
-    fontWeight: "900",
-    color: "#1E293B",
     letterSpacing: 0.5,
     marginLeft: 8,
   },
@@ -242,10 +255,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
     marginBottom: 12,
   },
   iconWrapper: {
@@ -255,9 +266,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  locationTitle: { fontSize: 15, fontWeight: "800", color: "#1E293B" },
-  locationAddress: { fontSize: 13, color: "#64748B", marginTop: 4 },
-  lastUsedText: { fontSize: 11, color: "#CBD5E1", marginTop: 4 },
+  locationAddress: { marginTop: 4 },
+  lastUsedText: { marginTop: 4 },
 });
 
 export default SavedLocationsScreen;

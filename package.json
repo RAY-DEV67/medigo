@@ -21,6 +21,7 @@
     "@tanstack/react-query-devtools": "^5.91.2",
     "axios": "^1.13.2",
     "babel-preset-expo": "^54.0.7",
+    "date-fns": "^4.1.0",
     "expo": "~54.0.23",
     "expo-application": "~7.0.8",
     "expo-blur": "~15.0.8",

@@ -12,30 +12,46 @@ import { ChevronLeft, Lock } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import useTheme from "../../../hooks/useThemes";
+import { commonStyles } from "../../../styles/commonStyles";
+import Header from "../../../components/reuseables/header";
+import { useUserProfile } from "../../../hooks/queries/useUserProfile";
 
 const PersonalInformationScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { colors, theme } = useTheme();
+  const commonStyling = commonStyles(colors);
+  const { data, isLoading } = useUserProfile();
+
+  console.log(data?.data);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.surfacePrimary,
+        },
+      ]}
+    >
+      <StatusBar
+        barStyle={theme === "light" ? "dark-content" : "light-content"}
+      />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
-          <ChevronLeft color="#1A1C1E" size={24} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Personal Information</Text>
-        <TouchableOpacity
-          onPress={() => {
-            navigation.navigate("RiderProfileContentsStack", {
-              screen: "EditProfileScreen",
-            });
-          }}
-        >
-          <Text style={styles.editText}>Edit</Text>
-        </TouchableOpacity>
-      </View>
+      <Header
+        title="Personal Information"
+        rightText={
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate("RiderProfileContentsStack", {
+                screen: "EditProfileScreen",
+              });
+            }}
+          >
+            <Text style={styles.editText}>Edit</Text>
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -43,31 +59,86 @@ const PersonalInformationScreen = () => {
       >
         {/* Profile Image Section */}
         <View style={styles.profileImageContainer}>
-          <Image
-            source={{ uri: "https://i.pravatar.cc/150?u=sarah" }}
-            style={styles.avatar}
-          />
+          {data?.data.avatar_url ? (
+            <Image
+              source={{ uri: data.data.avatar_url }}
+              style={styles.avatar}
+            />
+          ) : (
+            <Image
+              source={require("../../../../assets/images/noProfileImage.jpg")}
+              style={styles.avatar}
+            />
+          )}
         </View>
 
         {/* Personal Details Section */}
-        <Text style={styles.sectionLabel}>Personal Details</Text>
-        <View style={styles.infoCard}>
-          <DataField label="First Name" value="Sarah" />
+        <Text
+          style={[
+            styles.sectionLabel,
+            commonStyling.subtitle,
+            {
+              fontSize: 13,
+              fontFamily: "SemiBold",
+            },
+          ]}
+        >
+          Personal Details
+        </Text>
+        <View
+          style={[
+            styles.infoCard,
+            {
+              backgroundColor: colors.homelightPrimaryBlue50,
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
+          <DataField label="First Name" value={data?.data.first_name} />
           <View style={styles.divider} />
-          <DataField label="Last Name" value="Johnson" />
+          <DataField label="Last Name" value={data?.data.last_name} />
           <View style={styles.divider} />
-          <DataField label="Email" value="sarah.johnson@email.com" />
+          <DataField label="Email" value={data?.data.email} />
           <View style={styles.divider} />
-          <DataField label="Phone Number" value="+1 (555) 234-5678" />
+          <DataField label="Phone Number" value={data?.data.phone} />
         </View>
 
         {/* Medical Information Section */}
-        <Text style={[styles.sectionLabel, { marginTop: 24 }]}>
+        <Text
+          style={[
+            styles.sectionLabel,
+            commonStyling.subtitle,
+            {
+              fontSize: 13,
+              fontFamily: "SemiBold",
+              marginTop: 24,
+            },
+          ]}
+        >
           Medical Information
         </Text>
-        <View style={styles.infoCard}>
+        <View
+          style={[
+            styles.infoCard,
+            {
+              backgroundColor: colors.homelightPrimaryBlue50,
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
           <View style={styles.fieldContainer}>
-            <Text style={styles.fieldLabel}>Medical Notes (Optional)</Text>
+            <Text
+              style={[
+                styles.fieldLabel,
+                commonStyling.subtitle,
+                {
+                  fontSize: 13,
+                  fontFamily: "Medium",
+                },
+              ]}
+            >
+              Medical Notes (Optional)
+            </Text>
             <Text style={styles.fieldValueGray}>No medical notes added</Text>
           </View>
         </View>
@@ -91,15 +162,40 @@ const PersonalInformationScreen = () => {
 };
 
 // --- Sub-components ---
-const DataField = ({ label, value }: any) => (
-  <View style={styles.fieldContainer}>
-    <Text style={styles.fieldLabel}>{label}</Text>
-    <Text style={styles.fieldValue}>{value}</Text>
-  </View>
-);
+const DataField = ({ label, value }: any) => {
+  const { colors } = useTheme();
+  const commonStyling = commonStyles(colors);
+
+  return (
+    <View style={styles.fieldContainer}>
+      <Text
+        style={[
+          styles.fieldLabel,
+          commonStyling.subtitle,
+          {
+            fontSize: 13,
+            fontFamily: "Medium",
+          },
+        ]}
+      >
+        {label}
+      </Text>
+      <Text
+        style={[
+          commonStyling.title,
+          {
+            fontSize: 15,
+          },
+        ]}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" },
+  container: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -127,26 +223,18 @@ const styles = StyleSheet.create({
     width: 110,
     height: 110,
     borderRadius: 55,
-    borderWidth: 4,
-    borderColor: "#F8FAFC",
   },
 
   sectionLabel: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: "#94A3B8",
     marginBottom: 12,
   },
   infoCard: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
     overflow: "hidden",
   },
   fieldContainer: { padding: 16 },
-  fieldLabel: { fontSize: 11, color: "#94A3B8", marginBottom: 6 },
-  fieldValue: { fontSize: 15, fontWeight: "700", color: "#1E293B" },
+  fieldLabel: { marginBottom: 6 },
   fieldValueGray: { fontSize: 14, color: "#94A3B8" },
   divider: { height: 1, backgroundColor: "#F1F5F9", marginHorizontal: 16 },
 

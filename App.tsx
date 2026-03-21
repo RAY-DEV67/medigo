@@ -8,6 +8,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 import AuthStack from "./src/navigations/authStack";
 import RiderMainStack from "./src/navigations/RiderMainStack";
+import DriverMainStack from "./src/navigations/driverMainStack";
 import RiderRideStack from "./src/navigations/riderRideStack";
 import RiderProfileStack from "./src/navigations/riderProfileStack";
 import RiderProfileContentsStack from "./src/navigations/riderProfileContentsStack";
@@ -28,6 +29,9 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useOTAUpdate } from "./src/hooks/useOTAUpdates";
 import { navigationRef } from "./src/utils/navigationRef";
 import Navbar from "./src/components/navbar";
+import { storage } from "./src/utils/storage";
+import { syncUserProfile } from "./src/utils/syncUserProfile";
+import { useUserStore } from "./src/store/userStore";
 
 enableScreens(true);
 
@@ -48,11 +52,21 @@ const RiderMainTabs = () => (
   </Tab.Navigator>
 );
 
+const DriverMainTabs = () => (
+  <Tab.Navigator
+    tabBar={(props) => <Navbar {...props} />}
+    screenOptions={{ headerShown: false }}
+  >
+    <Tab.Screen name="DriverMain" component={DriverMainStack} />
+  </Tab.Navigator>
+);
+
 const AppNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="RiderMainTabs" component={RiderMainTabs} />
       <Stack.Screen name="Auth" component={AuthStack} />
+      <Stack.Screen name="RiderMainTabs" component={RiderMainTabs} />
+      <Stack.Screen name="DriverMainTabs" component={DriverMainTabs} />
       <Stack.Screen
         name="RiderNotificationStack"
         component={RiderNotificationStack}
@@ -86,6 +100,7 @@ const App: React.FC = () => {
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [isReady, setIsReady] = useState(false);
   const { isVisible, pickup, destination, hideRoute } = useRouteStore();
+  const { user } = useUserStore();
 
   /** 🌐 INTERNET LISTENER */
   useEffect(() => {
@@ -101,6 +116,17 @@ const App: React.FC = () => {
       setIsReady(true);
     }
   }, [fontsLoaded]);
+
+  useEffect(() => {
+    const init = async () => {
+      const token = await storage.getToken();
+      if (token && user?.id) {
+        syncUserProfile();
+      }
+    };
+
+    init();
+  }, [user?.user_id]);
 
   if (!isReady || !fontsLoaded) return null;
 

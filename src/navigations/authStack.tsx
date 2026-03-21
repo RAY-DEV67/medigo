@@ -5,6 +5,13 @@ import RiderRegistrationFlow from "../screens/auth/riderRegistrationFlow";
 import ReviewAndAccept from "../screens/auth/reviewAndAccept";
 import PaymentMethod from "../screens/auth/paymentMethod";
 import Login from "../screens/auth/login";
+import AddInformation from "../screens/auth/addInformation";
+import ForgotPassword from "../screens/auth/forgotPassword";
+import PrivacyPolicyScreen from "../screens/auth/privacyPolicyScreen";
+import TermsOfServiceScreen from "../screens/auth/termsOfService";
+import LocationConsentScreen from "../screens/auth/dataAndLocationConsent";
+import WelcomeDriverScreen from "../screens/auth/welcomeDriver";
+import DriverRegistrationFlow from "../screens/auth/driverRegistrationFlow";
 
 const Stack = createNativeStackNavigator();
 
@@ -24,6 +31,28 @@ const AuthStack: React.FC = () => {
       <Stack.Screen name="ReviewAndAccept" component={ReviewAndAccept} />
       <Stack.Screen name="PaymentMethod" component={PaymentMethod} />
       <Stack.Screen name="Login" component={Login} />
+      <Stack.Screen name="AddInformation" component={AddInformation} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+      <Stack.Screen
+        name="PrivacyPolicyScreen"
+        component={PrivacyPolicyScreen}
+      />
+      <Stack.Screen
+        name="TermsOfServiceScreen"
+        component={TermsOfServiceScreen}
+      />
+      <Stack.Screen
+        name="LocationConsentScreen"
+        component={LocationConsentScreen}
+      />
+      <Stack.Screen
+        name="WelcomeDriverScreen"
+        component={WelcomeDriverScreen}
+      />
+      <Stack.Screen
+        name="DriverRegistrationFlow"
+        component={DriverRegistrationFlow}
+      />
     </Stack.Navigator>
   );
 };

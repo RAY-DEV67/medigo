@@ -1,140 +1,131 @@
-import {
-  useMutation,
-  useQueryClient,
-  UseMutationResult,
-} from "@tanstack/react-query";
-import { Alert } from "react-native";
-import { AxiosError } from "axios";
+import { useMutation } from "@tanstack/react-query";
 import authService from "../../api/services/authService";
-import { storage } from "../../utils/storage";
 import {
-  RequestOTPPayload,
+  DriverRegisterRequest,
+  RegisterPayload,
+  ResendOtpParams,
   VerifyOTPPayload,
-  AuthResponse,
-  ErrorResponse,
-  ResendOTPPayload,
-  OTPResponse,
 } from "../../types/auth.types";
-import Toast from "react-native-toast-message";
+import { Alert } from "react-native";
+import { storage } from "../../utils/storage";
+import { ForgotPasswordRequest } from "../../types/user.types";
 
-export const useRequestOTP = (): UseMutationResult<
-  OTPResponse,
-  AxiosError<ErrorResponse>,
-  RequestOTPPayload
-> => {
+export const useRegisterMutation = () => {
   return useMutation({
-    mutationFn: authService.requestOTP,
+    mutationFn: (payload: RegisterPayload) => authService.register(payload),
     onSuccess: (data) => {
-      Toast.show({
-        text1: data.message,
-      });
+      // Handle success (e.g., redirect to OTP verification or show toast)
+      console.log("Registration successful:", data.message);
     },
-    onError: (error) => {
-      const errorDetail = error?.response?.data?.detail;
-      const errorMessage = Array.isArray(errorDetail)
-        ? errorDetail[0]?.msg
-        : errorDetail || "Failed to send OTP";
-      Alert.alert("Error", errorMessage);
-      console.log(error.response);
+    onError: (error: any) => {
+      // Handle error (e.g., show validation errors from the 422 response)
+      console.error(
+        "Registration failed:",
+        error.response?.data?.detail || error.message,
+      );
     },
   });
 };
 
-export const useLoginRequestOtp = (): UseMutationResult<
-  string,
-  AxiosError<ErrorResponse>,
-  RequestOTPPayload
-> => {
+export const useLogin = () => {
   return useMutation({
-    mutationFn: authService.loginRequestOTP,
-    onSuccess: (data) => {
-      Alert.alert("Success", "OTP has been sent to your phone");
-    },
-    onError: (error) => {
-      const errorDetail = error?.response?.data?.detail;
-      const errorMessage = Array.isArray(errorDetail)
-        ? errorDetail[0]?.msg
-        : errorDetail || "Failed to send OTP";
-      Alert.alert("Error", errorMessage);
-      console.log(error.response?.data);
-    },
-  });
-};
-
-/**
- * Hook for verifying OTP
- */
-export const useVerifyOTP = (): UseMutationResult<
-  AuthResponse,
-  AxiosError<ErrorResponse>,
-  VerifyOTPPayload
-> => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: authService.verifyOTP,
+    mutationFn: (payload: any) => authService.login(payload),
     onSuccess: async (data) => {
-      // Store token and user data
-      if (data.access_token) {
-        await storage.setToken(data.access_token);
+      // Handle success (e.g., redirect to OTP verification or show toast)
+      console.log("Registration successful:", data.message);
+      console.log("OTP Verified:", data);
+      if (data.data.access_token) {
+        await storage.setToken(data.data.access_token);
       }
-      if (data.refresh_token) {
-        await storage.setRefreshToken(data.refresh_token);
+      if (data.data.refresh_token) {
+        await storage.setRefreshToken(data.data.refresh_token);
       }
-      if (data.user_id) {
-        await storage.setUser(data.user_id);
+      if (data.data.user_id) {
+        await storage.setUser(data.data.user_id);
       }
-
-      queryClient.invalidateQueries({ queryKey: ["user"] });
     },
-    onError: (error) => {
-      const errorMessage = error?.response?.data?.detail || "Invalid OTP";
-      const displayMessage =
-        typeof errorMessage === "string" ? errorMessage : "Invalid OTP";
-      Alert.alert("Error", displayMessage);
+    onError: (error: any) => {
+      // Handle error (e.g., show validation errors from the 422 response)
+      console.error(
+        "Registration failed:",
+        error.response?.data?.detail || error.message,
+      );
     },
   });
 };
 
-export const useResendOTP = (): UseMutationResult<
-  OTPResponse,
-  AxiosError<ErrorResponse>,
-  ResendOTPPayload
-> => {
+export const useVerifyOTPMutation = () => {
   return useMutation({
-    mutationFn: authService.resendOTP,
-    onSuccess: (data) => {
-      Toast.show({
-        text1: data.message,
-      });
+    mutationFn: (payload: VerifyOTPPayload) =>
+      authService.verifyRegistrationOTP(payload),
+    onSuccess: async (data) => {
+      // Logic for when verification is successful
+      console.log("OTP Verified:", data);
+    },
+    onError: (error: any) => {
+      // Logic for 422 Validation errors or invalid codes
+      const errorMsg = error.response?.data?.detail?.[0]?.msg || "Invalid OTP";
+      console.error("Verification Error:", errorMsg);
+      Alert.alert("Verification Error:", errorMsg);
     },
   });
 };
 
-export const useLogout = (): UseMutationResult<
-  void,
-  AxiosError<ErrorResponse>,
-  string
-> => {
-  const queryClient = useQueryClient();
-
+export const useForgotPassword = () => {
   return useMutation({
-    mutationFn: authService.logout,
-    onSuccess: async () => {
-      // Clear all auth data
-      await storage.clearAuth();
+    mutationFn: (data: ForgotPasswordRequest) =>
+      authService.forgotPassword(data),
 
-      // Clear all queries
-      queryClient.clear();
-
-      Alert.alert("Success", "Logged out successfully");
+    onSuccess: (response) => {
+      Alert.alert(
+        "Check your inbox",
+        response.message || "A reset link has been sent.",
+      );
     },
-    onError: async (error) => {
-      // Even if API call fails, clear local data
-      await storage.clearAuth();
-      queryClient.clear();
 
-      console.error("Logout error:", error);
+    onError: (error: any) => {
+      const errorMessage =
+        error.response?.data?.detail?.[0]?.msg ||
+        "Something went wrong. Please try again.";
+      Alert.alert("Error", errorMessage);
+    },
+  });
+};
+
+export const useResendOtp = () => {
+  return useMutation({
+    mutationFn: (params: ResendOtpParams) => authService.resendOtp(params),
+
+    onSuccess: (response) => {
+      Alert.alert("Success", response.message || "OTP resent successfully.");
+    },
+
+    onError: (error: any) => {
+      const errorMessage =
+        error.response?.data?.detail?.[0]?.msg ||
+        "Failed to resend OTP. Please try again later.";
+      Alert.alert("Error", errorMessage);
+    },
+  });
+};
+
+export const useRegisterDriver = () => {
+  return useMutation({
+    mutationFn: (data: DriverRegisterRequest) =>
+      authService.registerDriver(data),
+
+    onSuccess: (response) => {
+      Alert.alert(
+        "Success",
+        response.data.message || "Account created successfully.",
+      );
+    },
+
+    onError: (error: any) => {
+      const errorMessage =
+        error.response?.data?.detail?.[0]?.msg ||
+        "Registration failed. Please check your token and try again.";
+      Alert.alert("Registration Error", errorMessage);
     },
   });
 };

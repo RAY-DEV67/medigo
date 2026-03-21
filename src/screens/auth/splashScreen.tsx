@@ -17,6 +17,12 @@ import RightArrow from "../../../assets/icons/rightArrow";
 import { FONT_SIZES } from "../../constants/sizes";
 import useTheme from "../../hooks/useThemes";
 import { commonStyles } from "../../styles/commonStyles";
+import { requestLocationPermission } from "../../services/location";
+import { reverseGeocode } from "../../services/geocode";
+import { useMapStore } from "../../store/mapStore";
+import { useRideStore } from "../../store/useRideStore";
+import { storage } from "../../utils/storage";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 const { width } = Dimensions.get("window");
 
@@ -30,15 +36,72 @@ type ScreenStep =
 
 export default function MediGoApp() {
   const [step, setStep] = useState<ScreenStep>("splash1");
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
+  const setUserRegion = useMapStore((state) => state.setUserRegion);
+  const setPickup = useRideStore((state) => state.setPickup);
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const [targetUser, setTargetUser] = useState<any>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      // Set a maximum wait time of 5 seconds
+      const timeout = setTimeout(() => {
+        setAuthChecked(true);
+        setTargetUser(null);
+      }, 5000);
+
+      try {
+        const storedUser = await storage.getToken();
+        console.log(storedUser);
+        setTargetUser(storedUser);
+      } catch (e) {
+        setTargetUser(null);
+      } finally {
+        clearTimeout(timeout);
+        setAuthChecked(true);
+      }
+    };
+    checkAuth();
+  }, []);
+
   useEffect(() => {
     if (step === "splash1") {
       setTimeout(() => setStep("splash2"), 1500);
-    } else if (step === "splash2") {
+    } else if (step === "splash2" && authChecked && targetUser) {
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: "RiderMainTabs",
+          },
+        ],
+      });
+    } else if (step === "splash2" && authChecked && !targetUser) {
       setTimeout(() => setStep("onboarding1"), 1500);
     }
-  }, [step]);
+  }, [step, authChecked, targetUser]);
+
+  const handleLocationRequest = async () => {
+    const location = await requestLocationPermission();
+    if (!location) return;
+
+    const { latitude, longitude } = location.coords;
+
+    const address = await reverseGeocode(latitude, longitude);
+    setUserRegion(latitude, longitude, address);
+
+    setPickup({
+      address,
+      latitude,
+      longitude,
+    });
+  };
+
+  useEffect(() => {
+    handleLocationRequest();
+  }, []);
 
   const Pagination = ({ activeIndex }: { activeIndex: number }) => (
     <View style={styles.paginationContainer}>
@@ -85,7 +148,9 @@ export default function MediGoApp() {
         },
       ]}
     >
-      <StatusBar barStyle="dark-content" />
+      <StatusBar
+        barStyle={theme === "light" ? "dark-content" : "light-content"}
+      />
 
       {step !== "selection" ? (
         <>
@@ -212,7 +277,7 @@ const RoleSelection = () => {
               Request safe medical transportation.
             </Text>
           </View>
-          <RightArrow />
+          <RightArrow color="white" />
         </View>
       </TouchableOpacity>
 
@@ -223,6 +288,7 @@ const RoleSelection = () => {
             borderColor: colors.stroke,
           },
         ]}
+        onPress={() => navigation.navigate("WelcomeDriverScreen")}
       >
         <View style={styles.iconBoxBlue}>
           <ShieldCheck color="#3B82F6" size={32} />
@@ -245,7 +311,7 @@ const RoleSelection = () => {
               For pre-approved drivers only.
             </Text>
           </View>
-          <RightArrow color={colors.titleText} />
+          <RightArrow color={colors.primaryColor} />
         </View>
       </TouchableOpacity>
 

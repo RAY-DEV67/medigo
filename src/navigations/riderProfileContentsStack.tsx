@@ -8,6 +8,7 @@ import PaymentMethodsScreen from "../screens/Rider/Profile/paymentMethods";
 import SavedLocationsScreen from "../screens/Rider/Profile/savedLocations";
 import AddLocationScreen from "../screens/Rider/Profile/addLocation";
 import LocationDetailsScreen from "../screens/Rider/Profile/locationDetails";
+import SafetyCenterScreen from "../screens/Rider/Profile/safetyCenter";
 
 const Stack = createNativeStackNavigator();
 
@@ -45,6 +46,7 @@ const RiderProfileContentsStack: React.FC = () => {
         name="LocationDetailsScreen"
         component={LocationDetailsScreen}
       />
+      <Stack.Screen name="SafetyCenterScreen" component={SafetyCenterScreen} />
     </Stack.Navigator>
   );
 };

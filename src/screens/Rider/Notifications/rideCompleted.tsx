@@ -11,48 +11,132 @@ import { ChevronLeft, Calendar, User, Star } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import useTheme from "../../../hooks/useThemes";
+import { commonStyles } from "../../../styles/commonStyles";
+import Header from "../../../components/reuseables/header";
+import { FONT_SIZES } from "../../../constants/sizes";
+import Buttons from "../../../components/buttons/buttons";
 
 const RideCompletedDetails = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { colors, theme } = useTheme();
+  const commonStyling = commonStyles(colors);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.surfacePrimary,
+        },
+      ]}
+    >
+      <StatusBar
+        barStyle={theme === "light" ? "dark-content" : "light-content"}
+      />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
-          <ChevronLeft color="#1A1C1E" size={24} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Ride completed</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <Header title="Ride completed" />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         {/* Top Status Card */}
-        <View style={styles.card}>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: colors.homelightPrimaryBlue50,
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
           <View style={styles.iconCircleBlue}>
             <Calendar color="#3B82F6" size={28} />
           </View>
-          <Text style={styles.statusTitle}>Ride Completed</Text>
-          <Text style={styles.statusDate}>March 4, 2026, 10:45 AM</Text>
+          <Text
+            style={[
+              commonStyling.title,
+              {
+                fontSize: 24,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            Ride Completed
+          </Text>
+          <Text
+            style={[
+              styles.statusDate,
+              commonStyling.subtitle,
+              {
+                fontSize: 14,
+              },
+            ]}
+          >
+            March 4, 2026, 10:45 AM
+          </Text>
         </View>
 
         {/* Message Card */}
-        <View style={styles.card}>
-          <Text style={styles.sectionLabel}>MESSAGE</Text>
-          <Text style={styles.messageText}>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: colors.homelightPrimaryBlue50,
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.sectionLabel,
+              commonStyling.subtitle,
+              {
+                fontFamily: "Bold",
+                fontSize: 14,
+              },
+            ]}
+          >
+            MESSAGE
+          </Text>
+          <Text
+            style={[
+              styles.messageText,
+              commonStyling.title,
+              {
+                fontFamily: "Regular",
+                fontSize: 16,
+              },
+            ]}
+          >
             Your ride to Springfield General Hospital has been completed
             successfully.
           </Text>
         </View>
 
         {/* Details Card */}
-        <View style={styles.card}>
-          <Text style={styles.sectionLabel}>DETAILS</Text>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: colors.homelightPrimaryBlue50,
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.sectionLabel,
+              commonStyling.subtitle,
+              {
+                fontFamily: "Bold",
+                fontSize: 14,
+              },
+            ]}
+          >
+            DETAILS
+          </Text>
 
           {/* Driver Info */}
           <View style={styles.driverRow}>
@@ -60,15 +144,42 @@ const RideCompletedDetails = () => {
               <User color="#3B82F6" size={24} />
             </View>
             <View style={styles.driverInfo}>
-              <Text style={styles.driverName}>John Driver</Text>
+              <Text
+                style={[
+                  commonStyling.title,
+                  {
+                    fontSize: 16,
+                    fontFamily: "Bold",
+                  },
+                ]}
+              >
+                John Driver
+              </Text>
               <View style={styles.ratingRow}>
                 <Star color="#F59E0B" fill="#F59E0B" size={14} />
-                <Text style={styles.ratingText}>4.8</Text>
+                <Text
+                  style={[
+                    styles.ratingText,
+                    commonStyling.subtitle,
+                    {
+                      fontSize: FONT_SIZES.BODY,
+                    },
+                  ]}
+                >
+                  4.8
+                </Text>
               </View>
             </View>
           </View>
 
-          <View style={styles.divider} />
+          <View
+            style={[
+              styles.divider,
+              {
+                backgroundColor: colors.lightPrimaryBlueBorder,
+              },
+            ]}
+          />
 
           {/* Route Timeline */}
           <View style={styles.routeContainer}>
@@ -79,33 +190,130 @@ const RideCompletedDetails = () => {
             </View>
             <View style={styles.addressContainer}>
               <View>
-                <Text style={styles.addressLabel}>Pickup</Text>
-                <Text style={styles.addressText}>2847 Maple Avenue</Text>
+                <Text
+                  style={[
+                    commonStyling.subtitle,
+                    {
+                      fontSize: FONT_SIZES.SMALL,
+                    },
+                  ]}
+                >
+                  Pickup
+                </Text>
+                <Text
+                  style={[
+                    styles.addressText,
+                    commonStyling.title,
+                    {
+                      fontSize: 14,
+                    },
+                  ]}
+                >
+                  2847 Maple Avenue
+                </Text>
               </View>
               <View style={[{ marginTop: 20 }]}>
-                <Text style={styles.addressLabel}>Destination</Text>
-                <Text style={styles.addressText}>
+                <Text
+                  style={[
+                    commonStyling.subtitle,
+                    {
+                      fontSize: FONT_SIZES.SMALL,
+                    },
+                  ]}
+                >
+                  Destination
+                </Text>
+                <Text
+                  style={[
+                    styles.addressText,
+                    commonStyling.title,
+                    {
+                      fontSize: 14,
+                    },
+                  ]}
+                >
                   Springfield General Hospital
                 </Text>
               </View>
             </View>
           </View>
 
-          <View style={styles.divider} />
+          <View
+            style={[
+              styles.divider,
+              {
+                backgroundColor: colors.lightPrimaryBlueBorder,
+              },
+            ]}
+          />
 
           {/* Stats Row */}
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Distance</Text>
-              <Text style={styles.statValue}>5.2 mi</Text>
+              <Text
+                style={[
+                  commonStyling.subtitle,
+                  {
+                    fontSize: FONT_SIZES.SMALL,
+                  },
+                ]}
+              >
+                Distance
+              </Text>
+              <Text
+                style={[
+                  styles.addressText,
+                  commonStyling.title,
+                  {
+                    fontSize: 14,
+                    fontFamily: "Bold",
+                  },
+                ]}
+              >
+                5.2 mi
+              </Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Duration</Text>
-              <Text style={styles.statValue}>25 min</Text>
+              <Text
+                style={[
+                  commonStyling.subtitle,
+                  {
+                    fontSize: FONT_SIZES.SMALL,
+                  },
+                ]}
+              >
+                Duration
+              </Text>
+              <Text
+                style={[
+                  styles.addressText,
+                  commonStyling.title,
+                  {
+                    fontSize: 14,
+                    fontFamily: "Bold",
+                  },
+                ]}
+              >
+                25 min
+              </Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Fare</Text>
-              <Text style={[styles.statValue, { color: "#10B981" }]}>
+              <Text
+                style={[
+                  commonStyling.subtitle,
+                  {
+                    fontSize: FONT_SIZES.SMALL,
+                  },
+                ]}
+              >
+                Fare
+              </Text>
+              <Text
+                style={[
+                  styles.statValue,
+                  { color: "#16A34A", fontSize: 14, fontFamily: "Bold" },
+                ]}
+              >
                 $28.50
               </Text>
             </View>
@@ -114,22 +322,27 @@ const RideCompletedDetails = () => {
       </ScrollView>
 
       {/* Footer Action */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.primaryButton}
+      <View
+        style={[
+          styles.footer,
+          {
+            backgroundColor: colors.surfacePrimary,
+          },
+        ]}
+      >
+        <Buttons
+          title="View Receipt"
           onPress={() => {
             navigation.navigate("ReceiptScreen");
           }}
-        >
-          <Text style={styles.buttonText}>View Receipt</Text>
-        </TouchableOpacity>
+        />
       </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" },
+  container: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -151,13 +364,10 @@ const styles = StyleSheet.create({
   scrollContent: { paddingHorizontal: 20, paddingBottom: 100 },
 
   card: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     padding: 20,
     marginBottom: 15,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
-    // Soft shadow to match the clean design
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,
@@ -174,17 +384,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
-  statusTitle: { fontSize: 24, fontWeight: "800", color: "#1E293B" },
-  statusDate: { fontSize: 14, color: "#64748B", marginTop: 8 },
+  statusDate: { marginTop: 8 },
 
   sectionLabel: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#94A3B8",
-    letterSpacing: 1,
     marginBottom: 12,
   },
-  messageText: { fontSize: 15, color: "#1E293B", lineHeight: 22 },
+  messageText: { lineHeight: 22 },
 
   driverRow: { flexDirection: "row", alignItems: "center" },
   driverAvatar: {
@@ -196,11 +401,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   driverInfo: { marginLeft: 12 },
-  driverName: { fontSize: 16, fontWeight: "700", color: "#1E293B" },
   ratingRow: { flexDirection: "row", alignItems: "center", marginTop: 2 },
-  ratingText: { fontSize: 13, color: "#64748B", marginLeft: 4 },
+  ratingText: { marginLeft: 4 },
 
-  divider: { height: 1, backgroundColor: "#F1F5F9", marginVertical: 20 },
+  divider: { height: 1, marginVertical: 20 },
 
   routeContainer: { flexDirection: "row" },
   timeline: { alignItems: "center", width: 20, marginTop: 5 },
@@ -208,17 +412,12 @@ const styles = StyleSheet.create({
   dotRed: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#EF4444" },
   line: { width: 1, flex: 1, backgroundColor: "#E2E8F0", marginVertical: 4 },
   addressContainer: { flex: 1, marginLeft: 12 },
-  addressLabel: { fontSize: 12, color: "#94A3B8" },
   addressText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1E293B",
     marginTop: 2,
   },
 
   statsRow: { flexDirection: "row", justifyContent: "space-between" },
   statItem: { alignItems: "flex-start" },
-  statLabel: { fontSize: 12, color: "#94A3B8" },
   statValue: {
     fontSize: 16,
     fontWeight: "700",
@@ -231,7 +430,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     width: "100%",
-    backgroundColor: "#FFFFFF",
   },
   primaryButton: {
     backgroundColor: "#3B82F6",

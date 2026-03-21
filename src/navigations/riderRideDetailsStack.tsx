@@ -1,7 +1,7 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import RideDetails from "../screens/Rider/Ride/rideDetails";
-import ReceiptScreen from "../screens/Rider/Ride/rideReceipt";
+import BookARide from "../screens/Rider/Ride/bookARide";
 
 const Stack = createNativeStackNavigator();
 
@@ -14,7 +14,7 @@ const RiderRideDetailsStack: React.FC = () => {
       }}
     >
       <Stack.Screen name="RideDetails" component={RideDetails} />
-      <Stack.Screen name="ReceiptScreen" component={ReceiptScreen} />
+      <Stack.Screen name="BookARide" component={BookARide} />
     </Stack.Navigator>
   );
 };

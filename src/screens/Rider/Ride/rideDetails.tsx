@@ -20,26 +20,70 @@ import {
   CheckCircle,
 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import useTheme from "../../../hooks/useThemes";
+import { commonStyles } from "../../../styles/commonStyles";
+import { FONT_SIZES } from "../../../constants/sizes";
 
 const RideDetails = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { colors, theme } = useTheme();
+  const commonStyling = commonStyles(colors);
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.surfacePrimary,
+        },
+      ]}
+    >
+      <StatusBar
+        barStyle={theme === "light" ? "dark-content" : "light-content"}
+      />
 
       {/* Modal Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Ride Details</Text>
+          <Text
+            style={[
+              commonStyling.title,
+              {
+                fontSize: FONT_SIZES.TITLE2,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            Ride Details
+          </Text>
           <View style={styles.headerSubRow}>
             <Clock size={14} color="#3B82F6" />
-            <Text style={styles.headerTimeText}>Today • 2:30 PM</Text>
+            <Text
+              style={[
+                styles.tripId,
+                commonStyling.subtitle,
+                {
+                  color: colors.textSecondary,
+                  fontSize: FONT_SIZES.BODY,
+                },
+              ]}
+            >
+              Today • 2:30 PM
+            </Text>
             <View style={styles.statusBadge}>
               <Text style={styles.statusBadgeText}>Confirmed</Text>
             </View>
           </View>
         </View>
-        <TouchableOpacity style={styles.closeButton}>
-          <X color="#94A3B8" size={24} />
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={() => {
+            navigation.goBack();
+          }}
+        >
+          <X color={colors.textSecondary} size={24} />
         </TouchableOpacity>
       </View>
 
@@ -48,28 +92,103 @@ const RideDetails = () => {
         contentContainerStyle={styles.scrollContent}
       >
         {/* Route Card */}
-        <View style={styles.card}>
-          <Text style={styles.sectionLabel}>Route</Text>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: colors.homelightPrimaryBlue50,
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.sectionLabel,
+              commonStyling.title,
+              {
+                fontSize: 14,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            Route
+          </Text>
           <View style={styles.routeContainer}>
             <View style={styles.timeline}>
               <View style={styles.dotBlue} />
               <View style={styles.line} />
-              <View style={styles.dotBlueDark} />
+              <View style={styles.dotBlue} />
             </View>
             <View style={styles.addressContainer}>
-              <Text style={styles.addrLabel}>Pickup</Text>
-              <Text style={styles.addrText}>2847 Maple Avenue</Text>
-              <Text style={[styles.addrLabel, { marginTop: 16 }]}>
+              <Text
+                style={[
+                  commonStyling.subtitle,
+                  {
+                    fontSize: 11,
+                  },
+                ]}
+              >
+                Pickup
+              </Text>
+              <Text
+                style={[
+                  styles.addrText,
+                  commonStyling.title,
+                  {
+                    fontSize: 14,
+                  },
+                ]}
+              >
+                2847 Maple Avenue
+              </Text>
+              <Text
+                style={[
+                  commonStyling.subtitle,
+                  {
+                    fontSize: 11,
+                    marginTop: 16,
+                  },
+                ]}
+              >
                 Destination
               </Text>
-              <Text style={styles.addrText}>Springfield General Hospital</Text>
+              <Text
+                style={[
+                  styles.addrText,
+                  commonStyling.title,
+                  {
+                    fontSize: 14,
+                  },
+                ]}
+              >
+                Springfield General Hospital
+              </Text>
             </View>
           </View>
         </View>
 
         {/* Driver Card */}
-        <View style={styles.card}>
-          <Text style={styles.sectionLabel}>Your Driver</Text>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: colors.homelightPrimaryBlue50,
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.sectionLabel,
+              commonStyling.title,
+              {
+                fontSize: 14,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            Your Driver
+          </Text>
           <View style={styles.driverProfileRow}>
             <Image
               source={{ uri: "https://i.pravatar.cc/100?u=john" }}
@@ -78,7 +197,17 @@ const RideDetails = () => {
             <View style={styles.driverTextContainer}>
               <View style={styles.rowBetween}>
                 <View style={styles.rowCenter}>
-                  <Text style={styles.driverName}>John Smith</Text>
+                  <Text
+                    style={[
+                      commonStyling.title,
+                      {
+                        fontSize: 15,
+                        fontFamily: "Bold",
+                      },
+                    ]}
+                  >
+                    John Smith
+                  </Text>
                   <CheckCircle
                     size={14}
                     color="#3B82F6"
@@ -86,7 +215,17 @@ const RideDetails = () => {
                   />
                 </View>
                 <View style={styles.rowCenter}>
-                  <Text style={styles.ratingText}>4.9</Text>
+                  <Text
+                    style={[
+                      commonStyling.subtitle,
+                      {
+                        fontSize: 18,
+                        fontFamily: "Bold",
+                      },
+                    ]}
+                  >
+                    4.9
+                  </Text>
                   <Star
                     size={14}
                     color="#F59E0B"
@@ -95,20 +234,86 @@ const RideDetails = () => {
                   />
                 </View>
               </View>
-              <Text style={styles.driverSub}>Verified Driver</Text>
+              <Text
+                style={[
+                  commonStyling.subtitle,
+                  {
+                    fontSize: 14,
+                    marginTop: 2,
+                  },
+                ]}
+              >
+                Verified Driver
+              </Text>
             </View>
           </View>
-          <View style={styles.vehicleBox}>
-            <Text style={styles.vehicleLabel}>Vehicle</Text>
-            <Text style={styles.vehicleText}>Toyota Camry • Blue</Text>
+          <View
+            style={[
+              styles.vehicleBox,
+              {
+                backgroundColor: colors.cardBackground,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                commonStyling.subtitle,
+                {
+                  fontSize: 14,
+                  marginTop: 2,
+                },
+              ]}
+            >
+              Vehicle
+            </Text>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: 14,
+                  marginTop: 2,
+                },
+              ]}
+            >
+              Toyota Camry • Blue
+            </Text>
           </View>
         </View>
 
         {/* Estimated Pickup Card */}
-        <View style={[styles.card, styles.rowBetween]}>
+        <View
+          style={[
+            styles.card,
+            styles.rowBetween,
+            {
+              backgroundColor: colors.homelightPrimaryBlue50,
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
           <View>
-            <Text style={styles.addrLabel}>Estimated Pickup</Text>
-            <Text style={styles.etaTextLarge}>1h 20m</Text>
+            <Text
+              style={[
+                commonStyling.subtitle,
+                {
+                  fontSize: 11,
+                },
+              ]}
+            >
+              Estimated Pickup
+            </Text>
+            <Text
+              style={[
+                styles.etaTextLarge,
+                commonStyling.title,
+                {
+                  fontSize: 18,
+                  fontFamily: "Bold",
+                },
+              ]}
+            >
+              1h 20m
+            </Text>
           </View>
           <View style={styles.iconCircleLightBlue}>
             <Clock size={24} color="#3B82F6" />
@@ -116,22 +321,73 @@ const RideDetails = () => {
         </View>
 
         {/* Fare Details Card */}
-        <View style={styles.card}>
-          <Text style={styles.sectionLabel}>Fare Details</Text>
+        <View
+          style={[
+            styles.card,
+
+            {
+              backgroundColor: colors.homelightPrimaryBlue50,
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.sectionLabel,
+              commonStyling.title,
+              {
+                fontSize: 14,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            Fare Details
+          </Text>
           <FareRow label="Base fare" value="$37.00" />
           <FareRow label="Service fee" value="$5.00" />
           <FareRow label="Medical support" value="$3.00" />
           <View style={styles.fareDivider} />
           <View style={styles.rowBetween}>
-            <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>$45.00</Text>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: 15,
+                  fontFamily: "Bold",
+                },
+              ]}
+            >
+              Total
+            </Text>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: 16,
+                  fontFamily: "Bold",
+                  color: colors.primaryColor,
+                },
+              ]}
+            >
+              $45.00
+            </Text>
           </View>
           <View style={styles.paymentRow}>
             <Image
               source={{ uri: "https://img.icons8.com/color/48/visa.png" }}
               style={styles.paymentIcon}
             />
-            <Text style={styles.paymentText}>Visa •••• 4242</Text>
+            <Text
+              style={[
+                commonStyling.subtitle,
+                {
+                  fontSize: 13,
+                  fontFamily: "Bold",
+                },
+              ]}
+            >
+              Visa •••• 4242
+            </Text>
           </View>
         </View>
 
@@ -148,8 +404,27 @@ const RideDetails = () => {
         </View>
 
         {/* Need Assistance Card */}
-        <View style={styles.card}>
-          <Text style={styles.sectionLabel}>Need Assistance?</Text>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: colors.homelightPrimaryBlue50,
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.sectionLabel,
+              commonStyling.title,
+              {
+                fontSize: 14,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            Need Assistance?
+          </Text>
           <AssistanceRow
             icon={<Headphones size={20} color="#3B82F6" />}
             title="24/7 Support"
@@ -181,26 +456,85 @@ const RideDetails = () => {
 };
 
 // --- Reusable Sub-components ---
-const FareRow = ({ label, value }: any) => (
-  <View style={[styles.rowBetween, { marginBottom: 10 }]}>
-    <Text style={styles.fareLabel}>{label}</Text>
-    <Text style={styles.fareValue}>{value}</Text>
-  </View>
-);
+const FareRow = ({ label, value }: any) => {
+  const { colors } = useTheme();
+  const commonStyling = commonStyles(colors);
 
-const AssistanceRow = ({ icon, title, sub }: any) => (
-  <TouchableOpacity style={styles.assistanceItem}>
-    <View style={styles.iconCircleGray}>{icon}</View>
-    <View style={{ flex: 1, marginLeft: 12 }}>
-      <Text style={styles.assistanceTitle}>{title}</Text>
-      <Text style={styles.assistanceSub}>{sub}</Text>
+  return (
+    <View style={[styles.rowBetween, { marginBottom: 10 }]}>
+      <Text
+        style={[
+          commonStyling.subtitle,
+          {
+            fontSize: 13,
+          },
+        ]}
+      >
+        {label}
+      </Text>
+      <Text
+        style={[
+          commonStyling.title,
+          {
+            fontSize: 13,
+            fontFamily: "Bold",
+          },
+        ]}
+      >
+        {value}
+      </Text>
     </View>
-    <X size={16} color="#94A3B8" style={{ transform: [{ rotate: "45deg" }] }} />
-  </TouchableOpacity>
-);
+  );
+};
+
+const AssistanceRow = ({ icon, title, sub }: any) => {
+  const { colors } = useTheme();
+  const commonStyling = commonStyles(colors);
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.assistanceItem,
+        {
+          backgroundColor: colors.cardBackground,
+        },
+      ]}
+    >
+      <View style={styles.iconCircleGray}>{icon}</View>
+      <View style={{ flex: 1, marginLeft: 12 }}>
+        <Text
+          style={[
+            commonStyling.title,
+            {
+              fontSize: 14,
+            },
+          ]}
+        >
+          {title}
+        </Text>
+        <Text
+          style={[
+            commonStyling.subtitle,
+            {
+              fontSize: 12,
+              fontFamily: "Medium",
+            },
+          ]}
+        >
+          {sub}
+        </Text>
+      </View>
+      <X
+        size={16}
+        color="#94A3B8"
+        style={{ transform: [{ rotate: "45deg" }] }}
+      />
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" },
+  container: { flex: 1 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -229,17 +563,12 @@ const styles = StyleSheet.create({
 
   scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
   card: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
   },
   sectionLabel: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: "#1E293B",
     marginBottom: 16,
   },
 
@@ -259,17 +588,13 @@ const styles = StyleSheet.create({
   },
   line: { width: 1, flex: 1, backgroundColor: "#F1F5F9", marginVertical: 4 },
   addressContainer: { flex: 1, marginLeft: 12 },
-  addrLabel: { fontSize: 11, color: "#94A3B8" },
-  addrText: { fontSize: 14, fontWeight: "700", color: "#1E293B", marginTop: 2 },
+  addrText: { marginTop: 2 },
 
   driverProfileRow: { flexDirection: "row", alignItems: "center" },
   driverAvatar: { width: 50, height: 50, borderRadius: 25 },
   driverTextContainer: { flex: 1, marginLeft: 12 },
-  driverName: { fontSize: 15, fontWeight: "800", color: "#1E293B" },
-  driverSub: { fontSize: 12, color: "#94A3B8", marginTop: 2 },
-  ratingText: { fontSize: 14, fontWeight: "800", color: "#1E293B" },
+
   vehicleBox: {
-    backgroundColor: "#F8FAFC",
     padding: 12,
     borderRadius: 12,
     marginTop: 16,
@@ -283,9 +608,6 @@ const styles = StyleSheet.create({
   },
 
   etaTextLarge: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#1E293B",
     marginTop: 4,
   },
   iconCircleLightBlue: {
@@ -321,7 +643,6 @@ const styles = StyleSheet.create({
   assistanceItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8FAFC",
     padding: 12,
     borderRadius: 16,
     marginBottom: 8,
@@ -334,7 +655,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  assistanceTitle: { fontSize: 14, fontWeight: "700", color: "#1E293B" },
+
   assistanceSub: { fontSize: 12, color: "#64748B" },
 
   contactBtn: {
@@ -368,6 +689,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   rowCenter: { flexDirection: "row", alignItems: "center" },
+
+  tripId: { marginTop: 2, marginLeft: 4 },
 });
 
 export default RideDetails;
