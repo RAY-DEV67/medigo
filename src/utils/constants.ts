@@ -1,6 +1,6 @@
 export const API_CONFIG = {
   BASE_URL: "https://staging.getmedigo.com/api/v1",
-  TIMEOUT: 30000,
+  TIMEOUT: 60000,
 } as const;
 
 export const STORAGE_KEYS = {

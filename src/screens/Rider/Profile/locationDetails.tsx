@@ -8,6 +8,7 @@ import {
   Switch,
   ScrollView,
   Dimensions,
+  Alert,
 } from "react-native";
 import { MoreVertical, Home, Star, MapPin } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -18,6 +19,7 @@ import { commonStyles } from "../../../styles/commonStyles";
 import Header from "../../../components/reuseables/header";
 import MapScreen from "../../../components/map/map";
 import { useSavedLocationDetails } from "../../../hooks/queries/useSavedLocationDetails";
+import { useDeleteSavedLocation } from "../../../hooks/mutations/useUser";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SNAP_POINTS = [SCREEN_HEIGHT * 0.5, SCREEN_HEIGHT * 0.3];
@@ -29,12 +31,33 @@ const LocationDetailsScreen = () => {
   const [sheetHeight, setSheetHeight] = useState(SNAP_POINTS[0]);
   const route = useRoute<any>();
   const { locationId } = route.params;
-
+  const [showOptions, setshowOptions] = useState(false);
   const { data, isLoading, error } = useSavedLocationDetails(locationId);
   const location = data?.data;
   const [isFavorite, setIsFavorite] = useState(false);
   const [isDefaultPickup, setIsDefaultPickup] = useState(location?.is_default);
-  console.log(location);
+  const { mutate: deleteLocation, isPending: isDeleting } =
+    useDeleteSavedLocation();
+
+  const confirmDelete = () => {
+    Alert.alert(
+      "Delete Location",
+      "Are you sure you want to remove this saved location?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () =>
+            deleteLocation(locationId, {
+              onSuccess: () => {
+                navigation.goBack();
+              },
+            }),
+        },
+      ],
+    );
+  };
 
   return (
     <SafeAreaView
@@ -57,11 +80,45 @@ const LocationDetailsScreen = () => {
               styles.backButton,
               { backgroundColor: colors.surfaceSecondary },
             ]}
+            onPress={() => {
+              setshowOptions(true);
+            }}
           >
             <MoreVertical color={colors.titleText} size={24} />
           </TouchableOpacity>
         }
       />
+
+      {showOptions && (
+        <View style={dropdownStyle(colors)}>
+          <Text
+            style={dropdownTextStyle(colors, commonStyling)}
+            onPress={() => {
+              navigation.navigate("RiderProfileContentsStack", {
+                screen: "EditLocationScreen",
+                params: {
+                  locationId: locationId,
+                  address: location?.address,
+                  locationName: location?.label,
+                  locationType: location?.location_type,
+                },
+              });
+              setshowOptions(false);
+            }}
+          >
+            Edit
+          </Text>
+          <Text
+            style={dropdownTextStyle(colors, commonStyling)}
+            onPress={() => {
+              confirmDelete();
+              setshowOptions(false);
+            }}
+          >
+            Delete
+          </Text>
+        </View>
+      )}
 
       <ScrollView>
         <View style={styles.content}>
@@ -426,5 +483,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
+
+const dropdownStyle = (colors: any) => ({
+  backgroundColor: colors.surfacePrimary,
+  position: "absolute" as const,
+  right: 20,
+  top: 120,
+  zIndex: 999,
+  borderWidth: 1,
+  paddingHorizontal: 8,
+  borderColor: colors.lightPrimaryBlueBorder,
+  borderRadius: 8,
+});
+
+const dropdownTextStyle = (colors: any, commonStyling: any) => [
+  commonStyling.subtitle,
+  { color: colors.titleText, paddingVertical: 8, paddingHorizontal: 4 },
+];
 
 export default LocationDetailsScreen;

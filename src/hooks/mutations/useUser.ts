@@ -5,9 +5,12 @@ import {
 } from "../../types/auth.types";
 import userService from "../../api/services/userService";
 import {
+  CreateEmergencyContactRequest,
   CreateLocationPayload,
   UpdateConsentPayload,
+  UpdateLocationRequest,
 } from "../../types/user.types";
+import { Alert } from "react-native";
 
 export const useUpdateProfileMutation = () => {
   const queryClient = useQueryClient();
@@ -62,6 +65,74 @@ export const useCreateLocationMutation = () => {
       const errorMsg =
         error.response?.data?.detail?.[0]?.msg || "Failed to save location";
       console.error("Save Location Error:", errorMsg);
+    },
+  });
+};
+
+interface MutationParams {
+  locationId: string;
+  data: UpdateLocationRequest;
+}
+
+export const useUpdateSavedLocation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ locationId, data }: MutationParams) =>
+      userService.updateSavedLocation(locationId, data),
+    onSuccess: (response) => {
+      // Refresh the list of saved locations immediately
+      queryClient.invalidateQueries({ queryKey: ["saved-locations"] });
+      Alert.alert("Success", "Location updated successfully");
+    },
+    onError: (error: any) => {},
+  });
+};
+
+export const useDeleteSavedLocation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (locationId: string) =>
+      userService.deleteSavedLocation(locationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["saved-locations"] });
+      Alert.alert("Deleted", "Location removed from your saved list.");
+    },
+    onError: (error: any) => {},
+  });
+};
+
+export const useCreateEmergencyContact = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateEmergencyContactRequest) =>
+      userService.createEmergencyContact(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["emergency-contacts"] });
+    },
+    onError: (error: any) => {
+      const msg =
+        error.response?.data?.detail?.[0]?.msg || "Failed to save contact";
+      Alert.alert("Error", msg);
+    },
+  });
+};
+
+export const useDeleteEmergencyContact = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (contactId: string) =>
+      userService.deleteEmergencyContact(contactId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["emergency-contacts"] });
+    },
+    onError: (error: any) => {
+      const msg =
+        error.response?.data?.detail?.[0]?.msg || "Could not delete contact";
+      Alert.alert("Error", msg);
     },
   });
 };

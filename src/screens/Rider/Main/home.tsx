@@ -358,8 +358,11 @@ const RiderHomeScreen = () => {
                     address={loc.address}
                     lastUsed={`Saved ${format(new Date(loc.created_at), "MMM d, yyyy")}`}
                     onPress={() =>
-                      navigation.navigate("LocationDetailsScreen", {
-                        locationId: loc.id,
+                      navigation.navigate("RiderProfileContentsStack", {
+                        screen: "LocationDetailsScreen",
+                        params: {
+                          locationId: loc.id,
+                        },
                       })
                     }
                   />

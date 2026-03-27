@@ -18,6 +18,7 @@ export interface Coordinates {
   latitude: number;
   longitude: number;
   address: string;
+  place_id: string;
 }
 
 export interface PredictionItem {
@@ -98,9 +99,15 @@ export default function GoogleInput({
 
   const handlePlaceDetails = async (placeId: string) => {
     const result = await fetchPlaceDetails(placeId, GOOGLE_KEY);
+
     if (!result) return;
 
-    onPlaceSelected(result);
+    const resultWithId: Coordinates = {
+      ...result,
+      place_id: placeId,
+    };
+
+    onPlaceSelected(resultWithId);
   };
 
   return (

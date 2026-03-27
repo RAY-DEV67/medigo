@@ -23,12 +23,13 @@ const AuthStack: React.FC = () => {
         animation: "slide_from_right",
       }}
     >
+      <Stack.Screen name="ReviewAndAccept" component={ReviewAndAccept} />
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen
         name="RiderRegistrationFlow"
         component={RiderRegistrationFlow}
       />
-      <Stack.Screen name="ReviewAndAccept" component={ReviewAndAccept} />
+
       <Stack.Screen name="PaymentMethod" component={PaymentMethod} />
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="AddInformation" component={AddInformation} />

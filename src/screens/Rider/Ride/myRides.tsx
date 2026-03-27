@@ -17,6 +17,9 @@ import { commonStyles } from "../../../styles/commonStyles";
 import Header from "../../../components/reuseables/header";
 import { FONT_SIZES } from "../../../constants/sizes";
 import { useMyRides } from "../../../hooks/queries/useMyRides";
+import formatScheduledDate from "../../../utils/formatScheduleDate";
+import formatTimeOnly from "../../../utils/formatScheduledTime";
+import { capitalizeFirstWord } from "../../../utils/capitalizeFirstLetter";
 
 const MyRidesScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -24,11 +27,13 @@ const MyRidesScreen = () => {
   const commonStyling = commonStyles(colors);
 
   const { data: upcomingData, isLoading: loadingUpcoming } = useMyRides({
-    status: "scheduled",
+    status: "requested",
   });
   const { data: activeData, isLoading: loadingActive } = useMyRides({
-    status: "in_progress",
+    status: "active",
   });
+
+  console.log(activeData);
 
   const activeRide = activeData?.data?.[0];
   const upcomingRides = upcomingData?.data || [];
@@ -241,10 +246,10 @@ const UpcomingRideCard = ({
   status,
   statusColor,
   statusTextColor,
-  pickup = "2847 Maple Avenue",
-  destination,
+
   isAssigning,
   onPress,
+  ride,
 }: any) => {
   const { colors } = useTheme();
   const commonStyling = commonStyles(colors);
@@ -282,7 +287,7 @@ const UpcomingRideCard = ({
                 },
               ]}
             >
-              {date}
+              {formatScheduledDate(ride.scheduled_at)}
             </Text>
             <Text
               style={[
@@ -292,13 +297,29 @@ const UpcomingRideCard = ({
                 },
               ]}
             >
-              {time}
+              {formatTimeOnly(ride.scheduled_at)}
             </Text>
           </View>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-          <Text style={[styles.statusBadgeText, { color: statusTextColor }]}>
-            {status}
+        <View
+          style={[
+            styles.statusBadge,
+            {
+              backgroundColor:
+                ride.status === "requested" ? colors.surfaceElevated : "red",
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.statusBadgeText,
+              {
+                color:
+                  ride.status === "requested" ? colors.primaryColor : "red",
+              },
+            ]}
+          >
+            {capitalizeFirstWord(ride.status)}
           </Text>
         </View>
       </View>
@@ -330,7 +351,7 @@ const UpcomingRideCard = ({
                 },
               ]}
             >
-              2847 Maple Avenue
+              {ride.pickup_address}
             </Text>
           </View>
           <View style={[{ marginTop: 20 }]}>
@@ -353,14 +374,14 @@ const UpcomingRideCard = ({
                 },
               ]}
             >
-              Springfield General Hospital
+              {ride.destination_address}
             </Text>
           </View>
         </View>
       </View>
 
       <Text style={styles.driverAssignText}>
-        {isAssigning ? "Assigning driver" : "Driver • John Smith"}
+        {ride.assigned_by_admin_id ? "Driver • John Smith" : "Assigning driver"}
       </Text>
 
       <View style={styles.upcomingActions}>

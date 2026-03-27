@@ -8,7 +8,6 @@ import {
   ScrollView,
 } from "react-native";
 import {
-  ChevronLeft,
   AlertTriangle,
   Phone,
   Share2,
@@ -19,19 +18,31 @@ import {
   ChevronRight,
 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import useTheme from "../../../hooks/useThemes";
+import { commonStyles } from "../../../styles/commonStyles";
+import Header from "../../../components/reuseables/header";
+import Buttons from "../../../components/buttons/buttons";
 
 const SafetyCenterScreen = () => {
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { colors, theme } = useTheme();
+  const commonStyling = commonStyles(colors);
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
-          <ChevronLeft color="#1E293B" size={24} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Safety Center</Text>
-      </View>
+  return (
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.surfacePrimary,
+        },
+      ]}
+    >
+      <StatusBar
+        barStyle={theme === "light" ? "dark-content" : "light-content"}
+      />
+      <Header title="Safety Center" />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -52,8 +63,26 @@ const SafetyCenterScreen = () => {
         </View>
 
         {/* Section: During Your Ride */}
-        <Text style={styles.sectionLabel}>During Your Ride</Text>
-        <View style={styles.card}>
+        <Text
+          style={[
+            styles.sectionLabel,
+            commonStyling.subtitle,
+            {
+              fontSize: 13,
+              fontFamily: "SemiBold",
+            },
+          ]}
+        >
+          During Your Ride
+        </Text>
+        <View
+          style={[
+            styles.card,
+            {
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
           <SafetyItem
             icon={<Phone size={20} color="#EF4444" />}
             iconBg="#FEF2F2"
@@ -82,8 +111,27 @@ const SafetyCenterScreen = () => {
         </View>
 
         {/* Section: Resources */}
-        <Text style={[styles.sectionLabel, { marginTop: 24 }]}>Resources</Text>
-        <View style={styles.card}>
+        <Text
+          style={[
+            styles.sectionLabel,
+            commonStyling.subtitle,
+            {
+              fontSize: 13,
+              fontFamily: "SemiBold",
+              marginTop: 24,
+            },
+          ]}
+        >
+          Resources
+        </Text>
+        <View
+          style={[
+            styles.card,
+            {
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
           <SafetyItem
             icon={<FileText size={20} color="#3B82F6" />}
             iconBg="#EFF6FF"
@@ -100,14 +148,36 @@ const SafetyCenterScreen = () => {
         </View>
 
         {/* Support Footer Card */}
-        <View style={styles.supportCard}>
-          <Text style={styles.supportTitle}>Need Help?</Text>
-          <Text style={styles.supportSubtext}>
+        <View
+          style={[
+            styles.supportCard,
+            {
+              backgroundColor: colors.surfaceBrand,
+            },
+          ]}
+        >
+          <Text
+            style={{
+              fontSize: 14,
+              fontFamily: "SemiBold",
+              color: colors.primaryColor,
+            }}
+          >
+            Need Help?
+          </Text>
+          <Text
+            style={[
+              styles.supportSubtext,
+              commonStyling.subtitle,
+              {
+                fontSize: 12,
+                color: colors.primaryColor,
+              },
+            ]}
+          >
             Our safety team is available 24/7 to assist you.
           </Text>
-          <TouchableOpacity style={styles.primaryButton}>
-            <Text style={styles.buttonText}>Contact Safety Team</Text>
-          </TouchableOpacity>
+          <Buttons title="Contact Safety Team" onPress={() => {}} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -115,19 +185,53 @@ const SafetyCenterScreen = () => {
 };
 
 // Sub-component for individual list items
-const SafetyItem = ({ icon, iconBg, title, subtitle, isLast }) => (
-  <TouchableOpacity style={[styles.itemRow, !isLast && styles.itemBorder]}>
-    <View style={[styles.iconBox, { backgroundColor: iconBg }]}>{icon}</View>
-    <View style={styles.itemTextContainer}>
-      <Text style={styles.itemTitle}>{title}</Text>
-      <Text style={styles.itemSubtitle}>{subtitle}</Text>
-    </View>
-    <ChevronRight size={18} color="#94A3B8" />
-  </TouchableOpacity>
-);
+const SafetyItem = ({ icon, iconBg, title, subtitle, isLast }: any) => {
+  const { colors } = useTheme();
+  const commonStyling = commonStyles(colors);
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.itemRow,
+        {
+          borderBottomWidth: !isLast ? 1 : 0,
+          borderBottomColor: colors.lightPrimaryBlueBorder,
+        },
+      ]}
+    >
+      <View style={[styles.iconBox, { backgroundColor: iconBg }]}>{icon}</View>
+      <View style={styles.itemTextContainer}>
+        <Text
+          style={[
+            commonStyling.title,
+            {
+              fontSize: 15,
+              fontFamily: "Bold",
+            },
+          ]}
+        >
+          {title}
+        </Text>
+        <Text
+          style={[
+            styles.itemSubtitle,
+            commonStyling.subtitle,
+            {
+              fontSize: 13,
+              fontFamily: "Medium",
+            },
+          ]}
+        >
+          {subtitle}
+        </Text>
+      </View>
+      <ChevronRight size={18} color={colors.subTitleText} />
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" },
+  container: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -176,21 +280,15 @@ const styles = StyleSheet.create({
   },
 
   sectionLabel: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#64748B",
     marginBottom: 12,
   },
   card: {
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
-    backgroundColor: "#FFF",
     overflow: "hidden",
   },
 
   itemRow: { flexDirection: "row", alignItems: "center", padding: 16 },
-  itemBorder: { borderBottomWidth: 1, borderBottomColor: "#F8FAFC" },
   iconBox: {
     width: 44,
     height: 44,
@@ -199,20 +297,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   itemTextContainer: { flex: 1, marginLeft: 16 },
-  itemTitle: { fontSize: 15, fontWeight: "700", color: "#1E293B" },
-  itemSubtitle: { fontSize: 12, color: "#94A3B8", marginTop: 2 },
+  itemSubtitle: { marginTop: 2 },
 
   supportCard: {
-    backgroundColor: "#EFF6FF",
     borderRadius: 20,
     padding: 20,
     marginTop: 32,
     marginBottom: 20,
   },
-  supportTitle: { fontSize: 16, fontWeight: "800", color: "#1E40AF" },
   supportSubtext: {
-    fontSize: 13,
-    color: "#3B82F6",
     marginTop: 4,
     marginBottom: 16,
   },

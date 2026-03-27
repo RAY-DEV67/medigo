@@ -1,50 +1,125 @@
 import React from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
-import { ChevronLeft } from "lucide-react-native";
+import { StyleSheet, View, Text, ScrollView, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import useTheme from "../../hooks/useThemes";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { commonStyles } from "../../styles/commonStyles";
+import Header from "../../components/reuseables/header";
+import Buttons from "../../components/buttons/buttons";
 
 const TermsOfServiceScreen = () => {
+  const { colors, theme } = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const commonStyling = commonStyles(colors);
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.navHeader}>
-        <TouchableOpacity style={styles.backButton}>
-          <ChevronLeft color="#0F172A" size={24} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Terms of Service</Text>
-      </View>
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.surfacePrimary,
+        },
+      ]}
+    >
+      <StatusBar
+        barStyle={theme === "light" ? "dark-content" : "light-content"}
+      />
+
+      <Header title="Terms of Service" />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.mainTitle}>Terms of Service</Text>
-        <Text style={styles.effectiveDate}>
-          Effective Date: February 24, 2026
+        <Text
+          style={[
+            commonStyling.title,
+            {
+              fontSize: 20,
+              fontFamily: "Bold",
+            },
+          ]}
+        >
+          Terms of Service
         </Text>
-        <Text style={styles.lastUpdated}>Last Updated: February 24, 2026</Text>
+        <Text
+          style={[
+            styles.effectiveDate,
+            commonStyling.subtitle,
+            {
+              fontSize: 13,
+              fontFamily: "Bold",
+            },
+          ]}
+        >
+          Effective Date: February 26, 2026
+        </Text>
+        <Text
+          style={[
+            styles.lastUpdated,
+            commonStyling.subtitle,
+            {
+              fontSize: 13,
+              fontFamily: "Bold",
+            },
+          ]}
+        >
+          Last Updated: February 26, 2026
+        </Text>
 
         {/* 1. Acceptance */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>1. Acceptance of Terms</Text>
-          <Text style={styles.bodyText}>
-            By creating an account and using MediGo services (the "Platform",
-            "Service", "App"), you agree to be bound by these Terms of Service
-            and our Privacy Policy. If you do not agree, please do not use our
-            services.
+          <Text
+            style={[
+              styles.sectionHeader,
+              commonStyling.title,
+              {
+                fontSize: 18,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            1. Acceptance of Terms
+          </Text>
+          <Text
+            style={[
+              styles.bodyText,
+              commonStyling.subtitle,
+              {
+                fontSize: 15,
+              },
+            ]}
+          >
+            By creating an account and using MediGo services, you ("User",
+            "Rider", "you") agree to be bound by these Terms of Service and our
+            Privacy Policy. If you do not agree, please do not use our services.
           </Text>
         </View>
 
         {/* 2. Service Description */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>2. Service Description</Text>
-          <Text style={styles.bodyText}>
+          <Text
+            style={[
+              styles.sectionHeader,
+              commonStyling.title,
+              {
+                fontSize: 18,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            2. Service Description
+          </Text>
+          <Text
+            style={[
+              styles.bodyText,
+              commonStyling.subtitle,
+              {
+                fontSize: 15,
+              },
+            ]}
+          >
             MediGo is a technology platform that connects riders with
             independent transportation providers for non-emergency medical
             transportation. MediGo does not provide transportation services
@@ -63,7 +138,18 @@ const TermsOfServiceScreen = () => {
 
         {/* 3. Eligibility */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>3. Eligibility</Text>
+          <Text
+            style={[
+              styles.sectionHeader,
+              commonStyling.title,
+              {
+                fontSize: 18,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            3. Eligibility
+          </Text>
           {[
             "You must be at least 18 years old to create an account.",
             "You must provide accurate and complete information.",
@@ -72,45 +158,456 @@ const TermsOfServiceScreen = () => {
           ].map((item, index) => (
             <View key={index} style={styles.bulletRow}>
               <Text style={styles.bullet}>◆</Text>
-              <Text style={styles.bulletText}>{item}</Text>
+              <Text
+                style={[
+                  styles.bulletText,
+                  commonStyling.subtitle,
+                  {
+                    fontSize: 15,
+                  },
+                ]}
+              >
+                {item}
+              </Text>
             </View>
           ))}
         </View>
 
         {/* 4. Booking and Cancellation */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>4. Booking and Cancellation</Text>
-          <Text style={styles.subSectionHeader}>4.1 Ride Requests</Text>
-          <Text style={styles.bodyText}>
+          <Text
+            style={[
+              styles.sectionHeader,
+              commonStyling.title,
+              {
+                fontSize: 18,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            4. Booking and Cancellation
+          </Text>
+          <Text
+            style={[
+              styles.subSectionHeader,
+              commonStyling.title,
+              {
+                fontSize: 16,
+                fontFamily: "SemiBold",
+              },
+            ]}
+          >
+            4.1 Ride Requests
+          </Text>
+          <Text
+            style={[
+              styles.bodyText,
+              commonStyling.subtitle,
+              {
+                fontSize: 15,
+              },
+            ]}
+          >
             You may request immediate or scheduled rides through the app. Ride
             acceptance is subject to driver availability.
           </Text>
 
-          <Text style={styles.subSectionHeader}>4.2 Cancellation Policy</Text>
+          <Text
+            style={[
+              styles.subSectionHeader,
+              commonStyling.title,
+              {
+                fontSize: 16,
+                fontFamily: "SemiBold",
+              },
+            ]}
+          >
+            4.2 Cancellation Policy
+          </Text>
           {[
             "Free cancellation up to 2 hours before scheduled pickup.",
             "Cancellations within 2 hours may incur a $15 cancellation fee.",
             "No-shows will be charged the full estimated fare.",
+            "Medical emergencies are exempt from cancellation fees (verification may be required)",
           ].map((item, index) => (
             <View key={index} style={styles.bulletRow}>
               <Text style={styles.bullet}>◆</Text>
-              <Text style={styles.bulletText}>{item}</Text>
+              <Text
+                style={[
+                  styles.bulletText,
+                  commonStyling.subtitle,
+                  {
+                    fontSize: 15,
+                  },
+                ]}
+              >
+                {item}
+              </Text>
             </View>
           ))}
         </View>
 
-        {/* 12. Contact Support Card */}
-        <View style={styles.contactCard}>
-          <Text style={styles.contactHeader}>MediGo Customer Support</Text>
-          <Text style={styles.contactDetail}>
-            Email: <Text style={styles.linkText}>support@medigo.com</Text>
+        <View style={styles.section}>
+          <Text
+            style={[
+              styles.sectionHeader,
+              commonStyling.title,
+              {
+                fontSize: 18,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            5. Payment
           </Text>
-          <Text style={styles.contactDetail}>
-            Phone: 1-800-MEDIGO (1-800-633-446)
+
+          {[
+            "You authorize MediGo to charge your payment method for all rides",
+            "Pricing is calculated based on distance, time, and service type",
+            "Final fares may vary from estimates due to route changes or wait time",
+            "All payments are processed securely through third-party processors",
+            "You are responsible for all charges incurred under your account",
+          ].map((item, index) => (
+            <View key={index} style={styles.bulletRow}>
+              <Text style={styles.bullet}>◆</Text>
+              <Text
+                style={[
+                  styles.bulletText,
+                  commonStyling.subtitle,
+                  {
+                    fontSize: 15,
+                  },
+                ]}
+              >
+                {item}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.section}>
+          <Text
+            style={[
+              styles.sectionHeader,
+              commonStyling.title,
+              {
+                fontSize: 18,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            6. User Conduct
           </Text>
-          <Text style={styles.contactDetail}>
-            Hours: 24/7 Support Available
+
+          <Text
+            style={[
+              styles.bodyText,
+              commonStyling.subtitle,
+              {
+                fontSize: 15,
+              },
+            ]}
+          >
+            You agree to:
           </Text>
+
+          {[
+            "Treat drivers with respect and courtesy",
+            "Be ready at the pickup location at the scheduled time",
+            "Not engage in harassment, discrimination, or illegal activity",
+            "Not damage or soil the vehicle",
+            "Follow driver instructions regarding safety and vehicle rules",
+            "Not request drivers to exceed speed limits or violate traffic laws",
+          ].map((item, index) => (
+            <View key={index} style={styles.bulletRow}>
+              <Text style={styles.bullet}>◆</Text>
+              <Text
+                style={[
+                  styles.bulletText,
+                  commonStyling.subtitle,
+                  {
+                    fontSize: 15,
+                  },
+                ]}
+              >
+                {item}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.section}>
+          <Text
+            style={[
+              styles.sectionHeader,
+              commonStyling.title,
+              {
+                fontSize: 18,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            7. Limitation of Liability
+          </Text>
+
+          <Text
+            style={[
+              styles.bodyText,
+              commonStyling.subtitle,
+              {
+                fontSize: 15,
+              },
+            ]}
+          >
+            MediGo acts solely as a technology platform. We are not responsible
+            for:
+          </Text>
+
+          {[
+            "Actions or omissions of independent drivers",
+            "Vehicle accidents or incidents during transport",
+            "Delays caused by traffic, weather, or unforeseen circumstances",
+            "Lost or damaged personal belongings",
+            "Medical outcomes or consequences related to your trip",
+          ].map((item, index) => (
+            <View key={index} style={styles.bulletRow}>
+              <Text style={styles.bullet}>◆</Text>
+              <Text
+                style={[
+                  styles.bulletText,
+                  commonStyling.subtitle,
+                  {
+                    fontSize: 15,
+                  },
+                ]}
+              >
+                {item}
+              </Text>
+            </View>
+          ))}
+
+          <Text
+            style={[
+              styles.bodyText,
+              commonStyling.subtitle,
+              {
+                fontSize: 14,
+                marginTop: 16,
+                fontStyle: "italic",
+              },
+            ]}
+          >
+            To the maximum extent permitted by law, MediGo's total liability
+            shall not exceed the amount paid for the ride in question.
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text
+            style={[
+              styles.sectionHeader,
+              commonStyling.title,
+              {
+                fontSize: 18,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            8. Account Suspension & Termination
+          </Text>
+
+          <Text
+            style={[
+              styles.bodyText,
+              commonStyling.subtitle,
+              {
+                fontSize: 15,
+              },
+            ]}
+          >
+            We reserve the right to suspend or terminate your account for:
+          </Text>
+
+          {[
+            "Violation of these Terms",
+            "Fraudulent activity or payment disputes",
+            "Abusive behavior toward drivers or staff",
+            "Excessive cancellations or no-shows",
+            "Any conduct that threatens safety or service integrity",
+          ].map((item, index) => (
+            <View key={index} style={styles.bulletRow}>
+              <Text style={styles.bullet}>◆</Text>
+              <Text
+                style={[
+                  styles.bulletText,
+                  commonStyling.subtitle,
+                  {
+                    fontSize: 15,
+                  },
+                ]}
+              >
+                {item}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.section}>
+          <Text
+            style={[
+              styles.sectionHeader,
+              commonStyling.title,
+              {
+                fontSize: 18,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            9. Indemnification
+          </Text>
+
+          <Text
+            style={[
+              styles.bodyText,
+              commonStyling.subtitle,
+              {
+                fontSize: 15,
+              },
+            ]}
+          >
+            You agree to indemnify and hold harmless MediGo, its officers,
+            employees, and affiliates from any claims, damages, or expenses
+            arising from your use of the service or violation of these Terms.
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text
+            style={[
+              styles.sectionHeader,
+              commonStyling.title,
+              {
+                fontSize: 18,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            10. Governing Law
+          </Text>
+
+          <Text
+            style={[
+              styles.bodyText,
+              commonStyling.subtitle,
+              {
+                fontSize: 15,
+              },
+            ]}
+          >
+            These Terms shall be governed by and construed in accordance with
+            the laws of the Province of Ontario, Canada, without regard to
+            conflict of law principles.
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text
+            style={[
+              styles.sectionHeader,
+              commonStyling.title,
+              {
+                fontSize: 18,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            11. Changes to Terms
+          </Text>
+
+          <Text
+            style={[
+              styles.bodyText,
+              commonStyling.subtitle,
+              {
+                fontSize: 15,
+              },
+            ]}
+          >
+            We may modify these Terms at any time. Material changes will be
+            communicated via email or in-app notification. Continued use after
+            changes constitutes acceptance.
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text
+            style={[
+              styles.sectionHeader,
+              commonStyling.title,
+              {
+                fontSize: 18,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            11. Contact Us
+          </Text>
+          <View
+            style={[
+              styles.supportCard,
+              {
+                backgroundColor: colors.cardBackground,
+                borderWidth: 1,
+                borderColor: colors.lightPrimaryBlueBorder,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                commonStyling.title,
+                styles.supportText,
+                {
+                  fontSize: 16,
+                  fontFamily: "Bold",
+                },
+              ]}
+            >
+              MediGo Inc. – Privacy Officer
+            </Text>
+            <Text
+              style={[
+                commonStyling.subtitle,
+                styles.supportText,
+                {
+                  fontSize: 14,
+                },
+              ]}
+            >
+              Email: privacy@medigo.com
+            </Text>
+            <Text
+              style={[
+                commonStyling.subtitle,
+                styles.supportText,
+                {
+                  fontSize: 14,
+                },
+              ]}
+            >
+              Phone: 1-855-MEDIGO (1-855-633-4461)
+            </Text>
+            <Text
+              style={[
+                commonStyling.subtitle,
+                styles.supportText,
+                {
+                  fontSize: 14,
+                },
+              ]}
+            >
+              Hours: 24/7 Support Available
+            </Text>
+          </View>
         </View>
 
         <Text style={styles.footerNote}>
@@ -120,17 +617,27 @@ const TermsOfServiceScreen = () => {
       </ScrollView>
 
       {/* Footer Close Button */}
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.closeBtn}>
-          <Text style={styles.closeBtnText}>Close</Text>
-        </TouchableOpacity>
+      <View
+        style={[
+          styles.footer,
+          {
+            backgroundColor: colors.surfacePrimary,
+          },
+        ]}
+      >
+        <Buttons
+          title="Close"
+          onPress={() => {
+            navigation.goBack();
+          }}
+        />
       </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFF" },
+  container: { flex: 1 },
   navHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -148,26 +655,20 @@ const styles = StyleSheet.create({
     flex: 0.8,
   },
   scrollContent: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 140 },
-  mainTitle: { fontSize: 22, fontWeight: "800", color: "#0F172A" },
+
   effectiveDate: { fontSize: 12, color: "#94A3B8", marginTop: 8 },
   lastUpdated: { fontSize: 12, color: "#94A3B8", marginTop: 2 },
 
   // Section Typography
   section: { marginTop: 28 },
   sectionHeader: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1E293B",
     marginBottom: 12,
   },
   subSectionHeader: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#334155",
     marginTop: 14,
     marginBottom: 6,
   },
-  bodyText: { fontSize: 14, color: "#475569", lineHeight: 22 },
+  bodyText: { lineHeight: 22 },
 
   // Red Warning Box
   warningBox: {
@@ -183,16 +684,15 @@ const styles = StyleSheet.create({
   // Bullets (matches design diamonds)
   bulletRow: { flexDirection: "row", marginTop: 10, paddingRight: 12 },
   bullet: { color: "#3B82F6", marginRight: 10, fontSize: 10, marginTop: 4 },
-  bulletText: { fontSize: 13, color: "#475569", lineHeight: 20, flex: 1 },
+  bulletText: { lineHeight: 20, flex: 1 },
 
-  // Contact Info Card
-  contactCard: {
-    backgroundColor: "#F8FAFC",
-    borderRadius: 16,
+  supportCard: {
     padding: 20,
-    marginTop: 40,
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
+    borderRadius: 16,
+    marginTop: 8,
+  },
+  supportText: {
+    marginTop: 4,
   },
   contactHeader: {
     fontSize: 14,

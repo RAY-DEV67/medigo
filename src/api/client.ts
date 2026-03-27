@@ -8,6 +8,7 @@ import { storage } from "../utils/storage";
 import { ErrorResponse } from "../types/auth.types";
 import { useUserStore } from "../store/userStore";
 import { navigateAndReset } from "../utils/navigationRef";
+import { Alert } from "react-native";
 
 const apiClient = axios.create({
   baseURL: API_CONFIG.BASE_URL,
@@ -42,7 +43,7 @@ apiClient.interceptors.request.use(
   (error: AxiosError) => {
     console.error("❌ Request interceptor error:", error);
     return Promise.reject(error);
-  }
+  },
 );
 
 apiClient.interceptors.response.use(
@@ -91,7 +92,7 @@ apiClient.interceptors.response.use(
         // Use a clean axios instance to avoid interceptor interference
         const response = await axios.post<string>(
           `${API_CONFIG.BASE_URL}/token/refresh`,
-          { refresh_token: refreshToken }
+          { refresh_token: refreshToken },
         );
 
         const newAccessToken = response.data;
@@ -118,7 +119,7 @@ apiClient.interceptors.response.use(
 
     // Handle other errors as usual
     return Promise.reject(error);
-  }
+  },
 );
 
 export default apiClient;

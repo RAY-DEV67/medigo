@@ -28,7 +28,17 @@ const Input: React.FC<InputProps> = ({
 
   return (
     <View>
-      <Text style={commonStyling.inputTitle}>{title}</Text>
+      <Text
+        style={[
+          commonStyling.inputTitle,
+          {
+            fontFamily: "Bold",
+            fontSize: 14,
+          },
+        ]}
+      >
+        {title}
+      </Text>
 
       <TextInput
         style={commonStyling.input}

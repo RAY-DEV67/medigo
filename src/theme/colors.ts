@@ -16,6 +16,7 @@ export const lightColors = {
   cardBackground: "#F8FAFC",
   lightYellow: "#FEF3C7",
   darkYellow: "#92400E",
+  lightGreen: "#DCFCE7",
 
   whiteText: "#ffffff",
   titleText: "#2d2d2d",
@@ -78,6 +79,7 @@ export const darkColors: ColorsType = {
   cardBackground: "#121212",
   lightYellow: "#FEF3C7",
   darkYellow: "#92400E",
+  lightGreen: "#DCFCE7",
 
   whiteText: "#ffffff",
   titleText: "#ffffff",

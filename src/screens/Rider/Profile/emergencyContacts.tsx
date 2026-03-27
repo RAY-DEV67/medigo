@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -6,18 +6,53 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
-import { ChevronLeft, Shield, Plus, Trash2, Phone } from "lucide-react-native";
+import { Shield, Plus, Trash2, Phone, X } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import useTheme from "../../../hooks/useThemes";
 import { commonStyles } from "../../../styles/commonStyles";
 import Header from "../../../components/reuseables/header";
 import { useEmergencyContacts } from "../../../hooks/queries/useEmergencyContacts";
+import OverlayBottomSheet, {
+  OverlayBottomSheetRef,
+} from "../../../components/modals/overlayBottomSheet";
+import Buttons from "../../../components/buttons/buttons";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useNavigation } from "@react-navigation/native";
+import Input from "../../../components/inputs/input";
+import { CreateEmergencyContactRequest } from "../../../types/user.types";
+import {
+  useCreateEmergencyContact,
+  useDeleteEmergencyContact,
+} from "../../../hooks/mutations/useUser";
 
 const EmergencyContactsScreen = () => {
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
   const { data, isLoading, error } = useEmergencyContacts();
+  const addContactRef = useRef<OverlayBottomSheetRef>(null);
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const [fullName, setfullName] = useState("");
+  const [relationship, setrelationship] = useState("");
+  const [phoneNumber, setphoneNumber] = useState("");
+  const { mutate, isPending } = useCreateEmergencyContact();
+
+  const handleAddContact = () => {
+    const payload: CreateEmergencyContactRequest = {
+      name: fullName,
+      phone: phoneNumber,
+      relationship_type: relationship,
+      is_primary: false,
+    };
+
+    mutate(payload, {
+      onSuccess: () => {
+        addContactRef.current?.close();
+      },
+    });
+  };
 
   return (
     <SafeAreaView
@@ -88,6 +123,9 @@ const EmergencyContactsScreen = () => {
               borderColor: colors.lightPrimaryBlueBorder,
             },
           ]}
+          onPress={() => {
+            addContactRef.current?.open();
+          }}
         >
           <View style={styles.plusIconWrapper}>
             <Plus size={20} color="#3B82F6" />
@@ -107,6 +145,7 @@ const EmergencyContactsScreen = () => {
               relation={contact.relationship_type}
               phone={contact.phone}
               isPrimary={contact.is_primary}
+              contact_id={contact.id}
             />
           ))
         ) : (
@@ -117,14 +156,140 @@ const EmergencyContactsScreen = () => {
           </View>
         )}
       </ScrollView>
+
+      <OverlayBottomSheet ref={addContactRef} height={500} overlay={true}>
+        <View>
+          <View style={styles.bottomSheetHeader}>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: 20,
+                  fontFamily: "Bold",
+                },
+              ]}
+            >
+              Add Emergency Contact
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.closeButton,
+                {
+                  backgroundColor: colors.surfaceSecondary,
+                },
+              ]}
+              onPress={() => {
+                addContactRef.current?.close();
+              }}
+            >
+              <X color="#94A3B8" size={24} />
+            </TouchableOpacity>
+          </View>
+
+          <Input
+            title="Full Name"
+            placeholder="Enter contact name"
+            value={fullName}
+            onChangeText={(val) => {
+              setfullName(val);
+            }}
+          />
+
+          <View
+            style={{
+              marginTop: 16,
+            }}
+          >
+            <Input
+              title="Relationship"
+              placeholder="e.g., Spouse, Parent, Friend"
+              value={relationship}
+              onChangeText={(val) => {
+                setrelationship(val);
+              }}
+            />
+          </View>
+
+          <View
+            style={{
+              marginTop: 16,
+            }}
+          >
+            <Input
+              title="Phone Number"
+              placeholder="+1 (555) 123-4567"
+              value={phoneNumber}
+              onChangeText={(val) => {
+                setphoneNumber(val);
+              }}
+            />
+          </View>
+
+          <View
+            style={{
+              flexDirection: "row",
+              columnGap: 8,
+              marginTop: 24,
+            }}
+          >
+            <View
+              style={{
+                width: "48%",
+              }}
+            >
+              <Buttons
+                title="Cancel"
+                onPress={() => {
+                  addContactRef.current?.close();
+                }}
+                type="inactive"
+              />
+            </View>
+            <View
+              style={{
+                width: "48%",
+              }}
+            >
+              <Buttons
+                title="Add Contact"
+                onPress={() => {
+                  handleAddContact();
+                }}
+                loading={isPending}
+              />
+            </View>
+          </View>
+        </View>
+      </OverlayBottomSheet>
     </SafeAreaView>
   );
 };
 
 // --- Contact Card Component ---
-const ContactCard = ({ name, relation, phone }: any) => {
+const ContactCard = ({ name, relation, phone, contact_id }: any) => {
   const { colors } = useTheme();
   const commonStyling = commonStyles(colors);
+  const { mutate: deleteContact, isPending: isDeleting } =
+    useDeleteEmergencyContact();
+
+  const handleConfirmDelete = () => {
+    Alert.alert(
+      "Remove Contact",
+      `Are you sure you want to remove ${name} from your emergency contacts?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: () =>
+            deleteContact(contact_id, {
+              onSuccess: () => {},
+            }),
+        },
+      ],
+    );
+  };
+
   return (
     <View
       style={[
@@ -160,8 +325,17 @@ const ContactCard = ({ name, relation, phone }: any) => {
             {relation}
           </Text>
         </View>
-        <TouchableOpacity style={styles.deleteBtn}>
-          <Trash2 size={18} color="#EF4444" />
+        <TouchableOpacity
+          style={styles.deleteBtn}
+          onPress={() => {
+            handleConfirmDelete();
+          }}
+        >
+          {isDeleting ? (
+            <ActivityIndicator />
+          ) : (
+            <Trash2 size={18} color="#EF4444" />
+          )}
         </TouchableOpacity>
       </View>
 
@@ -201,6 +375,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
   },
+  bottomSheetHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 15,
+  },
   backButton: {
     width: 40,
     height: 40,
@@ -211,7 +391,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#F1F5F9",
   },
-  headerTitle: { fontSize: 18, fontWeight: "800", color: "#1E293B" },
 
   scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
 
@@ -274,6 +453,13 @@ const styles = StyleSheet.create({
   phoneRow: { flexDirection: "row", alignItems: "center" },
   phoneNumber: {
     marginLeft: 10,
+  },
+  closeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

@@ -9,6 +9,7 @@ import SavedLocationsScreen from "../screens/Rider/Profile/savedLocations";
 import AddLocationScreen from "../screens/Rider/Profile/addLocation";
 import LocationDetailsScreen from "../screens/Rider/Profile/locationDetails";
 import SafetyCenterScreen from "../screens/Rider/Profile/safetyCenter";
+import EditLocationScreen from "../screens/Rider/Profile/editSavedLocation";
 
 const Stack = createNativeStackNavigator();
 
@@ -42,6 +43,7 @@ const RiderProfileContentsStack: React.FC = () => {
         component={SavedLocationsScreen}
       />
       <Stack.Screen name="AddLocationScreen" component={AddLocationScreen} />
+      <Stack.Screen name="EditLocationScreen" component={EditLocationScreen} />
       <Stack.Screen
         name="LocationDetailsScreen"
         component={LocationDetailsScreen}

@@ -79,3 +79,21 @@ export interface ForgotPasswordResponse {
   message: string;
   data: string;
 }
+
+export interface UpdateLocationRequest {
+  label: string;
+  location_type: "home" | "work" | "other" | string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  place_id?: string;
+  notes?: string;
+  is_default: boolean;
+}
+
+export interface CreateEmergencyContactRequest {
+  name: string;
+  phone: string;
+  relationship_type: string;
+  is_primary: boolean;
+}

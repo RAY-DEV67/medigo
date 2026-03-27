@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
   ScrollView,
-  TextInput,
   Switch,
   Dimensions,
   StatusBar,
+  Platform,
+  Modal,
 } from "react-native";
 import {
   ChevronLeft,
@@ -19,7 +20,6 @@ import {
   Activity,
   Beaker,
   Scissors,
-  MoreHorizontal,
   ArrowRight,
   Repeat,
   MapPin,
@@ -35,29 +35,65 @@ import {
   ArrowRightLeft,
   Calendar,
   Info,
+  LucideArrowDown,
+  ArrowDownUp,
+  ArrowLeftRight,
+  Plus,
 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import useTheme from "../../../hooks/useThemes";
 import { commonStyles } from "../../../styles/commonStyles";
 import VehicleTypeCard from "../../../components/cards/vehicleTypeCard";
 import GoogleInput from "../../../components/inputs/googleInput";
+import MultilineInput from "../../../components/inputs/multilineInput";
+import OverlayBottomSheet, {
+  OverlayBottomSheetRef,
+} from "../../../components/modals/overlayBottomSheet";
+import Buttons from "../../../components/buttons/buttons";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useNavigation } from "@react-navigation/native";
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
+import { format } from "date-fns";
+import { useCreateRide } from "../../../hooks/mutations/useRide";
+import { CreateRideRequest } from "../../../types/rides.types";
+import { useUserProfile } from "../../../hooks/queries/useUserProfile";
 
 const { width } = Dimensions.get("window");
 
 const BookARide = () => {
   const [step, setStep] = useState(1);
-  const totalSteps = 7;
+  const totalSteps = 6;
   const { colors, theme } = useTheme();
+    const { data, isLoading } = useUserProfile();
   const commonStyling = commonStyles(colors);
+  const successRef = useRef<OverlayBottomSheetRef>(null);
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [serviceType, setServiceType] = useState("Transport Only");
   const [appointmentType, setAppointmentType] = useState("Dialysis");
   const [vehicle, setVehicle] = useState("Medigo Standard");
   const [recurring, setRecurring] = useState(false);
   const [tripType, setTripType] = useState("One Way");
   const [passenger, setPassenger] = useState("Myself");
+  const [frequency, setFrequency] = useState("Weekly");
+  const [endType, setEndType] = useState("By Date");
   const [mobility, setMobility] = useState("Ambulatory");
   const [loadingPickup, setloadingPickup] = useState(false);
   const [loadingDestination, setloadingDestination] = useState(false);
+  const [assistance, setassistance] = useState("none");
+  const [additionalNotes, setadditionalNotes] = useState("");
+  const [date, setDate] = useState(new Date());
+  const [showPicker, setShowPicker] = useState(false);
+  const [recurringStartdate, setrecurringStartDate] = useState(new Date());
+  const [showrecurringStartDatePicker, setShowrecurringStartDatePicker] =
+    useState(false);
+  const [recurringEnddate, setrecurringEndDate] = useState(new Date());
+  const [showrecurringEndDatePicker, setShowrecurringEndDatePicker] =
+    useState(false);
+  const [time, setTime] = useState(new Date());
+  const [showTimePicker, setShowTimePicker] = useState(false);
+
   const [pickUpForm, setpickUpForm] = useState({
     label: "",
     address: "",
@@ -70,6 +106,7 @@ const BookARide = () => {
     latitude: 0,
     longitude: 0,
   });
+  const [selectedMethod, setSelectedMethod] = useState("visa");
   const updatePickUPFormFields = (fields: Partial<any>) => {
     setpickUpForm((prev) => ({ ...prev, ...fields }));
   };
@@ -93,7 +130,62 @@ const BookARide = () => {
     }));
   };
 
-  const nextStep = () => step < totalSteps && setStep(step + 1);
+  const onChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    // On Android, the picker closes itself after selection
+    setShowPicker(Platform.OS === "ios");
+
+    if (selectedDate) {
+      setDate(selectedDate);
+    }
+  };
+
+  const onRecurringStartDateChange = (
+    event: DateTimePickerEvent,
+    selectedDate?: Date,
+  ) => {
+    // On Android, the picker closes itself after selection
+    setShowrecurringStartDatePicker(Platform.OS === "ios");
+
+    if (selectedDate) {
+      setrecurringStartDate(selectedDate);
+    }
+  };
+
+  const onRecurringEndDateChange = (
+    event: DateTimePickerEvent,
+    selectedDate?: Date,
+  ) => {
+    // On Android, the picker closes itself after selection
+    setShowrecurringEndDatePicker(Platform.OS === "ios");
+
+    if (selectedDate) {
+      setrecurringEndDate(selectedDate);
+    }
+  };
+
+  const onTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
+    // Hide picker on Android immediately, keep on iOS until 'Done'
+    setShowTimePicker(Platform.OS === "ios");
+
+    if (selectedTime) {
+      setTime(selectedTime);
+    }
+  };
+
+  const togglePicker = () => {
+    setShowPicker(true);
+  };
+
+  const toggleRecurringStartDatePicker = () => {
+    setShowrecurringStartDatePicker(true);
+  };
+
+  const toggleRecurringEndDatePicker = () => {
+    setShowrecurringEndDatePicker(true);
+  };
+
+  const nextStep = () =>
+    step < totalSteps ? setStep(step + 1) : handleConfirmBooking();
   const prevStep = () => step > 1 && setStep(step - 1);
 
   const renderProgressBar = () => (
@@ -109,6 +201,43 @@ const BookARide = () => {
       ))}
     </View>
   );
+
+  // Inside ReviewScreen.tsx
+  const { mutate, isPending } = useCreateRide();
+
+  const handleConfirmBooking = () => {
+    const scheduledDate = new Date(date);
+    scheduledDate.setHours(time.getHours());
+    scheduledDate.setMinutes(time.getMinutes());
+
+    const payload: CreateRideRequest = {
+      ride_type: mobility.toLowerCase(),
+      trip_type: serviceType.toLowerCase().replace(/ /g, "_"),
+      trip_structure: tripType.toLowerCase().replace(/ /g, "_"),
+      pickup_address: pickUpForm.address,
+      pickup_latitude: pickUpForm.latitude,
+      pickup_longitude: pickUpForm.longitude,
+      destination_address: destinationForm.address,
+      destination_latitude: destinationForm.latitude,
+      destination_longitude: destinationForm.longitude,
+      scheduled_at: scheduledDate.toISOString(),
+      passenger_id: data?.data.id, 
+      visit_type: "",
+      appointment_time: scheduledDate.toISOString(),
+      facility_name: "Medical Center",
+      special_instructions: additionalNotes || "",
+      mobility_level: mobility,
+      assistance_level: assistance,
+      estimated_distance_miles: 10.5,
+      estimated_duration_minutes: 25,
+      estimated_fare: 45,
+      business_id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+
+    };
+
+    mutate(payload);
+    successRef.current?.open();
+  };
 
   const renderStepContent = () => {
     switch (step) {
@@ -526,51 +655,363 @@ const BookARide = () => {
             </View>
 
             {/* Date & Time Section */}
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontFamily: "Bold",
+                  fontSize: 18,
+                  marginBottom: 16,
+                },
+              ]}
+            >
+              Date & Time
+            </Text>
             <View style={styles.dateTimeRow}>
               <View
-                style={[
-                  styles.dateTimeInput,
-                  {
-                    borderWidth: 1,
-                    borderColor: colors.lightPrimaryBlueBorder,
-                  },
-                ]}
+                style={{
+                  width: "43%",
+                }}
               >
                 <Text
                   style={[
-                    commonStyling.title,
+                    styles.inputLabel,
+                    commonStyling.subtitle,
                     {
-                      fontSize: 15,
+                      fontSize: 12,
+                      fontFamily: "Medium",
                     },
                   ]}
                 >
-                  10/10/2026
+                  Date
                 </Text>
-                <Calendar size={18} color="#64748B" />
+
+                <TouchableOpacity
+                  onPress={togglePicker}
+                  activeOpacity={0.7}
+                  style={[
+                    styles.dateTimeInput,
+                    {
+                      borderWidth: 1,
+                      borderColor: colors.lightPrimaryBlueBorder,
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: 12,
+                      borderRadius: 10,
+                    },
+                  ]}
+                >
+                  <Text style={[commonStyling.title, { fontSize: 15 }]}>
+                    {format(date, "dd/MM/yyyy")}
+                  </Text>
+                  <CalendarIcon size={18} color="#64748B" />
+                </TouchableOpacity>
+
+                {/* iOS Picker Modal */}
+                {Platform.OS === "ios" ? (
+                  <Modal
+                    visible={showPicker}
+                    transparent={true}
+                    animationType="slide"
+                  >
+                    <View
+                      style={{
+                        flex: 1,
+                        justifyContent: "flex-end",
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                      }}
+                    >
+                      <View
+                        style={{
+                          backgroundColor: colors.surfacePrimary,
+                          paddingBottom: 40,
+                          borderTopLeftRadius: 20,
+                          borderTopRightRadius: 20,
+                        }}
+                      >
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            padding: 16,
+                            borderBottomWidth: 1,
+                            borderBottomColor: "#eee",
+                          }}
+                        >
+                          <TouchableOpacity
+                            onPress={() => setShowPicker(false)}
+                          >
+                            <Text style={{ color: "#FF3B30", fontSize: 16 }}>
+                              Cancel
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => setShowPicker(false)}
+                          >
+                            <Text
+                              style={{
+                                color: "#007AFF",
+                                fontWeight: "600",
+                                fontSize: 16,
+                              }}
+                            >
+                              Done
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+
+                        <DateTimePicker
+                          value={date}
+                          mode="date"
+                          display="spinner"
+                          onChange={onChange}
+                          minimumDate={new Date()}
+                        />
+                      </View>
+                    </View>
+                  </Modal>
+                ) : (
+                  // Android logic remains the same
+                  showPicker && (
+                    <DateTimePicker
+                      value={date}
+                      mode="date"
+                      display="default"
+                      onChange={onChange}
+                      minimumDate={new Date()}
+                    />
+                  )
+                )}
               </View>
+
               <View
-                style={[
-                  styles.dateTimeInput,
-                  {
-                    borderWidth: 1,
-                    borderColor: colors.lightPrimaryBlueBorder,
-                  },
-                ]}
+                style={{
+                  width: "40%",
+                }}
               >
                 <Text
                   style={[
-                    commonStyling.title,
+                    styles.inputLabel,
+                    commonStyling.subtitle,
                     {
-                      fontSize: 15,
+                      fontSize: 12,
+                      fontFamily: "Medium",
                     },
                   ]}
                 >
-                  10:30 AM
+                  Time
                 </Text>
-                <Clock size={18} color="#64748B" />
+                <TouchableOpacity
+                  onPress={() => setShowTimePicker(true)}
+                  activeOpacity={0.7}
+                  style={[
+                    styles.dateTimeInput,
+                    {
+                      borderWidth: 1,
+                      borderColor: colors.lightPrimaryBlueBorder,
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: 12,
+                      borderRadius: 10,
+                    },
+                  ]}
+                >
+                  <Text style={[commonStyling.title, { fontSize: 15 }]}>
+                    {format(time, "p")} {/* Outputs: 10:30 AM */}
+                  </Text>
+                  <Clock size={18} color="#64748B" />
+                </TouchableOpacity>
+
+                {/* Time Picker Logic */}
+                {Platform.OS === "ios" ? (
+                  <Modal
+                    visible={showTimePicker}
+                    transparent
+                    animationType="slide"
+                  >
+                    <View
+                      style={{
+                        flex: 1,
+                        justifyContent: "flex-end",
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                      }}
+                    >
+                      <View
+                        style={{
+                          backgroundColor: colors.surfacePrimary,
+                          paddingBottom: 40,
+                          borderTopLeftRadius: 20,
+                          borderTopRightRadius: 20,
+                        }}
+                      >
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            padding: 16,
+                            borderBottomWidth: 1,
+                            borderBottomColor: "#eee",
+                          }}
+                        >
+                          <TouchableOpacity
+                            onPress={() => setShowTimePicker(false)}
+                          >
+                            <Text style={{ color: "#FF3B30", fontSize: 16 }}>
+                              Cancel
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => setShowTimePicker(false)}
+                          >
+                            <Text
+                              style={{
+                                color: colors.primaryColor,
+                                fontWeight: "600",
+                                fontSize: 16,
+                              }}
+                            >
+                              Done
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                        <DateTimePicker
+                          value={time}
+                          mode="time" // Change this to time
+                          display="spinner"
+                          is24Hour={false}
+                          onChange={onTimeChange}
+                        />
+                      </View>
+                    </View>
+                  </Modal>
+                ) : (
+                  showTimePicker && (
+                    <DateTimePicker
+                      value={time}
+                      mode="time"
+                      display="default"
+                      is24Hour={false}
+                      onChange={onTimeChange}
+                    />
+                  )
+                )}
               </View>
             </View>
 
+            {tripType === "Round Trip" && (
+              <View
+                style={{
+                  marginTop: 32,
+                }}
+              >
+                <Text
+                  style={[
+                    commonStyling.title,
+                    {
+                      fontFamily: "Bold",
+                      fontSize: 18,
+                      marginBottom: 16,
+                    },
+                  ]}
+                >
+                  Return details
+                </Text>
+                <View>
+                  <View
+                    style={{
+                      width: "100%",
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.inputLabel,
+                        commonStyling.subtitle,
+                        {
+                          fontSize: 12,
+                          fontFamily: "Medium",
+                        },
+                      ]}
+                    >
+                      RETURN PICKUP TIME
+                    </Text>
+                    <View
+                      style={[
+                        styles.dateTimeInput,
+                        {
+                          borderWidth: 1,
+                          borderColor: colors.lightPrimaryBlueBorder,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          commonStyling.title,
+                          {
+                            fontSize: 15,
+                          },
+                        ]}
+                      >
+                        10:30 AM
+                      </Text>
+                      <Clock size={18} color="#64748B" />
+                    </View>
+                  </View>
+                </View>
+
+                <View>
+                  <View
+                    style={{
+                      width: "100%",
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.inputLabel,
+                        commonStyling.subtitle,
+                        {
+                          fontSize: 12,
+                          fontFamily: "Medium",
+                          marginTop: 16,
+                        },
+                      ]}
+                    >
+                      APPOINTMENT DURATION
+                    </Text>
+                    <View
+                      style={[
+                        styles.dateTimeInput,
+                        {
+                          borderWidth: 1,
+                          borderColor: colors.lightPrimaryBlueBorder,
+                        },
+                      ]}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          columnGap: 12,
+                        }}
+                      >
+                        <Clock size={18} color="#64748B" />
+                        <Text
+                          style={[
+                            commonStyling.title,
+                            {
+                              fontSize: 15,
+                            },
+                          ]}
+                        >
+                          30 minutes
+                        </Text>
+                      </View>
+                      <LucideArrowDown size={18} color="#64748B" />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            )}
             {/* Passenger Section */}
             <Text
               style={[
@@ -878,10 +1319,961 @@ const BookARide = () => {
               </View>
               {mobility === "Stretcher" && <Check color="#2563EB" size={20} />}
             </TouchableOpacity>
+
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontFamily: "Bold",
+                  fontSize: 18,
+                  marginTop: 32,
+                },
+              ]}
+            >
+              Assistance Level
+            </Text>
+            <Text
+              style={[
+                styles.subLabel,
+                commonStyling.subtitle,
+                {
+                  fontSize: 14,
+                },
+              ]}
+            >
+              How much help is needed?
+            </Text>
+
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
+              <TouchableOpacity
+                style={[
+                  styles.choiceCard,
+                  {
+                    borderColor:
+                      assistance === "none"
+                        ? colors.primaryColor
+                        : colors.lightPrimaryBlueBorder,
+                    backgroundColor:
+                      assistance === "none" ? colors.primaryColor : "",
+                    width: "30%",
+                    alignItems: "center",
+                  },
+                ]}
+                onPress={() => setassistance("none")}
+              >
+                <View style={styles.choiceTextContainer}>
+                  <Text
+                    style={[
+                      commonStyling.title,
+                      {
+                        fontSize: 13,
+                        fontFamily: "Bold",
+                        textAlign: "center",
+                      },
+                    ]}
+                  >
+                    None
+                  </Text>
+                  <Text
+                    style={[
+                      styles.choiceDesc,
+                      commonStyling.subtitle,
+                      {
+                        fontSize: 10,
+                        fontFamily: "Medium",
+                      },
+                    ]}
+                  >
+                    Independent
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.choiceCard,
+                  {
+                    borderColor:
+                      assistance === "Minimal"
+                        ? colors.primaryColor
+                        : colors.lightPrimaryBlueBorder,
+                    backgroundColor:
+                      assistance === "Minimal" ? colors.primaryColor : "",
+                    width: "30%",
+                    alignItems: "center",
+                  },
+                ]}
+                onPress={() => setassistance("Minimal")}
+              >
+                <View style={styles.choiceTextContainer}>
+                  <Text
+                    style={[
+                      commonStyling.title,
+                      {
+                        fontSize: 13,
+                        fontFamily: "Bold",
+                        textAlign: "center",
+                      },
+                    ]}
+                  >
+                    Minimal
+                  </Text>
+                  <Text
+                    style={[
+                      styles.choiceDesc,
+                      commonStyling.subtitle,
+                      {
+                        fontSize: 10,
+                        fontFamily: "Medium",
+                      },
+                    ]}
+                  >
+                    Light support
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.choiceCard,
+                  {
+                    borderColor:
+                      assistance === "Full"
+                        ? colors.primaryColor
+                        : colors.lightPrimaryBlueBorder,
+                    backgroundColor:
+                      assistance === "Full" ? colors.primaryColor : "",
+                    width: "30%",
+                    alignItems: "center",
+                  },
+                ]}
+                onPress={() => setassistance("Full")}
+              >
+                <View style={styles.choiceTextContainer}>
+                  <Text
+                    style={[
+                      commonStyling.title,
+                      {
+                        fontSize: 13,
+                        fontFamily: "Bold",
+                        textAlign: "center",
+                      },
+                    ]}
+                  >
+                    Full
+                  </Text>
+                  <Text
+                    style={[
+                      styles.choiceDesc,
+                      commonStyling.subtitle,
+                      {
+                        fontSize: 10,
+                        fontFamily: "Medium",
+                        textAlign: "center",
+                      },
+                    ]}
+                  >
+                    Complete assistance
+                  </Text>
+                </View>
+                {mobility === "Stretcher" && (
+                  <Check color="#2563EB" size={20} />
+                )}
+              </TouchableOpacity>
+            </View>
+
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontFamily: "Bold",
+                  fontSize: 18,
+                  marginTop: 32,
+                },
+              ]}
+            >
+              Additional Notes
+            </Text>
+            <Text
+              style={[
+                styles.subLabel,
+                commonStyling.subtitle,
+                {
+                  fontSize: 14,
+                  marginBottom: -8,
+                },
+              ]}
+            >
+              Any special instructions for the driver
+            </Text>
+            <MultilineInput
+              title=""
+              value={additionalNotes}
+              onChangeText={(val) => setadditionalNotes(val)}
+              placeholder="E.g I need help getting to the car please be extra patient....."
+            />
           </View>
         );
-      case 7:
-        return <ReviewScreen />;
+      case 4:
+        return (
+          <View>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: 18,
+                  fontFamily: "Bold",
+                },
+              ]}
+            >
+              Recurring Ride
+            </Text>
+            <Text
+              style={[
+                styles.sectionSubtitle,
+                commonStyling.subtitle,
+                {
+                  fontSize: 14,
+                },
+              ]}
+            >
+              Schedule multiple rides at once
+            </Text>
+
+            <View
+              style={[
+                styles.toggleCard,
+                {
+                  borderColor: colors.lightPrimaryBlueBorder,
+                },
+              ]}
+            >
+              <View style={styles.toggleInfo}>
+                <View style={styles.iconCircle}>
+                  <Repeat color="#2563EB" size={20} />
+                </View>
+                <View>
+                  <Text
+                    style={[
+                      commonStyling.title,
+                      {
+                        fontSize: 14,
+                        fontFamily: "SemiBold",
+                      },
+                    ]}
+                  >
+                    Make this recurring
+                  </Text>
+                  <Text
+                    style={[
+                      styles.toggleSub,
+                      commonStyling.subtitle,
+                      {
+                        fontSize: 12,
+                      },
+                    ]}
+                  >
+                    Save time on repeat bookings
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                trackColor={{ false: "#E2E8F0", true: "#2563EB" }}
+                thumbColor="#FFF"
+                onValueChange={() => setRecurring(!recurring)}
+                value={recurring}
+              />
+            </View>
+
+            {recurring && (
+              <View>
+                {/* Frequency Grid */}
+                <Text
+                  style={[
+                    commonStyling.title,
+                    {
+                      fontFamily: "SemiBold",
+                      fontSize: 14,
+                      marginBottom: 16,
+                    },
+                  ]}
+                >
+                  Frequency
+                </Text>
+                <View style={styles.frequencyGrid}>
+                  {["Daily", "Weekly", "Bi-Weekly", "Monthly"].map((item) => (
+                    <TouchableOpacity
+                      key={item}
+                      onPress={() => setFrequency(item)}
+                      style={[
+                        styles.gridItem,
+
+                        {
+                          borderColor:
+                            frequency === item
+                              ? colors.primaryColor
+                              : colors.lightPrimaryBlueBorder,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          commonStyling.title,
+                          {
+                            color:
+                              frequency === item
+                                ? colors.primaryColor
+                                : colors.titleText,
+                            fontSize: 14,
+                          },
+                        ]}
+                      >
+                        {item}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                {/* Start Date */}
+                <Text
+                  style={[
+                    commonStyling.title,
+                    {
+                      fontFamily: "SemiBold",
+                      fontSize: 14,
+                      marginBottom: 8,
+                    },
+                  ]}
+                >
+                  Start Date
+                </Text>
+                <TouchableOpacity
+                  onPress={toggleRecurringStartDatePicker}
+                  activeOpacity={0.7}
+                  style={[
+                    styles.dateTimeInput,
+                    {
+                      borderWidth: 1,
+                      borderColor: colors.lightPrimaryBlueBorder,
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: 12,
+                      borderRadius: 10,
+                    },
+                  ]}
+                >
+                  <Text style={[commonStyling.title, { fontSize: 15 }]}>
+                    {format(recurringStartdate, "dd/MM/yyyy")}
+                  </Text>
+                  <CalendarIcon size={18} color="#64748B" />
+                </TouchableOpacity>
+
+                {/* iOS Picker Modal */}
+                {Platform.OS === "ios" ? (
+                  <Modal
+                    visible={showrecurringStartDatePicker}
+                    transparent={true}
+                    animationType="slide"
+                  >
+                    <View
+                      style={{
+                        flex: 1,
+                        justifyContent: "flex-end",
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                      }}
+                    >
+                      <View
+                        style={{
+                          backgroundColor: colors.surfacePrimary,
+                          paddingBottom: 40,
+                          borderTopLeftRadius: 20,
+                          borderTopRightRadius: 20,
+                        }}
+                      >
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            padding: 16,
+                            borderBottomWidth: 1,
+                            borderBottomColor: "#eee",
+                          }}
+                        >
+                          <TouchableOpacity
+                            onPress={() =>
+                              setShowrecurringStartDatePicker(false)
+                            }
+                          >
+                            <Text style={{ color: "#FF3B30", fontSize: 16 }}>
+                              Cancel
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() =>
+                              setShowrecurringStartDatePicker(false)
+                            }
+                          >
+                            <Text
+                              style={{
+                                color: "#007AFF",
+                                fontWeight: "600",
+                                fontSize: 16,
+                              }}
+                            >
+                              Done
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+
+                        <DateTimePicker
+                          value={recurringStartdate}
+                          mode="date"
+                          display="spinner"
+                          onChange={onRecurringStartDateChange}
+                          minimumDate={new Date()}
+                        />
+                      </View>
+                    </View>
+                  </Modal>
+                ) : (
+                  // Android logic remains the same
+                  showrecurringStartDatePicker && (
+                    <DateTimePicker
+                      value={recurringStartdate}
+                      mode="date"
+                      display="default"
+                      onChange={onRecurringStartDateChange}
+                      minimumDate={new Date()}
+                    />
+                  )
+                )}
+                {/* Ends Section */}
+                <Text
+                  style={[
+                    commonStyling.title,
+                    {
+                      fontFamily: "SemiBold",
+                      fontSize: 14,
+                      marginBottom: 8,
+                      marginTop: 24,
+                    },
+                  ]}
+                >
+                  Ends
+                </Text>
+                <View
+                  style={[
+                    styles.tabContainer,
+                    {
+                      backgroundColor: colors.surfaceSecondary,
+                    },
+                  ]}
+                >
+                  <TouchableOpacity
+                    onPress={() => setEndType("By Date")}
+                    style={[
+                      styles.tab,
+                      endType === "By Date" && styles.activeTab,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        commonStyling.subtitle,
+                        {
+                          fontSize: 14,
+                          fontFamily: "Medium",
+                          color:
+                            endType === "By Date"
+                              ? colors.primaryColor
+                              : colors.textSecondary,
+                        },
+                      ]}
+                    >
+                      By Date
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => setEndType("No of Rides")}
+                    style={[
+                      styles.tab,
+                      endType === "No of Rides" && styles.activeTab,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        commonStyling.subtitle,
+                        {
+                          fontSize: 14,
+                          fontFamily: "Medium",
+                          color:
+                            endType === "No of Rides"
+                              ? colors.primaryColor
+                              : colors.textSecondary,
+                        },
+                      ]}
+                    >
+                      No of Rides
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                {/* End Date Input */}
+                {endType === "By Date" ? (
+                  <View>
+                    <TouchableOpacity
+                      onPress={toggleRecurringEndDatePicker}
+                      activeOpacity={0.7}
+                      style={[
+                        styles.dateTimeInput,
+                        {
+                          borderWidth: 1,
+                          borderColor: colors.lightPrimaryBlueBorder,
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: 12,
+                          borderRadius: 10,
+                        },
+                      ]}
+                    >
+                      <Text style={[commonStyling.title, { fontSize: 15 }]}>
+                        {format(recurringEnddate, "dd/MM/yyyy")}
+                      </Text>
+                      <CalendarIcon size={18} color="#64748B" />
+                    </TouchableOpacity>
+
+                    {/* iOS Picker Modal */}
+                    {Platform.OS === "ios" ? (
+                      <Modal
+                        visible={showrecurringEndDatePicker}
+                        transparent={true}
+                        animationType="slide"
+                      >
+                        <View
+                          style={{
+                            flex: 1,
+                            justifyContent: "flex-end",
+                            backgroundColor: "rgba(0,0,0,0.5)",
+                          }}
+                        >
+                          <View
+                            style={{
+                              backgroundColor: colors.surfacePrimary,
+                              paddingBottom: 40,
+                              borderTopLeftRadius: 20,
+                              borderTopRightRadius: 20,
+                            }}
+                          >
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                padding: 16,
+                                borderBottomWidth: 1,
+                                borderBottomColor: "#eee",
+                              }}
+                            >
+                              <TouchableOpacity
+                                onPress={() =>
+                                  setShowrecurringEndDatePicker(false)
+                                }
+                              >
+                                <Text
+                                  style={{ color: "#FF3B30", fontSize: 16 }}
+                                >
+                                  Cancel
+                                </Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                onPress={() =>
+                                  setShowrecurringEndDatePicker(false)
+                                }
+                              >
+                                <Text
+                                  style={{
+                                    color: "#007AFF",
+                                    fontWeight: "600",
+                                    fontSize: 16,
+                                  }}
+                                >
+                                  Done
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+
+                            <DateTimePicker
+                              value={recurringEnddate}
+                              mode="date"
+                              display="spinner"
+                              onChange={onRecurringEndDateChange}
+                              minimumDate={new Date()}
+                            />
+                          </View>
+                        </View>
+                      </Modal>
+                    ) : (
+                      // Android logic remains the same
+                      showrecurringEndDatePicker && (
+                        <DateTimePicker
+                          value={recurringEnddate}
+                          mode="date"
+                          display="default"
+                          onChange={onRecurringEndDateChange}
+                          minimumDate={new Date()}
+                        />
+                      )
+                    )}
+                  </View>
+                ) : (
+                  <View
+                    style={[
+                      styles.datePickerInput,
+                      {
+                        borderWidth: 1,
+                        borderColor: colors.lightPrimaryBlueBorder,
+                        marginTop: 16,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        commonStyling.title,
+                        {
+                          fontSize: 14,
+                        },
+                      ]}
+                    >
+                      10
+                    </Text>
+                    <ArrowDownUp size={20} color="#64748B" />
+                  </View>
+                )}
+              </View>
+            )}
+          </View>
+        );
+      case 5:
+        return (
+          <ReviewScreen
+            tripType={tripType}
+            appointment={appointmentType}
+            serviceType={serviceType}
+            vehicle={vehicle}
+            pickup={pickUpForm.address}
+            destination={destinationForm.address}
+            mobility={mobility}
+            assistance={assistance}
+            isRecurring={recurring}
+            notes={additionalNotes}
+            frequency={frequency}
+            endType={endType}
+            date={date}
+            time={time}
+            recurringStartDate={recurringStartdate}
+            recurringEndDate={recurringEnddate}
+          />
+        );
+
+      case 6:
+        return (
+          <View>
+            {/* Header */}
+
+            <View>
+              <Text
+                style={[
+                  styles.mainTitle,
+                  commonStyling.title,
+                  {
+                    fontSize: 24,
+                    fontFamily: "Bold",
+                  },
+                ]}
+              >
+                Payment
+              </Text>
+              <Text
+                style={[
+                  styles.stepIndicator,
+                  commonStyling.subtitle,
+                  {
+                    fontSize: 14,
+                    marginBottom: 16,
+                  },
+                ]}
+              >
+                Choose your payment method
+              </Text>
+
+              <Text
+                style={[
+                  commonStyling.title,
+                  {
+                    fontSize: 13,
+                    fontFamily: "Bold",
+                    marginVertical: 16,
+                  },
+                ]}
+              >
+                PAYMENT METHODS
+              </Text>
+
+              {/* Visa Card (Selected/Default) */}
+              <TouchableOpacity
+                style={[
+                  styles.paymentCard,
+                  {
+                    borderColor:
+                      selectedMethod === "visa"
+                        ? colors.primaryColor
+                        : colors.lightPrimaryBlueBorder,
+                  },
+                ]}
+                onPress={() => setSelectedMethod("visa")}
+              >
+                {selectedMethod === "visa" && (
+                  <View style={styles.defaultBadge}>
+                    <Text
+                      style={[
+                        commonStyling.subtitle,
+                        {
+                          fontSize: 9,
+                          fontFamily: "SemiBold",
+                        },
+                      ]}
+                    >
+                      DEFAULT
+                    </Text>
+                  </View>
+                )}
+                <View style={styles.cardInfo}>
+                  <View style={styles.logoContainer}>
+                    <Text style={[styles.cardTypeLogo, { color: "#1A1F71" }]}>
+                      VISA
+                    </Text>
+                  </View>
+                  <View>
+                    <Text
+                      style={[
+                        commonStyling.title,
+                        {
+                          fontSize: 16,
+                          fontFamily: "Bold",
+                        },
+                      ]}
+                    >
+                      Visa •••• 4242
+                    </Text>
+                    <Text
+                      style={[
+                        styles.expiry,
+                        commonStyling.subtitle,
+                        { fontSize: 13, fontFamily: "Medium" },
+                      ]}
+                    >
+                      Expires 12/26
+                    </Text>
+                  </View>
+                </View>
+                {selectedMethod === "visa" && (
+                  <CheckCircle2 size={24} color="#2563EB" />
+                )}
+              </TouchableOpacity>
+
+              {/* Mastercard */}
+              <TouchableOpacity
+                style={[
+                  styles.paymentCard,
+                  {
+                    borderColor:
+                      selectedMethod === "mastercard"
+                        ? colors.primaryColor
+                        : colors.lightPrimaryBlueBorder,
+                  },
+                ]}
+                onPress={() => setSelectedMethod("mastercard")}
+              >
+                <View style={styles.cardInfo}>
+                  <View style={styles.logoContainer}>
+                    {/* Simple representation of Mastercard logo */}
+                    <View style={{ flexDirection: "row" }}>
+                      <View
+                        style={[
+                          styles.mcCircle,
+                          { backgroundColor: "#EB001B", marginRight: -8 },
+                        ]}
+                      />
+                      <View
+                        style={[
+                          styles.mcCircle,
+                          { backgroundColor: "#F79E1B" },
+                        ]}
+                      />
+                    </View>
+                  </View>
+                  <View>
+                    <Text
+                      style={[
+                        commonStyling.title,
+                        {
+                          fontSize: 16,
+                          fontFamily: "Bold",
+                        },
+                      ]}
+                    >
+                      Mastercard •••• 8888
+                    </Text>
+                    <Text
+                      style={[
+                        styles.expiry,
+                        commonStyling.subtitle,
+                        { fontSize: 13, fontFamily: "Medium" },
+                      ]}
+                    >
+                      Expires 09/25
+                    </Text>
+                  </View>
+                </View>
+                {selectedMethod === "mastercard" && (
+                  <CheckCircle2 size={24} color="#2563EB" fill="#FFF" />
+                )}
+              </TouchableOpacity>
+
+              {/* Add New Method */}
+              <TouchableOpacity
+                style={[
+                  styles.addNewBtn,
+                  {
+                    borderColor: colors.lightPrimaryBlueBorder,
+                  },
+                ]}
+              >
+                <View style={styles.plusIconBox}>
+                  <Plus size={24} color="#94A3B8" />
+                </View>
+                <View>
+                  <Text
+                    style={[
+                      commonStyling.title,
+                      {
+                        fontSize: 16,
+                        fontFamily: "Bold",
+                      },
+                    ]}
+                  >
+                    Add new payment method
+                  </Text>
+                  <Text
+                    style={[
+                      styles.expiry,
+                      commonStyling.subtitle,
+                      { fontSize: 13, fontFamily: "Medium" },
+                    ]}
+                  >
+                    Credit or debit card
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* Booking Summary Card */}
+              <View
+                style={[
+                  styles.summaryCard,
+                  {
+                    borderColor: colors.lightPrimaryBlueBorder,
+                    borderWidth: 1,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.summaryTitle,
+                    commonStyling.title,
+                    {
+                      fontSize: 13,
+                      fontFamily: "Bold",
+                    },
+                  ]}
+                >
+                  BOOKING SUMMARY
+                </Text>
+                <View style={styles.summaryRow}>
+                  <Text
+                    style={[
+                      commonStyling.subtitle,
+                      {
+                        fontSize: 14,
+                      },
+                    ]}
+                  >
+                    {vehicle}
+                  </Text>
+                  <Text
+                    style={[
+                      commonStyling.title,
+                      {
+                        fontFamily: "SemiBold",
+                        fontSize: 15,
+                      },
+                    ]}
+                  >
+                    $45.00
+                  </Text>
+                </View>
+                <View style={styles.summaryRow}>
+                  <Text
+                    style={[
+                      commonStyling.subtitle,
+                      {
+                        fontSize: 14,
+                      },
+                    ]}
+                  >
+                    Service fee
+                  </Text>
+                  <Text
+                    style={[
+                      commonStyling.title,
+                      {
+                        fontFamily: "SemiBold",
+                        fontSize: 15,
+                      },
+                    ]}
+                  >
+                    $3.50
+                  </Text>
+                </View>
+                <View style={styles.summaryDivider} />
+                <View style={styles.totalRow}>
+                  <Text
+                    style={[
+                      commonStyling.title,
+                      {
+                        fontSize: 18,
+                        fontFamily: "Bold",
+                      },
+                    ]}
+                  >
+                    Total
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 28,
+                      fontFamily: "Bold",
+                      color: colors.primaryColor,
+                    }}
+                  >
+                    $48.50
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        );
       default:
         return (
           <View style={styles.placeholder}>
@@ -910,30 +2302,34 @@ const BookARide = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text
-          style={[
-            styles.mainTitle,
-            commonStyling.title,
-            {
-              fontSize: 24,
-              fontFamily: "Bold",
-            },
-          ]}
-        >
-          Book a Ride
-        </Text>
-        <Text
-          style={[
-            styles.stepIndicator,
-            commonStyling.subtitle,
-            {
-              fontSize: 14,
-            },
-          ]}
-        >
-          Step {step} of {totalSteps} - {getStepName(step)}
-        </Text>
-        {renderProgressBar()}
+        {step < 5 && (
+          <View>
+            <Text
+              style={[
+                styles.mainTitle,
+                commonStyling.title,
+                {
+                  fontSize: 24,
+                  fontFamily: "Bold",
+                },
+              ]}
+            >
+              Book a Ride
+            </Text>
+            <Text
+              style={[
+                styles.stepIndicator,
+                commonStyling.subtitle,
+                {
+                  fontSize: 14,
+                },
+              ]}
+            >
+              Step {step} of {totalSteps} - {getStepName(step)}
+            </Text>
+            {renderProgressBar()}
+          </View>
+        )}
 
         {renderStepContent()}
       </ScrollView>
@@ -949,10 +2345,113 @@ const BookARide = () => {
       >
         <TouchableOpacity style={styles.continueButton} onPress={nextStep}>
           <Text style={styles.continueText}>
-            {step === 7 ? "Confirm Booking" : "Continue"}
+            {step === 4
+              ? "Continue to review"
+              : step === 5
+                ? "Continue to Payment"
+                : step === 6
+                  ? "Pay"
+                  : "Continue"}
           </Text>
         </TouchableOpacity>
       </View>
+
+      <OverlayBottomSheet ref={successRef} height={500} overlay={true}>
+        <View style={styles.content}>
+          {/* Success Icon with Glow Effect */}
+          <View>
+            <View style={styles.iconGlow}>
+              <View style={styles.checkmarkCircle}>
+                <Check color="#FFF" size={48} strokeWidth={3} />
+              </View>
+            </View>
+          </View>
+
+          {/* Status Text */}
+          <Text
+            style={[
+              styles.title,
+              commonStyling.title,
+              {
+                fontSize: 26,
+                fontFamily: "Bold",
+                marginTop: 16,
+              },
+            ]}
+          >
+            Payment Successful
+          </Text>
+          <Text
+            style={[
+              styles.statusInfo,
+              commonStyling.subtitle,
+              {
+                fontSize: 15,
+              },
+            ]}
+          >
+            Your booking status is pending.
+          </Text>
+          <Text
+            style={[
+              styles.statusDetail,
+              commonStyling.subtitle,
+              {
+                fontSize: 15,
+              },
+            ]}
+          >
+            You will get confirmation and driver's details soon.
+          </Text>
+
+          {/* Amount Paid Card */}
+          <View
+            style={[
+              styles.amountCard,
+              {
+                backgroundColor: colors.cardBackground,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.amountLabel,
+                commonStyling.subtitle,
+                {
+                  fontSize: 12,
+                  fontFamily: "SemiBold",
+                },
+              ]}
+            >
+              AMOUNT PAID
+            </Text>
+            <Text
+              style={{
+                fontSize: 32,
+                fontFamily: "Bold",
+                color: "#10B981",
+              }}
+            >
+              $48.50
+            </Text>
+          </View>
+
+          <View
+            style={{
+              width: "100%",
+            }}
+          >
+            <Buttons
+              title="View Ride Status"
+              onPress={() => {
+                navigation.navigate("RiderRideDetailsStack", {
+                  screen: "RideStatus",
+                });
+              }}
+            />
+          </View>
+        </View>
+      </OverlayBottomSheet>
     </SafeAreaView>
   );
 };
@@ -1055,59 +2554,670 @@ const GridCard = ({ title, icon, selected, onPress }: any) => {
   );
 };
 
-const ReviewScreen = () => {
+const ReviewScreen = ({
+  tripType,
+  appointment,
+  serviceType,
+  vehicle,
+  pickup,
+  destination,
+  mobility,
+  assistance,
+  isRecurring,
+  notes,
+  frequency,
+  endType,
+  date,
+  time,
+  recurringStartDate,
+  recurringEndDate,
+}: any) => {
   const { colors } = useTheme();
   const commonStyling = commonStyles(colors);
+
+  const renderSectionHeader = (title: string) => (
+    <View style={styles.sectionHeader}>
+      <Text style={[commonStyling.title, { fontSize: 14, fontFamily: "Bold" }]}>
+        {title}
+      </Text>
+      <TouchableOpacity style={styles.editBtn}>
+        <Edit2 size={14} color={colors.primaryColor} />
+        <Text
+          style={[
+            commonStyling.title,
+            {
+              fontSize: 12,
+              color: colors.primaryColor,
+            },
+          ]}
+        >
+          Edit
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <View>
       <Text
         style={[
+          styles.mainTitle,
           commonStyling.title,
           {
-            fontSize: 18,
+            fontSize: 24,
             fontFamily: "Bold",
           },
         ]}
       >
         Review & Confirm
       </Text>
-      <View style={styles.reviewCard}>
-        <View style={styles.rowBetween}>
-          <Text style={styles.reviewHeader}>Service Details</Text>
-          <Edit2 size={16} color="#2E66E7" />
+      <Text
+        style={[
+          styles.stepIndicator,
+          commonStyling.subtitle,
+          {
+            fontSize: 14,
+            marginBottom: 16,
+          },
+        ]}
+      >
+        Check your booking details
+      </Text>
+
+      {/* Service Details Card */}
+      <View
+        style={[
+          styles.infoCard,
+          {
+            borderColor: colors.lightPrimaryBlueBorder,
+          },
+        ]}
+      >
+        {renderSectionHeader("Service Details")}
+        <View style={styles.detailRow}>
+          <Car size={16} color="#64748B" />
+          <Text
+            style={[
+              styles.detailLabel,
+              commonStyling.subtitle,
+              {
+                fontSize: 12,
+              },
+            ]}
+          >
+            Trip Type:
+          </Text>
+          <Text
+            style={[
+              commonStyling.title,
+              {
+                fontSize: 12,
+                fontFamily: "SemiBold",
+              },
+            ]}
+          >
+            {serviceType}
+          </Text>
         </View>
-        <ReviewItem
-          icon={<Navigation size={16} />}
-          label="Trip Type"
-          val="Transport"
+        <View style={styles.detailRow}>
+          <Stethoscope size={16} color="#64748B" />
+          <Text
+            style={[
+              styles.detailLabel,
+              commonStyling.subtitle,
+              {
+                fontSize: 12,
+              },
+            ]}
+          >
+            Appointment:
+          </Text>
+          <Text
+            style={[
+              commonStyling.title,
+              {
+                fontSize: 12,
+                fontFamily: "SemiBold",
+              },
+            ]}
+          >
+            {appointment}
+          </Text>
+        </View>
+        <View style={styles.detailRow}>
+          <ArrowLeftRight size={16} color="#64748B" />
+          <Text
+            style={[
+              styles.detailLabel,
+              commonStyling.subtitle,
+              {
+                fontSize: 12,
+              },
+            ]}
+          >
+            Structure:
+          </Text>
+          <Text
+            style={[
+              commonStyling.title,
+              {
+                fontSize: 12,
+                fontFamily: "SemiBold",
+              },
+            ]}
+          >
+            {tripType}
+          </Text>
+        </View>
+      </View>
+
+      {/* Vehicle Card */}
+      <View
+        style={[
+          styles.infoCard,
+          {
+            borderColor: colors.lightPrimaryBlueBorder,
+          },
+        ]}
+      >
+        {renderSectionHeader("Vehicle")}
+        <View style={styles.rowBetween}>
+          <Text
+            style={[
+              commonStyling.title,
+              {
+                fontSize: 12,
+                fontFamily: "SemiBold",
+              },
+            ]}
+          >
+            {vehicle}
+          </Text>
+          <Text
+            style={{
+              fontSize: 14,
+              fontFamily: "Bold",
+              color: colors.primaryColor,
+            }}
+          >
+            $45
+          </Text>
+        </View>
+      </View>
+
+      {/* Route Card */}
+      <View
+        style={[
+          styles.infoCard,
+          {
+            borderColor: colors.lightPrimaryBlueBorder,
+          },
+        ]}
+      >
+        {renderSectionHeader("Route")}
+        <View style={styles.routeItem}>
+          <MapPin size={18} color="#2563EB" />
+          <View style={styles.routeTextContainer}>
+            <Text
+              style={[
+                styles.routeLabel,
+                commonStyling.subtitle,
+                {
+                  fontSize: 10,
+                },
+              ]}
+            >
+              Pickup
+            </Text>
+            <Text
+              style={[
+                styles.addressText,
+                commonStyling.title,
+                {
+                  fontSize: 12,
+                  fontFamily: "SemiBold",
+                },
+              ]}
+            >
+              {pickup}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.routeItem}>
+          <Navigation size={18} color="#10B981" />
+          <View style={styles.routeTextContainer}>
+            <Text
+              style={[
+                styles.routeLabel,
+                commonStyling.subtitle,
+                {
+                  fontSize: 10,
+                },
+              ]}
+            >
+              Destination
+            </Text>
+            <Text
+              style={[
+                styles.addressText,
+                commonStyling.title,
+                {
+                  fontSize: 12,
+                  fontFamily: "SemiBold",
+                },
+              ]}
+            >
+              {destination}
+            </Text>
+          </View>
+        </View>
+        <View
+          style={[
+            styles.divider,
+            {
+              backgroundColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
         />
-        <ReviewItem
-          icon={<CalendarIcon size={16} />}
-          label="Appointment"
-          val="Dialysis"
-        />
+        <View style={styles.rowBetween}>
+          <View>
+            <Text
+              style={[
+                styles.routeLabel,
+                commonStyling.subtitle,
+                {
+                  fontSize: 10,
+                },
+              ]}
+            >
+              Pickup Date
+            </Text>
+            <Text
+              style={[
+                styles.dateValue,
+                commonStyling.title,
+                {
+                  fontSize: 12,
+                  fontFamily: "SemiBold",
+                },
+              ]}
+            >
+              {format(date, "dd/MM/yyyy")}
+            </Text>
+          </View>
+          <View>
+            <Text
+              style={[
+                styles.routeLabel,
+                commonStyling.subtitle,
+                {
+                  fontSize: 10,
+                },
+              ]}
+            >
+              Pickup Time
+            </Text>
+            <Text
+              style={[
+                styles.dateValue,
+                commonStyling.title,
+                {
+                  fontSize: 12,
+                  fontFamily: "SemiBold",
+                },
+              ]}
+            >
+              {format(time, "p")}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Passenger Card */}
+      <View
+        style={[
+          styles.infoCard,
+          {
+            borderColor: colors.lightPrimaryBlueBorder,
+          },
+        ]}
+      >
+        {renderSectionHeader("Passenger")}
+
+        <View style={styles.passengerHeader}>
+          <View style={styles.avatar}>
+            <User size={20} color="#64748B" />
+          </View>
+          <View>
+            <View>
+              <Text
+                style={[
+                  commonStyling.title,
+                  {
+                    fontSize: 14,
+                    fontFamily: "SemiBold",
+                  },
+                ]}
+              >
+                John Anderson
+              </Text>
+            </View>
+            <View style={styles.pillRow}>
+              <View
+                style={[
+                  styles.grayPill,
+                  {
+                    backgroundColor: colors.surfaceSecondary,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    commonStyling.subtitle,
+                    {
+                      fontSize: 10,
+                      fontFamily: "Medium",
+                    },
+                  ]}
+                >
+                  {mobility}
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.grayPill,
+                  {
+                    backgroundColor: colors.surfaceSecondary,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    commonStyling.subtitle,
+                    {
+                      fontSize: 10,
+                      fontFamily: "Medium",
+                    },
+                  ]}
+                >
+                  {assistance}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+        {notes && (
+          <View>
+            <Text
+              style={[
+                styles.notesLabel,
+                commonStyling.subtitle,
+                {
+                  fontSize: 10,
+                },
+              ]}
+            >
+              Notes
+            </Text>
+            <Text
+              style={[
+                styles.notesText,
+                commonStyling.subtitle,
+                {
+                  color: colors.titleText,
+                  fontSize: 12,
+                },
+              ]}
+            >
+              {notes}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Recurring Summary Card */}
+      {isRecurring && (
+        <View
+          style={[
+            styles.infoCard,
+            styles.recurringBorder,
+            {
+              borderColor: colors.lightPrimaryBlueBorder,
+            },
+          ]}
+        >
+          {renderSectionHeader("Recurring")}
+          <View style={styles.rowBetween}>
+            <Text
+              style={[
+                styles.detailLabel,
+                commonStyling.subtitle,
+                {
+                  fontSize: 12,
+                },
+              ]}
+            >
+              Frequency
+            </Text>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: 12,
+                  fontFamily: "SemiBold",
+                },
+              ]}
+            >
+              {frequency}
+            </Text>
+          </View>
+          <View style={[styles.rowBetween, { marginTop: 8 }]}>
+            <Text
+              style={[
+                styles.detailLabel,
+                commonStyling.subtitle,
+                {
+                  fontSize: 12,
+                },
+              ]}
+            >
+              Starts
+            </Text>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: 12,
+                  fontFamily: "SemiBold",
+                },
+              ]}
+            >
+              {format(recurringStartDate, "dd/MM/yyyy")}
+            </Text>
+          </View>
+          <View style={[styles.rowBetween, { marginTop: 8 }]}>
+            <Text
+              style={[
+                styles.detailLabel,
+                commonStyling.subtitle,
+                {
+                  fontSize: 12,
+                },
+              ]}
+            >
+              Ends
+            </Text>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: 12,
+                  fontFamily: "SemiBold",
+                },
+              ]}
+            >
+              {format(recurringEndDate, "dd/MM/yyyy")}
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.divider,
+              {
+                backgroundColor: colors.lightPrimaryBlueBorder,
+              },
+            ]}
+          />
+          {endType === "No of Rides" && (
+            <View style={styles.rowBetween}>
+              <Text
+                style={[
+                  commonStyling.title,
+                  {
+                    fontSize: 12,
+                    fontFamily: "SemiBold",
+                  },
+                ]}
+              >
+                Total Rides
+              </Text>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontFamily: "Bold",
+                  color: colors.primaryColor,
+                }}
+              >
+                12 rides
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
+
+      {/* Estimated Cost Card */}
+      <View
+        style={[
+          styles.infoCard,
+          {
+            borderColor: colors.lightPrimaryBlueBorder,
+          },
+        ]}
+      >
+        <Text
+          style={[commonStyling.title, { fontSize: 14, fontFamily: "Bold" }]}
+        >
+          Estimated Cost
+        </Text>
+        <View style={[styles.rowBetween, { marginTop: 12 }]}>
+          <Text
+            style={[
+              styles.detailLabel,
+              commonStyling.subtitle,
+              {
+                fontSize: 12,
+              },
+            ]}
+          >
+            Per ride
+          </Text>
+          <Text
+            style={[
+              commonStyling.title,
+              {
+                fontSize: 12,
+                fontFamily: "SemiBold",
+              },
+            ]}
+          >
+            $45
+          </Text>
+        </View>
+        {isRecurring && (
+          <View style={[styles.rowBetween, { marginTop: 8 }]}>
+            <Text
+              style={[
+                styles.detailLabel,
+                commonStyling.subtitle,
+                {
+                  fontSize: 12,
+                },
+              ]}
+            >
+              Rides
+            </Text>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: 12,
+                  fontFamily: "SemiBold",
+                },
+              ]}
+            >
+              ×12
+            </Text>
+          </View>
+        )}
+      </View>
+
+      <Text
+        style={[
+          styles.disclaimer,
+          commonStyling.subtitle,
+          {
+            fontSize: 10,
+          },
+        ]}
+      >
+        Final price may vary based on actual trip duration and services.
+      </Text>
+
+      {/* Pending Approval Notice */}
+      <View
+        style={[
+          styles.approvalNotice,
+          {
+            backgroundColor: colors.lightYellow,
+          },
+        ]}
+      >
+        <Text
+          style={[
+            styles.approvalTitle,
+            {
+              fontSize: 12,
+              fontFamily: "Bold",
+              color: colors.darkYellow,
+            },
+          ]}
+        >
+          Pending Approval
+        </Text>
+        <Text
+          style={[
+            styles.approvalText,
+            commonStyling.subtitle,
+            {
+              fontSize: 10,
+              color: colors.darkYellow,
+            },
+          ]}
+        >
+          After payment, your booking will be sent for driver approval. You'll
+          receive a notification once your booking has been confirmed and a
+          driver assigned.
+        </Text>
       </View>
     </View>
   );
 };
-
-const ReviewItem = ({ icon, label, val }: any) => (
-  <View style={[styles.row, { marginVertical: 4 }]}>
-    {icon}
-    <Text style={{ marginLeft: 8, color: "#64748B" }}>{label}: </Text>
-    <Text style={{ fontWeight: "600" }}>{val}</Text>
-  </View>
-);
 
 const getStepName = (s: number) => {
   const names = [
     "Service Type",
     "Vehicle Type",
     "Trip Structure",
-    "Location",
-    "Date & Time",
-    "Passenger",
-    "Review",
+    "Recurring Ride",
   ];
   return names[s - 1];
 };
@@ -1300,6 +3410,299 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 16,
     height: 56,
+  },
+
+  toggleCard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginBottom: 32,
+  },
+  toggleInfo: { flexDirection: "row", alignItems: "center", gap: 12 },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: "#FFF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  toggleSub: { marginTop: 2 },
+
+  frequencyGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    marginBottom: 24,
+  },
+  gridItem: {
+    width: "48%",
+    height: 52,
+    borderRadius: 16,
+    borderWidth: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  datePickerInput: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    height: 56,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    marginBottom: 24,
+  },
+
+  tabContainer: {
+    flexDirection: "row",
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 16,
+  },
+  tab: {
+    flex: 1,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+  },
+  activeTab: {
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    borderWidth: 1,
+  },
+
+  infoCard: {
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  recurringBorder: { borderColor: "#2563EB", borderWidth: 1 },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  editBtn: { flexDirection: "row", alignItems: "center", gap: 4 },
+
+  detailRow: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
+  detailLabel: { marginLeft: 8, flex: 1 },
+  placeholderIcon: { width: 16 },
+
+  routeItem: { flexDirection: "row", marginBottom: 16 },
+  routeTextContainer: { marginLeft: 12 },
+  routeLabel: {
+    textTransform: "uppercase",
+  },
+  addressText: {
+    marginTop: 2,
+  },
+  divider: { height: 1, marginVertical: 12 },
+  dateValue: {
+    marginTop: 2,
+  },
+
+  passengerHeader: { flexDirection: "row", alignItems: "center", gap: 12 },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F8FAFC",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  reviewBadge: {
+    backgroundColor: "#FEF3C7",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  reviewBadgeText: { fontSize: 10, fontWeight: "700", color: "#92400E" },
+  pillRow: { flexDirection: "row", gap: 6, marginTop: 6 },
+  grayPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  notesLabel: {
+    marginTop: 16,
+  },
+  notesText: { marginTop: 4 },
+
+  disclaimer: {
+    textAlign: "center",
+    marginTop: 4,
+    marginBottom: 24,
+  },
+
+  approvalNotice: {
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  approvalTitle: {
+    marginBottom: 4,
+  },
+  approvalText: { lineHeight: 18 },
+
+  paymentCard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginBottom: 16,
+    position: "relative",
+  },
+  defaultBadge: {
+    position: "absolute",
+    top: -10,
+    left: 20,
+    backgroundColor: "#FFF",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  cardInfo: { flexDirection: "row", alignItems: "center", gap: 16 },
+  logoContainer: {
+    width: 60,
+    height: 40,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cardTypeLogo: { fontSize: 14, fontWeight: "900", fontStyle: "italic" },
+  mcCircle: { width: 20, height: 20, borderRadius: 10, opacity: 0.8 },
+  expiry: { marginTop: 2 },
+
+  addNewBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 20,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderStyle: "dashed",
+    gap: 16,
+    marginBottom: 32,
+  },
+  plusIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#F8FAFC",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  addNewSub: { fontSize: 13, color: "#94A3B8", marginTop: 2 },
+
+  summaryCard: { borderRadius: 24, padding: 24 },
+  summaryTitle: {
+    marginBottom: 16,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  summaryDivider: { height: 1, backgroundColor: "#E2E8F0", marginVertical: 16 },
+  totalRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  payBtn: {
+    height: 64,
+    backgroundColor: "#2563EB",
+    borderRadius: 32,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#2563EB",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+  },
+  payBtnText: { color: "#FFF", fontSize: 18, fontWeight: "700" },
+
+  iconGlow: {
+    width: 106,
+    height: 106,
+    borderRadius: 60,
+    backgroundColor: "rgba(16, 185, 129, 0.1)", // Light emerald glow
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  checkmarkCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 50,
+    backgroundColor: "#10B981", // Emerald 500
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 8,
+    shadowColor: "#10B981",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+  },
+
+  statusInfo: {
+    textAlign: "center",
+    lineHeight: 24,
+  },
+  statusDetail: {
+    textAlign: "center",
+    lineHeight: 24,
+    marginBottom: 16,
+  },
+
+  amountCard: {
+    width: "100%",
+    borderRadius: 24,
+    paddingVertical: 32,
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  amountLabel: {
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+
+  statusBtn: {
+    width: "100%",
+    height: 64,
+    backgroundColor: "#2563EB",
+    borderRadius: 32,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#2563EB",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  statusBtnText: {
+    color: "#FFF",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  content: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 

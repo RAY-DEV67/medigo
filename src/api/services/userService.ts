@@ -6,11 +6,13 @@ import {
 } from "../../types/auth.types";
 import {
   ConsentResponse,
+  CreateEmergencyContactRequest,
   CreateLocationPayload,
   CreateLocationResponse,
   EmergencyContactsResponse,
   SavedLocationsResponse,
   UpdateConsentPayload,
+  UpdateLocationRequest,
 } from "../../types/user.types";
 
 const userService = {
@@ -61,11 +63,41 @@ const userService = {
     return response.data;
   },
 
+  updateSavedLocation: async (
+    locationId: string,
+    data: UpdateLocationRequest,
+  ) => {
+    const response = await apiClient.put(
+      `/users/me/saved-locations/${locationId}`,
+      data,
+    );
+    return response.data;
+  },
+
   getSavedLocationById: async (
     locationId: string,
   ): Promise<CreateLocationResponse> => {
     const response: AxiosResponse<CreateLocationResponse> = await apiClient.get(
       `/users/me/saved-locations/${locationId}`,
+    );
+    return response.data;
+  },
+
+  deleteSavedLocation: async (locationId: string) => {
+    const response = await apiClient.delete(
+      `/users/me/saved-locations/${locationId}`,
+    );
+    return response.data;
+  },
+
+  createEmergencyContact: async (data: CreateEmergencyContactRequest) => {
+    const response = await apiClient.post("/users/me/emergency-contacts", data);
+    return response.data;
+  },
+
+  deleteEmergencyContact: async (contactId: string) => {
+    const response = await apiClient.delete(
+      `/users/me/emergency-contacts/${contactId}`,
     );
     return response.data;
   },

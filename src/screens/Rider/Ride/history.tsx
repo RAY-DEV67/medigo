@@ -475,7 +475,7 @@ const RideHistoryScreen = () => {
   // Fetch completed rides
   const { data, isLoading } = useMyRides({
     status: "completed",
-    limit: 50, // Fetch more for history
+    limit: 50,
   });
 
   const rides = data?.data || [];

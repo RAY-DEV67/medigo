@@ -63,7 +63,7 @@ const Buttons: React.FC<ButtonsProps> = ({
       textColor: colors.buttonPrimaryText,
     },
     cancel: {
-      backgroundColor: colors.lightGray,
+      backgroundColor: colors.surfacePrimary,
       textColor: colors.red,
       borderWidth: 1,
       borderColor: colors.stroke,
@@ -126,7 +126,7 @@ const Buttons: React.FC<ButtonsProps> = ({
                 {
                   color: current.textColor,
                   textAlign: "center",
-                  fontSize: 18,
+                  fontSize: 16,
                   fontFamily: "SemiBold",
                 },
               ]}
