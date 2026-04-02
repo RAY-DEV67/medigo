@@ -10,9 +10,18 @@ import AuthStack from "./src/navigations/authStack";
 import RiderMainStack from "./src/navigations/RiderMainStack";
 import DriverMainStack from "./src/navigations/driverMainStack";
 import RiderRideStack from "./src/navigations/riderRideStack";
+import DriverRideStack from "./src/navigations/driverRideStack";
+import DriverChatStack from "./src/navigations/driverChatStack";
+import DriverChatDetailsStack from "./src/navigations/driverChatDetailsStack";
+import DriverWalletStack from "./src/navigations/driverWalletStack";
+import DriverWalletDetailsStack from "./src/navigations/driverWalletDetailsStack";
+import DriverTripsStack from "./src/navigations/driverTripsStack";
 import RiderProfileStack from "./src/navigations/riderProfileStack";
+import DriverProfileStack from "./src/navigations/driverProfileStack";
 import RiderProfileContentsStack from "./src/navigations/riderProfileContentsStack";
+import DriverProfileContentsStack from "./src/navigations/driverProfileContentsStack";
 import RiderRideDetailsStack from "./src/navigations/riderRideDetailsStack";
+import DriverRideDetailsStack from "./src/navigations/driverRideDetailsStack";
 import RiderNotificationStack from "./src/navigations/riderNotificationStack";
 import ThemeProvider from "./src/context/themeProvider";
 import { AuthProvider } from "./src/context/authContext";
@@ -29,6 +38,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useOTAUpdate } from "./src/hooks/useOTAUpdates";
 import { navigationRef } from "./src/utils/navigationRef";
 import Navbar from "./src/components/navbar";
+import DriverNavbar from "./src/components/driverNavbar";
 import { storage } from "./src/utils/storage";
 import { syncUserProfile } from "./src/utils/syncUserProfile";
 import { useUserStore } from "./src/store/userStore";
@@ -54,10 +64,15 @@ const RiderMainTabs = () => (
 
 const DriverMainTabs = () => (
   <Tab.Navigator
-    tabBar={(props) => <Navbar {...props} />}
+    tabBar={(props) => <DriverNavbar {...props} />}
     screenOptions={{ headerShown: false }}
   >
     <Tab.Screen name="DriverMain" component={DriverMainStack} />
+    <Tab.Screen name="DriverRideStack" component={DriverRideStack} />
+    <Tab.Screen name="DriverTripsStack" component={DriverTripsStack} />
+    <Tab.Screen name="DriverChatStack" component={DriverChatStack} />
+    <Tab.Screen name="DriverWalletStack" component={DriverWalletStack} />
+    <Tab.Screen name="DriverProfileStack" component={DriverProfileStack} />
   </Tab.Navigator>
 );
 
@@ -76,8 +91,24 @@ const AppNavigator = () => {
         component={RiderRideDetailsStack}
       />
       <Stack.Screen
+        name="DriverRideDetailsStack"
+        component={DriverRideDetailsStack}
+      />
+      <Stack.Screen
+        name="DriverWalletDetailsStack"
+        component={DriverWalletDetailsStack}
+      />
+      <Tab.Screen
+        name="DriverChatDetailsStack"
+        component={DriverChatDetailsStack}
+      />
+      <Stack.Screen
         name="RiderProfileContentsStack"
         component={RiderProfileContentsStack}
+      />
+      <Stack.Screen
+        name="DriverProfileContentsStack"
+        component={DriverProfileContentsStack}
       />
     </Stack.Navigator>
   );

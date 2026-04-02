@@ -4,6 +4,7 @@ import {
   CreateRideRequest,
   RidesQueryParams,
   RidesResponse,
+  UpcomingRidesResponse,
 } from "../../types/rides.types";
 
 const rideService = {
@@ -20,6 +21,16 @@ const rideService = {
       "/rides/",
       payload,
     );
+    return response.data;
+  },
+
+  getUpcomingRides: async (
+    page = 1,
+    limit = 20,
+  ): Promise<UpcomingRidesResponse> => {
+    const response = await apiClient.get("/rides/driver/upcoming", {
+      params: { page, limit },
+    });
     return response.data;
   },
 };

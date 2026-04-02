@@ -1,6 +1,7 @@
 import { AxiosResponse } from "axios";
 import apiClient from "../client";
 import {
+  ChatListResponse,
   GetNotificationsParams,
   NotificationsResponse,
 } from "../../types/notifications.types";
@@ -13,6 +14,16 @@ const notificationService = {
       "/notifications/inbox",
       { params },
     );
+    return response.data;
+  },
+
+  getConversations: async (
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<ChatListResponse> => {
+    const response = await apiClient.get("/notifications/chats", {
+      params: { page, limit },
+    });
     return response.data;
   },
 };

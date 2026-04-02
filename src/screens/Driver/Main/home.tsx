@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -7,47 +7,139 @@ import {
   Switch,
   ScrollView,
   Dimensions,
+  StatusBar,
 } from "react-native";
-import {
-  Bell,
-  Home,
-  Calendar,
-  CircleDollarSign,
-  MessageSquare,
-  User,
-  Headset,
-  MapPin,
-  Clock,
-  ChevronRight,
-} from "lucide-react-native";
+import { Bell, User, Headset, Clock, ChevronRight } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import useTheme from "../../../hooks/useThemes";
+import { commonStyles } from "../../../styles/commonStyles";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useUserStore } from "../../../store/userStore";
+import { useWalletBalance } from "../../../hooks/queries/useWalletBalance";
+import { useEarningsSummary } from "../../../hooks/queries/useEarningSummary";
+import Buttons from "../../../components/buttons/buttons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useDriverUpcomingRides } from "../../../hooks/queries/useDriverUpcomingRide";
+import { useUpdateDriverStatus } from "../../../hooks/mutations/useUser";
 
 const { width } = Dimensions.get("window");
 
 const DriverDashboard = () => {
-  // Set to true to match the "Online" design
-  const [isOnline, setIsOnline] = useState(true);
+  const { user } = useUserStore();
+  const { colors, theme } = useTheme();
+  const commonStyling = commonStyles(colors);
+
+  const [isOnline, setIsOnline] = useState(user?.data?.is_active ?? false);
+  useEffect(() => {
+    if (user?.data?.is_active !== undefined) {
+      setIsOnline(user.data.is_active);
+    }
+  }, [user?.data?.is_active]);
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { data, isLoading } = useEarningsSummary();
+  const summary = data?.data;
+  const {
+    data: driverUpcomingRides,
+    refetch,
+    isRefetching,
+  } = useDriverUpcomingRides();
+  const rides = driverUpcomingRides?.data || [];
+
+  const { mutate: updateStatus, isPending } = useUpdateDriverStatus();
+
+  const handleToggleOnline = (value: boolean) => {
+    // Update UI immediately for a snappy feel
+    setIsOnline(value);
+
+    // Send to server
+    updateStatus(
+      { is_online: value },
+      {
+        onError: () => {
+          // If the API fails, revert the switch back to its previous state
+          setIsOnline(!value);
+        },
+      },
+    );
+  };
+
+  console.log(user);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.surfacePrimary,
+        },
+      ]}
+    >
+      <StatusBar
+        barStyle={theme === "light" ? "dark-content" : "light-content"}
+      />
+
       {/* Top Header */}
       <View style={styles.header}>
         <View style={styles.userInfo}>
-          <View style={styles.avatarContainer}>
-            <User color="#2563EB" size={24} />
+          <View
+            style={[
+              styles.avatarContainer,
+              {
+                backgroundColor: colors.surfaceBrand,
+              },
+            ]}
+          >
+            <User color={colors.primaryColor} size={24} />
           </View>
           <View>
-            <Text style={styles.greeting}>Good afternoon</Text>
-            <Text style={styles.userName}>John Driver</Text>
+            <Text
+              style={[
+                commonStyling.subtitle,
+                {
+                  fontSize: 14,
+                },
+              ]}
+            >
+              Good afternoon
+            </Text>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: 18,
+                  fontFamily: "Bold",
+                },
+              ]}
+            >
+              {user?.data?.first_name} {user?.data?.last_name}
+            </Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.iconButton}>
-          <Bell color="#0F172A" size={24} />
+        <TouchableOpacity
+          style={[
+            styles.iconButton,
+            {
+              backgroundColor: colors.surfaceSecondary,
+            },
+          ]}
+          onPress={() => {
+            navigation.navigate("RiderNotificationStack");
+          }}
+        >
+          <Bell color={colors.textSecondary} size={24} />
         </TouchableOpacity>
       </View>
 
       {/* Online Toggle Bar */}
-      <View style={styles.toggleBar}>
+      <View
+        style={[
+          styles.toggleBar,
+          {
+            borderBottomColor: colors.lightPrimaryBlueBorder,
+          },
+        ]}
+      >
         <View style={styles.statusInfo}>
           <View
             style={[
@@ -56,10 +148,25 @@ const DriverDashboard = () => {
             ]}
           />
           <View>
-            <Text style={styles.statusText}>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: 14,
+                  fontFamily: "SemiBold",
+                },
+              ]}
+            >
               {isOnline ? "Online" : "Offline"}
             </Text>
-            <Text style={styles.statusSubtext}>
+            <Text
+              style={[
+                commonStyling.subtitle,
+                {
+                  fontSize: 12,
+                },
+              ]}
+            >
               {isOnline
                 ? "You're receiving ride requests"
                 : "Not receiving ride requests"}
@@ -69,7 +176,9 @@ const DriverDashboard = () => {
         <Switch
           trackColor={{ false: "#E2E8F0", true: "#2563EB" }}
           thumbColor="#FFF"
-          onValueChange={() => setIsOnline(!isOnline)}
+          onValueChange={() => {
+            handleToggleOnline(!isOnline);
+          }}
           value={isOnline}
         />
       </View>
@@ -79,42 +188,254 @@ const DriverDashboard = () => {
         showsVerticalScrollIndicator={false}
       >
         {/* Earnings & Stats Card */}
-        <View style={styles.statsCard}>
-          <View style={styles.heroStatusRow}>
-            <View style={[styles.heroDot, { backgroundColor: "#22C55E" }]} />
-            <Text style={styles.heroStatusText}>You're Online</Text>
-          </View>
-          <Text style={styles.receivingText}>Receiving ride requests</Text>
-
-          <Text style={styles.todayLabel}>Today's Earnings</Text>
-          <Text style={styles.earningsAmount}>$127.50</Text>
-
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Trips Today</Text>
-              <Text style={styles.statValue}>8</Text>
+        {isOnline ? (
+          <View
+            style={[
+              styles.statsCard,
+              { borderColor: colors.lightPrimaryBlueBorder },
+            ]}
+          >
+            <View style={styles.heroStatusRow}>
+              <View style={[styles.heroDot, { backgroundColor: "#22C55E" }]} />
+              <Text
+                style={[
+                  commonStyling.title,
+                  { fontSize: 14, fontFamily: "Bold" },
+                ]}
+              >
+                You're Online
+              </Text>
             </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Hours Online</Text>
-              <Text style={styles.statValue}>5.5</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Rating</Text>
-              <View style={styles.ratingRow}>
-                <Text style={styles.star}>★</Text>
-                <Text style={styles.statValue}>4.8</Text>
+            <Text
+              style={[
+                styles.receivingText,
+                commonStyling.subtitle,
+                {
+                  fontSize: 12,
+                },
+              ]}
+            >
+              Receiving ride requests
+            </Text>
+
+            <Text
+              style={[
+                commonStyling.subtitle,
+                {
+                  fontSize: 12,
+                },
+              ]}
+            >
+              Today's Earnings
+            </Text>
+            <Text
+              style={[
+                styles.earningsAmount,
+                {
+                  fontSize: 48,
+                  fontFamily: "Bold",
+                  color: colors.primaryColor,
+                },
+              ]}
+            >
+              ${summary?.earnings_today}
+            </Text>
+
+            <View
+              style={[
+                styles.statsRow,
+                {
+                  borderTopColor: colors.lightPrimaryBlueBorder,
+                },
+              ]}
+            >
+              <View style={styles.statItem}>
+                <Text
+                  style={[
+                    styles.statLabel,
+                    commonStyling.subtitle,
+                    {
+                      fontSize: 12,
+                    },
+                  ]}
+                >
+                  Trips Today
+                </Text>
+                <Text
+                  style={[
+                    commonStyling.title,
+                    {
+                      fontSize: 16,
+                      fontFamily: "SemiBold",
+                    },
+                  ]}
+                >
+                  {summary?.trips_today}
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.statDivider,
+                  {
+                    backgroundColor: colors.lightPrimaryBlueBorder,
+                  },
+                ]}
+              />
+              <View style={styles.statItem}>
+                <Text
+                  style={[
+                    styles.statLabel,
+                    commonStyling.subtitle,
+                    {
+                      fontSize: 12,
+                    },
+                  ]}
+                >
+                  Hours Online
+                </Text>
+                <Text
+                  style={[
+                    commonStyling.title,
+                    {
+                      fontSize: 16,
+                      fontFamily: "SemiBold",
+                    },
+                  ]}
+                >
+                  {summary?.hours_today}
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.statDivider,
+                  {
+                    backgroundColor: colors.lightPrimaryBlueBorder,
+                  },
+                ]}
+              />
+              <View style={styles.statItem}>
+                <Text
+                  style={[
+                    styles.statLabel,
+                    commonStyling.subtitle,
+                    {
+                      fontSize: 12,
+                    },
+                  ]}
+                >
+                  Rating
+                </Text>
+                <View style={styles.ratingRow}>
+                  <Text style={styles.star}>★</Text>
+                  <Text
+                    style={[
+                      commonStyling.title,
+                      {
+                        fontSize: 16,
+                        fontFamily: "SemiBold",
+                      },
+                    ]}
+                  >
+                    4.8
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
-        </View>
-
+        ) : (
+          <View
+            style={[
+              styles.statsCard,
+              { borderColor: colors.lightPrimaryBlueBorder },
+            ]}
+          >
+            <View
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text
+                style={[
+                  commonStyling.title,
+                  { fontSize: 18, fontFamily: "Bold", textAlign: "center" },
+                ]}
+              >
+                You're Offline
+              </Text>
+              <Text
+                style={[
+                  styles.receivingText,
+                  commonStyling.subtitle,
+                  {
+                    fontSize: 14,
+                    textAlign: "center",
+                    width: 200,
+                  },
+                ]}
+              >
+                Go online to start receiving ride requests.
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                handleToggleOnline(true);
+              }}
+            >
+              <LinearGradient
+                colors={["#1A3B8E", "#06102B"]}
+                style={{
+                  alignItems: "center",
+                  justifyContent: "center",
+                  height: 50,
+                  borderRadius: 50,
+                }}
+              >
+                <Text
+                  style={[
+                    commonStyling.title,
+                    {
+                      fontSize: 16,
+                      fontFamily: "Bold",
+                    },
+                  ]}
+                >
+                  Go online
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
         {/* Upcoming Rides Header */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Upcoming Rides</Text>
+          <Text
+            style={[
+              commonStyling.title,
+              {
+                fontSize: 16,
+                fontFamily: "Bold",
+              },
+            ]}
+          >
+            Upcoming Rides
+          </Text>
           <TouchableOpacity>
-            <Text style={styles.viewAll}>View All</Text>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: 14,
+                  color: colors.primaryColor,
+                },
+              ]}
+              onPress={() => {
+                navigation.navigate("DriverRideStack", {
+                  screen: "UpcomingRidesScreen",
+                });
+              }}
+            >
+              View All
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -126,16 +447,54 @@ const DriverDashboard = () => {
           snapToInterval={width * 0.85 + 16}
           decelerationRate="fast"
         >
-          <RideCard
-            time="Today • 2:30 PM"
-            pickup="2847 Maple Avenue"
-            dest="Springfield General Hospital"
-          />
-          <RideCard
-            time="Tomorrow • 10:00 AM"
-            pickup="2847 Maple Avenue"
-            dest="City Medical Center"
-          />
+          {rides && rides.length > 0 ? (
+            rides.map((ride: any) => (
+              <RideCard
+                key={ride.id}
+                id={ride.id}
+                time={ride.scheduled_at}
+                pickup={ride.pickup_address}
+                dest={ride.destination_address}
+                type={ride.ride_type}
+              />
+            ))
+          ) : (
+            /* Empty State when no rides are returned */
+            <View
+              style={[
+                styles.rideCard,
+                {
+                  justifyContent: "center",
+                  alignItems: "center",
+                  width: width * 0.85,
+                  marginTop: 16,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  commonStyling.title,
+                  {
+                    fontSize: 14,
+                    fontFamily: "Bold",
+                  },
+                ]}
+              >
+                No upcoming rides
+              </Text>
+
+              <Text
+                style={[
+                  commonStyling.subtitle,
+                  {
+                    fontSize: 11,
+                  },
+                ]}
+              >
+                Turn on your visibility to be booked
+              </Text>
+            </View>
+          )}
         </ScrollView>
       </ScrollView>
 
@@ -145,71 +504,142 @@ const DriverDashboard = () => {
       </TouchableOpacity>
 
       {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <NavTab icon={<Home color="#2563EB" size={24} />} label="Home" active />
-        <NavTab
-          icon={<Calendar color="#64748B" size={24} />}
-          label="My Trips"
-        />
-        <NavTab
-          icon={<CircleDollarSign color="#64748B" size={24} />}
-          label="Earnings"
-        />
-        <NavTab
-          icon={<MessageSquare color="#64748B" size={24} />}
-          label="Chats"
-        />
-        <NavTab icon={<User color="#64748B" size={24} />} label="Profile" />
-      </View>
     </SafeAreaView>
   );
 };
 
-const RideCard = ({ time, pickup, dest }) => (
-  <View style={styles.rideCard}>
-    <View style={styles.cardHeader}>
-      <Clock size={16} color="#64748B" />
-      <Text style={styles.cardTime}>{time}</Text>
-    </View>
+const RideCard = ({ time, pickup, dest }: any) => {
+  const { colors, theme } = useTheme();
+  const commonStyling = commonStyles(colors);
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
 
-    <View style={styles.routeContainer}>
-      <View style={styles.routeLineBox}>
-        <View style={styles.dotBlue} />
-        <View style={styles.line} />
-        <View style={styles.dotRed} />
+  return (
+    <View
+      style={[
+        styles.rideCard,
+        {
+          borderColor: colors.lightPrimaryBlueBorder,
+        },
+      ]}
+    >
+      <View style={styles.cardHeader}>
+        <Clock size={16} color="#64748B" />
+        <Text
+          style={[
+            commonStyling.title,
+            {
+              fontSize: 14,
+              fontFamily: "Bold",
+            },
+          ]}
+        >
+          {time}
+        </Text>
       </View>
-      <View style={styles.addressBox}>
-        <Text style={styles.addrLabel}>Pickup</Text>
-        <Text style={styles.addrText}>{pickup}</Text>
-        <Text style={[styles.addrLabel, { marginTop: 12 }]}>Destination</Text>
-        <Text style={styles.addrText}>{dest}</Text>
+
+      <View style={styles.routeContainer}>
+        <View style={styles.routeLineBox}>
+          <View style={styles.dotBlue} />
+          <View style={styles.line} />
+          <View style={styles.dotRed} />
+        </View>
+        <View style={styles.addressBox}>
+          <Text
+            style={[
+              commonStyling.subtitle,
+              {
+                fontSize: 12,
+              },
+            ]}
+          >
+            Pickup
+          </Text>
+          <Text
+            style={[
+              styles.addrText,
+              commonStyling.title,
+              {
+                fontSize: 14,
+              },
+            ]}
+          >
+            {pickup}
+          </Text>
+          <Text
+            style={[
+              commonStyling.subtitle,
+              {
+                fontSize: 12,
+                marginTop: 12,
+              },
+            ]}
+          >
+            Destination
+          </Text>
+          <Text
+            style={[
+              styles.addrText,
+              commonStyling.title,
+              {
+                fontSize: 14,
+              },
+            ]}
+          >
+            {dest}
+          </Text>
+        </View>
       </View>
-    </View>
 
-    <View style={styles.badgeRow}>
-      <View style={styles.medicalBadge}>
-        <Text style={styles.medicalBadgeText}>Medical Appointment</Text>
+      <View style={styles.badgeRow}>
+        <View
+          style={[
+            styles.medicalBadge,
+            {
+              backgroundColor: colors.surfaceBrand,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              commonStyling.title,
+              { fontSize: 12, color: colors.primaryColor },
+            ]}
+          >
+            Medical Appointment
+          </Text>
+        </View>
       </View>
+
+      <TouchableOpacity
+        style={[
+          styles.detailsBtn,
+          {
+            borderTopColor: colors.lightPrimaryBlueBorder,
+          },
+        ]}
+        onPress={() => {
+          navigation.navigate("DriverRideDetailsStack", {
+            screen: "RideDetails",
+          });
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 14,
+            fontFamily: "SemiBold",
+            color: colors.primaryColor,
+          }}
+        >
+          View Details
+        </Text>
+        <ChevronRight size={16} color={colors.primaryColor} />
+      </TouchableOpacity>
     </View>
-
-    <TouchableOpacity style={styles.detailsBtn}>
-      <Text style={styles.detailsBtnText}>View Details</Text>
-      <ChevronRight size={16} color="#2563EB" />
-    </TouchableOpacity>
-  </View>
-);
-
-const NavTab = ({ icon, label, active = false }) => (
-  <TouchableOpacity style={styles.tabItem}>
-    {icon}
-    <Text style={[styles.tabLabel, active && styles.activeTabLabel]}>
-      {label}
-    </Text>
-  </TouchableOpacity>
-);
+  );
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFF" },
+  container: { flex: 1 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -222,17 +652,14 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#EFF6FF",
     justifyContent: "center",
     alignItems: "center",
   },
-  greeting: { fontSize: 13, color: "#64748B" },
-  userName: { fontSize: 18, fontWeight: "700", color: "#0F172A" },
+
   iconButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#F8FAFC",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -244,12 +671,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
   },
   statusInfo: { flexDirection: "row", alignItems: "center", gap: 12 },
   statusDot: { width: 10, height: 10, borderRadius: 5 },
-  statusText: { fontSize: 15, fontWeight: "600", color: "#0F172A" },
-  statusSubtext: { fontSize: 12, color: "#64748B" },
 
   scrollContent: { paddingVertical: 20 },
   statsCard: {
@@ -257,23 +681,15 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
     marginBottom: 32,
   },
   heroStatusRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   heroDot: { width: 8, height: 8, borderRadius: 4 },
-  heroStatusText: { fontSize: 16, fontWeight: "700", color: "#1E293B" },
   receivingText: {
-    fontSize: 12,
-    color: "#64748B",
     marginTop: 2,
     marginBottom: 20,
   },
-  todayLabel: { fontSize: 13, color: "#64748B" },
   earningsAmount: {
-    fontSize: 44,
-    fontWeight: "800",
-    color: "#2563EB",
     marginVertical: 8,
   },
 
@@ -284,15 +700,12 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: "#F8FAFC",
   },
   statItem: { flex: 1 },
-  statLabel: { fontSize: 12, color: "#94A3B8", marginBottom: 4 },
-  statValue: { fontSize: 16, fontWeight: "700", color: "#1E293B" },
+  statLabel: { marginBottom: 4 },
   statDivider: {
     width: 1,
     height: 30,
-    backgroundColor: "#F1F5F9",
     marginHorizontal: 10,
   },
   ratingRow: { flexDirection: "row", alignItems: "center", gap: 4 },
@@ -305,17 +718,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 16,
   },
-  sectionTitle: { fontSize: 18, fontWeight: "700", color: "#0F172A" },
-  viewAll: { fontSize: 14, fontWeight: "600", color: "#2563EB" },
 
   // Ride Card Styling
   rideScroll: { paddingLeft: 20, paddingRight: 4 },
   rideCard: {
     width: width * 0.85,
-    backgroundColor: "#FFF",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
     padding: 20,
     marginRight: 16,
   },
@@ -325,24 +734,21 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 16,
   },
-  cardTime: { fontSize: 14, fontWeight: "700", color: "#1E293B" },
   routeContainer: { flexDirection: "row", gap: 12 },
   routeLineBox: { alignItems: "center", paddingVertical: 4 },
   dotBlue: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#3B82F6" },
   dotRed: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#EF4444" },
   line: { width: 1, height: 30, backgroundColor: "#E2E8F0", marginVertical: 4 },
   addressBox: { flex: 1 },
-  addrLabel: { fontSize: 12, color: "#94A3B8" },
-  addrText: { fontSize: 14, fontWeight: "600", color: "#1E293B", marginTop: 2 },
+  addrText: { marginTop: 2 },
   badgeRow: { marginTop: 20 },
   medicalBadge: {
-    backgroundColor: "#EFF6FF",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
     alignSelf: "flex-start",
   },
-  medicalBadgeText: { fontSize: 12, color: "#2563EB", fontWeight: "500" },
+
   detailsBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -351,9 +757,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: "#F8FAFC",
   },
-  detailsBtnText: { color: "#2563EB", fontWeight: "600", fontSize: 14 },
 
   floatingSupport: {
     position: "absolute",
@@ -371,14 +775,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
   },
-  bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
-    backgroundColor: "#FFF",
-  },
+
   tabItem: { alignItems: "center", gap: 4 },
   tabLabel: { fontSize: 10, color: "#64748B", fontWeight: "500" },
   activeTabLabel: { color: "#2563EB" },

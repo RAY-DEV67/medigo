@@ -38,3 +38,47 @@ export interface PaymentMethodsResponse {
   message: string;
   data: PaymentMethod[];
 }
+
+export interface WalletBalance {
+  available_balance: number;
+  total_earned: number;
+  total_withdrawn: number;
+  pending_withdrawal: number;
+}
+
+export interface WalletResponse {
+  success: boolean;
+  message: string;
+  data: WalletBalance;
+}
+
+export interface EarningsSummary {
+  available_balance: number;
+  next_payout_date: string;
+  next_payout_method: string;
+  earnings_today: number;
+  earnings_today_change_percent: number;
+  trips_today: number;
+  hours_today: number;
+  avg_earnings_per_trip: number;
+}
+
+export interface EarningsSummaryResponse {
+  success: boolean;
+  message: string;
+  data: EarningsSummary;
+}
+
+export interface EarningsHistoryItem {
+  date: string;
+  label: string; // e.g., "Mon", "Tue"
+  trip_count: number;
+  earnings: number;
+  change_percent: number;
+}
+
+export interface EarningsHistoryResponse {
+  success: boolean;
+  message: string;
+  data: EarningsHistoryItem[];
+}

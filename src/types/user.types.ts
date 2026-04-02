@@ -97,3 +97,43 @@ export interface CreateEmergencyContactRequest {
   relationship_type: string;
   is_primary: boolean;
 }
+
+export interface UpdateStatusPayload {
+  is_online: boolean;
+}
+
+export interface DriverStatusResponse {
+  success: boolean;
+  message: string;
+  data: {
+    is_online: boolean;
+    user_id: string;
+  };
+}
+
+export interface DriverProfile {
+  user_id: string;
+  business_id: string;
+  license_number: string;
+  license_expiry: string;
+  vehicle_type: string;
+  vehicle_make: string;
+  vehicle_model: string;
+  vehicle_year: number;
+  vehicle_plate: string;
+  vehicle_color: string;
+  vehicle_vin: string;
+  vehicle_photo_url: string;
+  vehicle_verified: boolean;
+  background_check_status: string;
+  is_approved: boolean;
+  is_online: boolean;
+  rating: number;
+  total_trips: number;
+}
+
+export interface DriverProfileResponse {
+  success: boolean;
+  message: string;
+  data: DriverProfile;
+}

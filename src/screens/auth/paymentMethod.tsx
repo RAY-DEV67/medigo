@@ -22,12 +22,12 @@ const PaymentMethod = () => {
   const [showModal, setShowModal] = useState(false);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [cardData, setcardData] = useState<any>({
-    method_type: "string",
-    card_number: "stringstrings",
-    expiry_month: "2",
-    expiry_year: "3854",
-    holder_name: "string",
-    cvd: "stri",
+    method_type: "",
+    card_number: "",
+    expiry_month: "",
+    expiry_year: "",
+    holder_name: "",
+    cvv: "",
   });
 
   const updateCardFields = (fields: Partial<any>) => {
@@ -97,7 +97,11 @@ const PaymentMethod = () => {
           style={styles.creditCardVisual}
         >
           <CreditCard color="#FFF" size={32} />
-          <Text style={styles.cardDigits}>**** **** **** ****</Text>
+          <Text style={styles.cardDigits}>
+            {cardData.card_number
+              ? cardData.card_number
+              : "**** **** **** ****"}
+          </Text>
           <View style={styles.cardRow}>
             <View>
               <Text
@@ -114,7 +118,7 @@ const PaymentMethod = () => {
                 Card Holder
               </Text>
               <Text style={[commonStyling.subtitle, styles.cardInfo]}>
-                YOUR NAME
+                {cardData.holder_name ? cardData.holder_name : "YOUR NAME"}
               </Text>
             </View>
 
@@ -133,7 +137,7 @@ const PaymentMethod = () => {
                 Expires
               </Text>
               <Text style={[commonStyling.subtitle, styles.cardInfo]}>
-                05/28
+                {cardData.expiry_month ? cardData.expiry_month : "05/28"}
               </Text>
             </View>
           </View>
@@ -160,8 +164,8 @@ const PaymentMethod = () => {
             <Input
               title="CVV"
               placeholder="123"
-              value={cardData.cvd}
-              onChangeText={(val) => updateCardFields({ cvd: val })}
+              value={cardData.cvv}
+              onChangeText={(val) => updateCardFields({ cvv: val })}
             />
           </View>
         </View>

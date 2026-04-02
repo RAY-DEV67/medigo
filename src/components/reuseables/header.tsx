@@ -32,6 +32,7 @@ export default function Header({ title, icon, rightText }: HeaderProps) {
           { backgroundColor: colors.surfaceSecondary },
         ]}
         onPress={() => navigation.goBack()}
+        hitSlop={30}
       >
         {icon ? icon : <ChevronLeft color={colors.titleText} size={24} />}
       </TouchableOpacity>

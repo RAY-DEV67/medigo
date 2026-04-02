@@ -23,6 +23,7 @@ import { useMapStore } from "../../store/mapStore";
 import { useRideStore } from "../../store/useRideStore";
 import { storage } from "../../utils/storage";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useUserStore } from "../../store/userStore";
 
 const { width } = Dimensions.get("window");
 
@@ -37,12 +38,13 @@ type ScreenStep =
 export default function MediGoApp() {
   const [step, setStep] = useState<ScreenStep>("splash1");
   const { colors, theme } = useTheme();
-  const commonStyling = commonStyles(colors);
+  const { user } = useUserStore();
   const setUserRegion = useMapStore((state) => state.setUserRegion);
   const setPickup = useRideStore((state) => state.setPickup);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [targetUser, setTargetUser] = useState<any>(null);
   const [authChecked, setAuthChecked] = useState(false);
+
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -70,14 +72,20 @@ export default function MediGoApp() {
     if (step === "splash1") {
       setTimeout(() => setStep("splash2"), 1500);
     } else if (step === "splash2" && authChecked && targetUser) {
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: "RiderMainTabs",
-          },
-        ],
-      });
+      // 4. Role-based Navigation
+      const role = user.data.role?.toLowerCase();
+
+      if (role === "driver") {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "DriverMainTabs" }],
+        });
+      } else {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "RiderMainTabs" }],
+        });
+      }
     } else if (step === "splash2" && authChecked && !targetUser) {
       setTimeout(() => setStep("onboarding1"), 1500);
     }

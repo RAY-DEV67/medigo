@@ -9,8 +9,10 @@ import {
   CreateLocationPayload,
   UpdateConsentPayload,
   UpdateLocationRequest,
+  UpdateStatusPayload,
 } from "../../types/user.types";
 import { Alert } from "react-native";
+import { useUserStore } from "../../store/userStore";
 
 export const useUpdateProfileMutation = () => {
   const queryClient = useQueryClient();
@@ -134,5 +136,33 @@ export const useDeleteEmergencyContact = () => {
         error.response?.data?.detail?.[0]?.msg || "Could not delete contact";
       Alert.alert("Error", msg);
     },
+  });
+};
+
+export const useUpdateDriverStatus = () => {
+  const queryClient = useQueryClient();
+  const { setUser } = useUserStore();
+
+  return useMutation({
+    mutationFn: (payload: UpdateStatusPayload) =>
+      userService.toggleOnlineStatus(payload),
+    onSuccess: (response) => {
+      // 1. Update the local store so the UI reflects the change immediately
+      // Assuming your store structure has a data object
+      const currentState = useUserStore.getState().user;
+      if (currentState) {
+        setUser({
+          ...currentState,
+          data: {
+            ...currentState.data,
+            is_active: response.data.is_online, // Mapping is_online to your local is_active
+          },
+        });
+      }
+
+      // 2. Refresh other data that depends on being online
+      queryClient.invalidateQueries({ queryKey: ["earnings-summary"] });
+    },
+    onError: (error: any) => {},
   });
 };

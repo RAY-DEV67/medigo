@@ -19,13 +19,14 @@ import { commonStyles } from "../../styles/commonStyles";
 import BackButton from "../../components/buttons/backButton";
 import Input from "../../components/inputs/input";
 import { useLogin } from "../../hooks/mutations/useAuth";
+import { useUserStore } from "../../store/userStore";
+import { useUserProfile } from "../../hooks/queries/useUserProfile";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const { colors } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const commonStyling = commonStyles(colors);
-  const { mutate, isPending } = useLogin();
 
   const [formData, setFormData] = useState<any>({
     identifier: "",
@@ -36,15 +37,41 @@ function Login() {
     setFormData((prev: any) => ({ ...prev, ...fields }));
   };
 
+  const { mutate: login, isPending } = useLogin();
+  const { refetch: fetchProfile } = useUserProfile();
+
   const handleLogin = () => {
-    // Simple logic to determine if input is email or phone
     const isEmail = formData.identifier.includes("@");
     const payload = isEmail
       ? { email: formData.identifier, password: formData.password }
       : { phone: formData.identifier, password: formData.password };
 
-    mutate(payload, {
-      onSuccess: () => navigation.navigate("RiderMainTabs"),
+    login(payload, {
+      onSuccess: async (tokenResponse) => {
+        // 2. Manually trigger the profile fetch
+        const { data: profile } = await fetchProfile();
+
+        if (profile) {
+          console.log("Profile", profile);
+          // 3. Update your Zustand store with the fresh profile
+          useUserStore.getState().setUser(profile);
+
+          // 4. Role-based Navigation
+          const role = profile.data.role?.toLowerCase();
+
+          if (role === "driver") {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "DriverMainTabs" }],
+            });
+          } else {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "RiderMainTabs" }],
+            });
+          }
+        }
+      },
     });
   };
 

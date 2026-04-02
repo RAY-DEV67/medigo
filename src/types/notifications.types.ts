@@ -24,3 +24,32 @@ export interface NotificationsResponse {
   limit: number;
   total_pages: number;
 }
+
+export interface LastMessage {
+  id: string;
+  content: string;
+  sender_id: string;
+  message_type: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface Conversation {
+  id: string;
+  ride_id: string;
+  driver_id: string;
+  rider_id: string;
+  is_active: boolean;
+  last_message_at: string;
+  unread_count: number;
+  last_message: LastMessage | null;
+}
+
+export interface ChatListResponse {
+  success: boolean;
+  data: Conversation[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}

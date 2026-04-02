@@ -65,4 +65,25 @@ export interface CreateRideRequest {
   business_id: string;
 }
 
+export interface UpcomingRide {
+  id: string;
+  ride_type: string;
+  trip_type: string;
+  pickup_address: string;
+  destination_address: string;
+  scheduled_at: string;
+  status: string;
+  estimated_distance_miles: number;
+  estimated_duration_minutes: number;
+  estimated_fare: number;
+  facility_name?: string;
+}
 
+export interface UpcomingRidesResponse {
+  success: boolean;
+  data: UpcomingRide[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}

@@ -9,10 +9,13 @@ import {
   CreateEmergencyContactRequest,
   CreateLocationPayload,
   CreateLocationResponse,
+  DriverProfileResponse,
+  DriverStatusResponse,
   EmergencyContactsResponse,
   SavedLocationsResponse,
   UpdateConsentPayload,
   UpdateLocationRequest,
+  UpdateStatusPayload,
 } from "../../types/user.types";
 
 const userService = {
@@ -99,6 +102,18 @@ const userService = {
     const response = await apiClient.delete(
       `/users/me/emergency-contacts/${contactId}`,
     );
+    return response.data;
+  },
+
+  toggleOnlineStatus: async (
+    payload: UpdateStatusPayload,
+  ): Promise<DriverStatusResponse> => {
+    const response = await apiClient.put("/users/drivers/me/status", payload);
+    return response.data;
+  },
+
+  getDriverProfile: async (): Promise<DriverProfileResponse> => {
+    const response = await apiClient.get("/users/drivers/me");
     return response.data;
   },
 };
