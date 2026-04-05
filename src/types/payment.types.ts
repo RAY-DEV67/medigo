@@ -82,3 +82,5 @@ export interface EarningsHistoryResponse {
   message: string;
   data: EarningsHistoryItem[];
 }
+
+

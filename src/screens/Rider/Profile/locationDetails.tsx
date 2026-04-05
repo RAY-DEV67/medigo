@@ -20,6 +20,7 @@ import Header from "../../../components/reuseables/header";
 import MapScreen from "../../../components/map/map";
 import { useSavedLocationDetails } from "../../../hooks/queries/useSavedLocationDetails";
 import { useDeleteSavedLocation } from "../../../hooks/mutations/useUser";
+import { LocationDetailsSkeleton } from "../../../components/skelentonAnimation/locationDetailsSkelenton";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SNAP_POINTS = [SCREEN_HEIGHT * 0.5, SCREEN_HEIGHT * 0.3];
@@ -58,6 +59,10 @@ const LocationDetailsScreen = () => {
       ],
     );
   };
+
+  if (isLoading) {
+    return <LocationDetailsSkeleton />;
+  }
 
   return (
     <SafeAreaView

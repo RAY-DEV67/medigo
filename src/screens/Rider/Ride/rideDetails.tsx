@@ -20,16 +20,26 @@ import {
   CheckCircle,
 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import useTheme from "../../../hooks/useThemes";
 import { commonStyles } from "../../../styles/commonStyles";
 import { FONT_SIZES } from "../../../constants/sizes";
+import { useRideDetail } from "../../../hooks/queries/useRideDetails";
+import { formatHumanReadableDate } from "../../../utils/formatHumanReadableDate";
+import { RideDetailsSkeleton } from "../../../components/skelentonAnimation/rideDetailsSkelenton";
 
 const RideDetails = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
+  const route = useRoute<any>();
+  const { id } = route.params;
+  const { data, isLoading } = useRideDetail(id);
+
+  if (isLoading || !data) {
+    return <RideDetailsSkeleton />;
+  }
 
   return (
     <SafeAreaView
@@ -70,7 +80,7 @@ const RideDetails = () => {
                 },
               ]}
             >
-              Today • 2:30 PM
+              {formatHumanReadableDate(data.data.scheduled_at)}
             </Text>
             <View style={styles.statusBadge}>
               <Text style={styles.statusBadgeText}>Confirmed</Text>
@@ -139,7 +149,7 @@ const RideDetails = () => {
                   },
                 ]}
               >
-                2847 Maple Avenue
+                {data?.data.pickup_address}
               </Text>
               <Text
                 style={[
@@ -161,7 +171,7 @@ const RideDetails = () => {
                   },
                 ]}
               >
-                Springfield General Hospital
+                {data?.data.destination_address}
               </Text>
             </View>
           </View>

@@ -21,7 +21,17 @@ const MultilineInput: React.FC<InputProps> = ({
   const commonStyling = commonStyles(colors);
   return (
     <View>
-      <Text style={commonStyling.inputTitle}>{title}</Text>
+      <Text
+        style={[
+          commonStyling.inputTitle,
+          {
+            fontFamily: "Bold",
+            fontSize: 14,
+          },
+        ]}
+      >
+        {title}
+      </Text>
       <TextInput
         placeholderTextColor={colors.gray}
         style={[

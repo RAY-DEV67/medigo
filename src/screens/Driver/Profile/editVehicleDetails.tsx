@@ -20,18 +20,54 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Header from "../../../components/reuseables/header";
 import Input from "../../../components/inputs/input";
 import Buttons from "../../../components/buttons/buttons";
+import { useDriverVehicle } from "../../../hooks/queries/useDriverVehicleDetails";
+import { useUpdateDriverVehicle } from "../../../hooks/mutations/useUser";
+import * as ImagePicker from "expo-image-picker";
 
 const EditVehicleDetails = () => {
   const { user } = useUserStore();
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
-  const { data: profileData, isLoading } = useDriverProfile();
-  const profile = profileData?.data;
+  const { data, isLoading } = useDriverVehicle();
+  const vehicle = data?.data;
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  const [makeModel, setMakeModel] = useState("2022 Toyota Camry");
-  const [color, setColor] = useState("Silver");
-  const [plate, setPlate] = useState("ABC 1234");
-  const [year, setYear] = useState("2022");
+  const [makeModel, setMakeModel] = useState(vehicle?.vehicle_make);
+  const [color, setColor] = useState(vehicle?.vehicle_color);
+  const [plate, setPlate] = useState(vehicle?.vehicle_plate);
+  const [year, setYear] = useState(vehicle?.vehicle_year);
+  const [avatar_url, setavatar_url] = useState("");
+
+  const { mutate: updateVehicle, isPending } = useUpdateDriverVehicle();
+
+  const handleSaveVehicle = () => {
+    const formData = {
+      vehicle_make: makeModel,
+      vehicle_year: year,
+      vehicle_plate: plate,
+      vehicle_color: color,
+    };
+
+    updateVehicle(formData, {
+      onSuccess: () => {
+        // Navigate back to the Profile or Vehicle view screen
+        navigation.goBack();
+      },
+    });
+  };
+
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"], // Updated syntax for newer versions
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setavatar_url(result.assets[0].uri);
+    }
+  };
 
   return (
     <SafeAreaView
@@ -61,7 +97,7 @@ const EditVehicleDetails = () => {
               }}
               style={styles.vehicleImage}
             />
-            <TouchableOpacity style={styles.cameraBadge}>
+            <TouchableOpacity style={styles.cameraBadge} onPress={pickImage}>
               <Camera size={18} color="#FFF" />
             </TouchableOpacity>
           </View>
@@ -142,7 +178,13 @@ const EditVehicleDetails = () => {
 
       {/* Footer Action Button */}
       <View style={[styles.footer, { backgroundColor: colors.surfacePrimary }]}>
-        <Buttons title="Save Change" onPress={() => {}} />
+        <Buttons
+          title="Save Change"
+          onPress={() => {
+            handleSaveVehicle();
+          }}
+          loading={isPending}
+        />
       </View>
     </SafeAreaView>
   );

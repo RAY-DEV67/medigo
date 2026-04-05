@@ -8,15 +8,7 @@ import {
   StatusBar,
   ActivityIndicator,
 } from "react-native";
-import {
-  ChevronRight,
-  Plus,
-  Home,
-  Building2,
-  MapPin,
-  Star,
-  Briefcase,
-} from "lucide-react-native";
+import { Plus, Star } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -27,6 +19,7 @@ import { useSavedLocations } from "../../../hooks/queries/useSavedLocations";
 import { format } from "date-fns";
 import LocationCard from "../../../components/cards/locationCard";
 import { getLocationTypeStyles } from "../../../utils/getLocationTypeStyles";
+import { SavedLocationsSkeleton } from "../../../components/skelentonAnimation/savedLocationsSkelenton";
 
 const SavedLocationsScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -37,6 +30,10 @@ const SavedLocationsScreen = () => {
   const savedLocations = data?.data || [];
   const favoriteLocations = savedLocations.filter((loc) => loc.is_default);
   const regularLocations = savedLocations.filter((loc) => !loc.is_default);
+
+  if (isLoading) {
+    return <SavedLocationsSkeleton />;
+  }
 
   return (
     <SafeAreaView

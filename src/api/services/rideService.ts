@@ -2,6 +2,7 @@ import { AxiosResponse } from "axios";
 import apiClient from "../client";
 import {
   CreateRideRequest,
+  RideDetailResponse,
   RidesQueryParams,
   RidesResponse,
   UpcomingRidesResponse,
@@ -31,6 +32,11 @@ const rideService = {
     const response = await apiClient.get("/rides/driver/upcoming", {
       params: { page, limit },
     });
+    return response.data;
+  },
+
+  getRideDetail: async (rideId: string): Promise<RideDetailResponse> => {
+    const response = await apiClient.get(`/rides/${rideId}`);
     return response.data;
   },
 };

@@ -19,14 +19,26 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import useTheme from "../../../hooks/useThemes";
 import { commonStyles } from "../../../styles/commonStyles";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Buttons from "../../../components/buttons/buttons";
+import { useRideDetail } from "../../../hooks/queries/useRideDetails";
+import { RideDetailsSkeleton } from "../../../components/skelentonAnimation/rideDetailsSkelenton";
+import { formatHumanReadableDate } from "../../../utils/formatHumanReadableDate";
 
 const RideDetails = () => {
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const route = useRoute<any>();
+  const { id } = route.params;
+  const { data, isLoading } = useRideDetail(id);
+
+  if (isLoading || !data) {
+    return <RideDetailsSkeleton />;
+  }
+
+  console.log(data);
 
   return (
     <SafeAreaView
@@ -89,7 +101,8 @@ const RideDetails = () => {
                 },
               ]}
             >
-              • Starts in 45 min
+              {" "}
+              {formatHumanReadableDate(data.data.scheduled_at)}
             </Text>
           </View>
         </View>
@@ -139,7 +152,7 @@ const RideDetails = () => {
                   },
                 ]}
               >
-                Margaret Johnson
+                {data.data.rider_name}
               </Text>
               <Text
                 style={[
@@ -150,7 +163,7 @@ const RideDetails = () => {
                   },
                 ]}
               >
-                ⭐ 4.8 • 47 rides
+                ⭐ {data.data.rider_rating} • {data.data.rider_trip_count} rides
               </Text>
               <View style={[styles.medicalBadge]}>
                 <CircleDot size={12} color={colors.primaryColor} />
@@ -161,7 +174,7 @@ const RideDetails = () => {
                     color: colors.primaryColor,
                   }}
                 >
-                  Medical Appointment
+                  {data.data.ride_type}
                 </Text>
               </View>
             </View>
@@ -206,7 +219,7 @@ const RideDetails = () => {
                   },
                 ]}
               >
-                Today at 2:30 PM
+                {formatHumanReadableDate(data.data.appointment_time)}
               </Text>
               <Text
                 style={[
@@ -271,7 +284,7 @@ const RideDetails = () => {
                     },
                   ]}
                 >
-                  2847 Maple Avenue
+                  {data.data.pickup_address}
                 </Text>
               </View>
               <View style={{ marginTop: 24 }}>
@@ -295,7 +308,7 @@ const RideDetails = () => {
                     },
                   ]}
                 >
-                  Springfield General Hospital
+                  {data.data.destination_address}
                 </Text>
               </View>
             </View>
@@ -354,7 +367,7 @@ const RideDetails = () => {
                 },
               ]}
             >
-              4.2 mi
+              {data.data.actual_distance_miles} mi
             </Text>
           </View>
           <View
@@ -395,7 +408,7 @@ const RideDetails = () => {
                 },
               ]}
             >
-              ~12 min
+              {data.data.actual_duration_minutes} min
             </Text>
           </View>
           <View
@@ -437,7 +450,7 @@ const RideDetails = () => {
                 },
               ]}
             >
-              $28.50
+              ${data.data.final_fare}
             </Text>
           </View>
         </View>

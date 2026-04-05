@@ -66,7 +66,7 @@ const BookARide = () => {
   const [step, setStep] = useState(1);
   const totalSteps = 6;
   const { colors, theme } = useTheme();
-    const { data, isLoading } = useUserProfile();
+  const { data, isLoading } = useUserProfile();
   const commonStyling = commonStyles(colors);
   const successRef = useRef<OverlayBottomSheetRef>(null);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -221,7 +221,7 @@ const BookARide = () => {
       destination_latitude: destinationForm.latitude,
       destination_longitude: destinationForm.longitude,
       scheduled_at: scheduledDate.toISOString(),
-      passenger_id: data?.data.id, 
+      passenger_id: data?.data.id,
       visit_type: "",
       appointment_time: scheduledDate.toISOString(),
       facility_name: "Medical Center",
@@ -232,7 +232,6 @@ const BookARide = () => {
       estimated_duration_minutes: 25,
       estimated_fare: 45,
       business_id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-
     };
 
     mutate(payload);
@@ -1374,6 +1373,8 @@ const BookARide = () => {
                         fontSize: 13,
                         fontFamily: "Bold",
                         textAlign: "center",
+                        color:
+                          assistance === "none" ? "#ffffff" : colors.titleText,
                       },
                     ]}
                   >
@@ -1386,6 +1387,8 @@ const BookARide = () => {
                       {
                         fontSize: 10,
                         fontFamily: "Medium",
+                        color:
+                          assistance === "none" ? "#ffffff" : colors.titleText,
                       },
                     ]}
                   >
@@ -1418,6 +1421,8 @@ const BookARide = () => {
                         fontSize: 13,
                         fontFamily: "Bold",
                         textAlign: "center",
+                        color:
+                          assistance === "Minimal" ? "#ffffff" : colors.titleText,
                       },
                     ]}
                   >
@@ -1430,6 +1435,8 @@ const BookARide = () => {
                       {
                         fontSize: 10,
                         fontFamily: "Medium",
+                        color:
+                          assistance === "Minimal" ? "#ffffff" : colors.titleText,
                       },
                     ]}
                   >
@@ -1462,6 +1469,8 @@ const BookARide = () => {
                         fontSize: 13,
                         fontFamily: "Bold",
                         textAlign: "center",
+                        color:
+                          assistance === "Full" ? "#ffffff" : colors.titleText,
                       },
                     ]}
                   >
@@ -1475,6 +1484,8 @@ const BookARide = () => {
                         fontSize: 10,
                         fontFamily: "Medium",
                         textAlign: "center",
+                        color:
+                          assistance === "Full" ? "#ffffff" : colors.titleText,
                       },
                     ]}
                   >

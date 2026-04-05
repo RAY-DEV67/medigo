@@ -26,27 +26,34 @@ import { commonStyles } from "../../../styles/commonStyles";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Header from "../../../components/reuseables/header";
+import { useDriverSettings } from "../../../hooks/queries/useDriverSettings";
+import { UpdateNotificationsPayload } from "../../../types/user.types";
+import { useUpdateNotifications } from "../../../hooks/mutations/useUser";
+import { NotificationsSettingsSkeleton } from "../../../components/skelentonAnimation/notificationSettingsSkelenton";
 
 const NotificationsScreen = () => {
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
 
-  const [settings, setSettings] = useState({
-    rideRequests: true,
-    rideUpdates: true,
-    messages: true,
-    earningsUpdates: true,
-    promotions: false,
-    safetyAlerts: true,
-    appUpdates: true,
-    push: true,
-    email: false,
-    sms: true,
-  });
+  // 1. Fetch data
+  const { data, isLoading } = useDriverSettings();
+  const settings = data?.data; // This is your "live" data
 
-  const toggleSwitch = (key: keyof typeof settings) => {
-    setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+  const { mutate: updateNotify } = useUpdateNotifications();
+
+  if (isLoading) {
+    return <NotificationsSettingsSkeleton />;
+  }
+
+  const handleToggle = (
+    key: keyof UpdateNotificationsPayload,
+    value: boolean,
+  ) => {
+    // 2. We send the update to the server.
+    // Your mutation's 'onSuccess' invalidates the query,
+    // which causes this component to re-render with new data.
+    updateNotify({ [key]: value });
   };
 
   const NotificationRow = ({
@@ -142,24 +149,24 @@ const NotificationsScreen = () => {
           iconBg="#EFF6FF"
           title="Ride Requests"
           sub="New ride requests in your area"
-          value={settings.rideRequests}
-          onToggle={() => toggleSwitch("rideRequests")}
+          value={!!settings?.push_ride_requests}
+          onToggle={(val: boolean) => handleToggle("push_ride_requests", val)}
         />
         <NotificationRow
           icon={<MapPin size={20} color="#3B82F6" />}
           iconBg="#EFF6FF"
           title="Ride Updates"
           sub="Trip changes and cancellations"
-          value={settings.rideUpdates}
-          onToggle={() => toggleSwitch("rideUpdates")}
+          value={!!settings?.push_ride_updates}
+          onToggle={(val: boolean) => handleToggle("push_ride_updates", val)}
         />
         <NotificationRow
           icon={<MessageSquare size={20} color="#3B82F6" />}
           iconBg="#EFF6FF"
           title="Messages"
           sub="New messages from riders"
-          value={settings.messages}
-          onToggle={() => toggleSwitch("messages")}
+          value={!!settings?.push_chat_messages}
+          onToggle={(val: boolean) => handleToggle("push_chat_messages", val)}
         />
 
         {/* Section: Earnings & Performance */}
@@ -180,16 +187,16 @@ const NotificationsScreen = () => {
           iconBg="#F0FDF4"
           title="Earnings Updates"
           sub="Weekly summaries and payouts"
-          value={settings.earningsUpdates}
-          onToggle={() => toggleSwitch("earningsUpdates")}
+          value={!!settings?.push_earnings}
+          onToggle={(val: boolean) => handleToggle("push_earnings", val)}
         />
         <NotificationRow
           icon={<LineChart size={20} color="#F59E0B" />}
           iconBg="#FFFBEB"
           title="Promotions & Bonuses"
           sub="Surge pricing and bonus opportunities"
-          value={settings.promotions}
-          onToggle={() => toggleSwitch("promotions")}
+          value={!!settings?.push_promotions}
+          onToggle={(val: boolean) => handleToggle("push_promotions", val)}
         />
 
         {/* Section: Safety & Support */}
@@ -210,16 +217,16 @@ const NotificationsScreen = () => {
           iconBg="#FEF2F2"
           title="Safety Alerts"
           sub="Important safety updates"
-          value={settings.safetyAlerts}
-          onToggle={() => toggleSwitch("safetyAlerts")}
+          value={!!settings?.safety_alerts}
+          onToggle={(val: boolean) => handleToggle("safety_alerts", val)}
         />
         <NotificationRow
           icon={<Bell size={20} color="#3B82F6" />}
           iconBg="#EFF6FF"
           title="App Updates"
           sub="New features and improvements"
-          value={settings.appUpdates}
-          onToggle={() => toggleSwitch("appUpdates")}
+          value={!!settings?.app_updates}
+          onToggle={(val: boolean) => handleToggle("app_updates", val)}
         />
 
         {/* Section: Notification Channels */}
@@ -240,24 +247,24 @@ const NotificationsScreen = () => {
           iconBg="#FFF"
           title="Push Notifications"
           sub="Receive alerts on this device"
-          value={settings.push}
-          onToggle={() => toggleSwitch("push")}
+          value={!!settings?.push_notifications}
+          onToggle={(val: boolean) => handleToggle("push_notifications", val)}
         />
         <NotificationRow
           icon={<Mail size={20} color="#3B82F6" />}
           iconBg="#FFF"
           title="Email Notifications"
           sub="Receive updates via email"
-          value={settings.email}
-          onToggle={() => toggleSwitch("email")}
+          value={!!settings?.email_weekly_summary}
+          onToggle={(val: boolean) => handleToggle("email_weekly_summary", val)}
         />
         <NotificationRow
           icon={<MessageCircle size={20} color="#3B82F6" />}
           iconBg="#FFF"
           title="SMS Notifications"
           sub="Receive text message alerts"
-          value={settings.sms}
-          onToggle={() => toggleSwitch("sms")}
+          value={!!settings?.sms_ride_updates}
+          onToggle={(val: boolean) => handleToggle("sms_ride_updates", val)}
         />
 
         <View style={{ height: 40 }} />

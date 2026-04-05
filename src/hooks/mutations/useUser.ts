@@ -8,8 +8,12 @@ import {
   CreateEmergencyContactRequest,
   CreateLocationPayload,
   UpdateConsentPayload,
+  UpdateDriverPayload,
   UpdateLocationRequest,
+  UpdateNotificationsPayload,
+  UpdatePrivacyPayload,
   UpdateStatusPayload,
+  UpdateVehiclePayload,
 } from "../../types/user.types";
 import { Alert } from "react-native";
 import { useUserStore } from "../../store/userStore";
@@ -164,5 +168,66 @@ export const useUpdateDriverStatus = () => {
       queryClient.invalidateQueries({ queryKey: ["earnings-summary"] });
     },
     onError: (error: any) => {},
+  });
+};
+
+export const useUpdateDriverProfile = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: UpdateDriverPayload) =>
+      userService.updateDriverProfile(payload),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+    },
+    onError: (error: any) => {
+      console.log(error);
+    },
+  });
+};
+
+export const useUpdateDriverVehicle = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: UpdateVehiclePayload) =>
+      userService.updateVehicleDetails(payload),
+    onSuccess: (response) => {
+      // Refresh all vehicle-related data across the app
+      queryClient.invalidateQueries({ queryKey: ["driver-vehicle"] });
+      queryClient.invalidateQueries({ queryKey: ["driver-profile-me"] });
+    },
+    onError: (error: any) => {},
+  });
+};
+
+export const useUpdateNotifications = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: UpdateNotificationsPayload) =>
+      userService.updateNotifications(payload),
+    onSuccess: () => {
+      // Refresh the settings cache so the UI reflects the new state
+      queryClient.invalidateQueries({ queryKey: ["driver-settings"] });
+    },
+    onError: (error: any) => {},
+  });
+};
+
+export const useUpdatePrivacy = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: UpdatePrivacyPayload) =>
+      userService.updatePrivacy(payload),
+
+    onSuccess: () => {
+      // Refresh the settings cache so the UI reflects the new state
+      queryClient.invalidateQueries({ queryKey: ["driver-settings"] });
+    },
+    onError: (error: any) => {
+      console.log(error);
+    },
   });
 };

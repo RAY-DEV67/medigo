@@ -38,7 +38,19 @@ const Dropdown: React.FC<DropdownProps> = ({
 
   return (
     <View style={styles.container}>
-      {label && <Text style={commonStyling.inputTitle}>{label}</Text>}
+      {label && (
+        <Text
+          style={[
+            commonStyling.inputTitle,
+            {
+              fontFamily: "Bold",
+              fontSize: 14,
+            },
+          ]}
+        >
+          {label}
+        </Text>
+      )}
 
       {/* BUTTON */}
       <TouchableOpacity

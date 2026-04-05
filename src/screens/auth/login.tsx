@@ -38,43 +38,39 @@ function Login() {
   };
 
   const { mutate: login, isPending } = useLogin();
-  const { refetch: fetchProfile } = useUserProfile();
+  const { refetch: fetchProfile } = useUserProfile({ enabled: false });
 
   const handleLogin = () => {
     const isEmail = formData.identifier.includes("@");
+
     const payload = isEmail
       ? { email: formData.identifier, password: formData.password }
       : { phone: formData.identifier, password: formData.password };
 
     login(payload, {
-      onSuccess: async (tokenResponse) => {
-        // 2. Manually trigger the profile fetch
-        const { data: profile } = await fetchProfile();
+      onSuccess: async () => {
+        try {
+          const { data: profile } = await fetchProfile();
 
-        if (profile) {
-          console.log("Profile", profile);
-          // 3. Update your Zustand store with the fresh profile
+          if (!profile) return;
+
           useUserStore.getState().setUser(profile);
 
-          // 4. Role-based Navigation
           const role = profile.data.role?.toLowerCase();
 
-          if (role === "driver") {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "DriverMainTabs" }],
-            });
-          } else {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "RiderMainTabs" }],
-            });
-          }
+          navigation.reset({
+            index: 0,
+            routes: [
+              { name: role === "driver" ? "DriverMainTabs" : "RiderMainTabs" },
+            ],
+          });
+        } catch (err) {
+          console.log("Profile fetch failed", err);
         }
       },
     });
   };
-
+  
   return (
     <SafeAreaView
       style={[
@@ -112,9 +108,10 @@ function Login() {
               Welcome Back
             </Text>
             <Text style={[commonStyling.subtitle, styles.subTitle]}>
-              Log in to your rider account to start booking rides.
+              Log in to your account to start booking rides.
             </Text>
           </View>
+
           <View>
             <View style={styles.inputContainer}>
               <Input
@@ -128,10 +125,10 @@ function Login() {
             <View style={styles.inputContainer}>
               <Text
                 style={[
-                  styles.label,
-                  commonStyling.title,
+                  commonStyling.inputTitle,
                   {
-                    fontSize: 16,
+                    fontFamily: "Bold",
+                    fontSize: 14,
                   },
                 ]}
               >

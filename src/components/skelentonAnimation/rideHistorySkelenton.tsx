@@ -1,94 +1,200 @@
+import { ScrollView } from "react-native";
 import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, Animated } from "react-native";
+import { View, StyleSheet, Animated, Easing } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import useTheme from "../../hooks/useThemes";
 
-const UpcomingRidesCardSkeleton = () => {
+const SkeletonBone = ({ width, height, borderRadius = 8, style }: any) => {
   const { colors } = useTheme();
-  const opacity = useRef(new Animated.Value(0.3)).current;
+  const animatedValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 0.3,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ])
+      Animated.timing(animatedValue, {
+        toValue: 1,
+        duration: 1500,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
     ).start();
-  }, [opacity]);
+  }, []);
 
-  const SkeletonBlock = ({ width, height, borderRadius = 4, marginBottom = 0, style }: any) => (
+  const translateX = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-width, width],
+  });
+
+  return (
     <View
       style={[
         {
           width,
           height,
           borderRadius,
-          marginBottom,
-          backgroundColor: colors.stroke,
+          backgroundColor: colors.surfaceSecondary,
+          overflow: "hidden",
         },
         style,
       ]}
-    />
+    >
+      <Animated.View
+        style={[StyleSheet.absoluteFill, { transform: [{ translateX }] }]}
+      >
+        <LinearGradient
+          colors={["transparent", "rgba(255, 255, 255, 0.3)", "transparent"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
+    </View>
   );
+};
+
+export const RideHistorySkeleton = () => {
+  const { colors } = useTheme();
 
   return (
-    <Animated.View 
-      style={[styles.card, { backgroundColor: colors.lightGray, opacity }]}
-    >
-      {/* Mimicking RideInformation Row */}
-      <View style={styles.topRow}>
-        <SkeletonBlock width={60} height={45} borderRadius={8} />
-        <View style={{ flex: 1, marginLeft: 12, gap: 8 }}>
-          <SkeletonBlock width="50%" height={16} />
-          <SkeletonBlock width="30%" height={12} />
-        </View>
-        <SkeletonBlock width={50} height={20} />
+    <View style={{ flex: 1, backgroundColor: colors.surfacePrimary }}>
+      {/* Fixed Header Placeholder */}
+      <View style={styles.skeletonHeader}>
+        <SkeletonBone width={140} height={24} />
       </View>
 
-      {/* Mimicking Footer Row */}
-      <View style={styles.footer}>
-        <View style={styles.infoContainer}>
-          <SkeletonBlock width="80%" height={16} marginBottom={6} />
-          <SkeletonBlock width="60%" height={14} />
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Subheader & Filter Placeholder */}
+        <View style={styles.rowBetween}>
+          <SkeletonBone width={120} height={14} />
+          <SkeletonBone width={80} height={30} borderRadius={8} />
         </View>
 
-        <View style={styles.buttonContainer}>
-          <SkeletonBlock width="100%" height={35} borderRadius={8} />
+        {/* Dashboard Row */}
+        <View style={styles.dashboardRow}>
+          <View
+            style={[
+              styles.statCardSkeleton,
+              { backgroundColor: colors.homelightPrimaryBlue50 },
+            ]}
+          >
+            <SkeletonBone width={60} height={10} style={{ marginBottom: 8 }} />
+            <SkeletonBone width={40} height={24} />
+          </View>
+          <View
+            style={[
+              styles.statCardSkeleton,
+              { backgroundColor: colors.homelightPrimaryBlue50 },
+            ]}
+          >
+            <SkeletonBone width={70} height={10} style={{ marginBottom: 8 }} />
+            <SkeletonBone width={80} height={24} />
+          </View>
         </View>
-      </View>
-    </Animated.View>
+
+        <SkeletonBone width={100} height={16} style={{ marginBottom: 20 }} />
+
+        {/* List Items */}
+        {[1, 2, 3].map((i) => (
+          <View
+            key={i}
+            style={[
+              styles.cardSkeleton,
+              { backgroundColor: colors.surfaceElevated },
+            ]}
+          >
+            <View style={styles.rowBetween}>
+              <View>
+                <SkeletonBone
+                  width={100}
+                  height={14}
+                  style={{ marginBottom: 6 }}
+                />
+                <SkeletonBone width={60} height={12} />
+              </View>
+              <View style={{ alignItems: "flex-end" }}>
+                <SkeletonBone
+                  width={50}
+                  height={18}
+                  style={{ marginBottom: 6 }}
+                />
+                <SkeletonBone width={60} height={10} />
+              </View>
+            </View>
+
+            <View style={styles.routeSection}>
+              <View style={{ width: 10, alignItems: "center" }}>
+                <SkeletonBone width={6} height={6} borderRadius={3} />
+                <View style={styles.linePlaceholder} />
+                <SkeletonBone width={6} height={6} borderRadius={3} />
+              </View>
+              <View style={{ flex: 1, marginLeft: 15 }}>
+                <SkeletonBone
+                  width="80%"
+                  height={12}
+                  style={{ marginBottom: 20 }}
+                />
+                <SkeletonBone width="70%" height={12} />
+              </View>
+            </View>
+
+            <View style={styles.actionRow}>
+              <SkeletonBone width="48%" height={44} borderRadius={12} />
+              <SkeletonBone width="48%" height={44} borderRadius={12} />
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 16,
+  skeletonHeader: {
+    height: 60,
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    marginTop: 40,
   },
-  topRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  footer: {
+  rowBetween: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 20,
   },
-  infoContainer: {
+  dashboardRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 32,
+  },
+  statCardSkeleton: {
     flex: 1,
+    padding: 16,
+    borderRadius: 16,
+    height: 85,
   },
-  buttonContainer: {
-    width: "30%",
+  cardSkeleton: {
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 16,
+    height: 220,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+  },
+  routeSection: {
+    flexDirection: "row",
+    marginVertical: 20,
+  },
+  linePlaceholder: {
+    width: 1,
+    height: 30,
+    backgroundColor: "#F1F5F9",
+    marginVertical: 4,
+  },
+  actionRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
   },
 });
-
-export default UpcomingRidesCardSkeleton;

@@ -231,7 +231,11 @@ export default function RiderRegistrationFlow() {
                     alignItems: "center",
                   }}
                 >
-                  <Phone color="white" />
+                  <Phone
+                    color={
+                      signUpMethod === "phone" ? "#ffffff" : colors.titleText
+                    }
+                  />
                 </View>
                 <View>
                   <Text
@@ -295,7 +299,11 @@ export default function RiderRegistrationFlow() {
                     alignItems: "center",
                   }}
                 >
-                  <Mail color="white" />
+                  <Mail
+                    color={
+                      signUpMethod === "email" ? "#ffffff" : colors.titleText
+                    }
+                  />
                 </View>
                 <View>
                   <Text
@@ -517,9 +525,10 @@ export default function RiderRegistrationFlow() {
               <View style={styles.inputContainer}>
                 <Text
                   style={[
-                    styles.label,
+                    commonStyling.inputTitle,
                     {
-                      color: colors.titleText,
+                      fontFamily: "Bold",
+                      fontSize: 14,
                     },
                   ]}
                 >
@@ -547,9 +556,10 @@ export default function RiderRegistrationFlow() {
               <View style={styles.inputContainer}>
                 <Text
                   style={[
-                    styles.label,
+                    commonStyling.inputTitle,
                     {
-                      color: colors.titleText,
+                      fontFamily: "Bold",
+                      fontSize: 14,
                     },
                   ]}
                 >

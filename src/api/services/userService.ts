@@ -9,13 +9,20 @@ import {
   CreateEmergencyContactRequest,
   CreateLocationPayload,
   CreateLocationResponse,
+  DocumentListResponse,
   DriverProfileResponse,
   DriverStatusResponse,
   EmergencyContactsResponse,
   SavedLocationsResponse,
+  SettingsResponse,
   UpdateConsentPayload,
+  UpdateDriverPayload,
   UpdateLocationRequest,
+  UpdateNotificationsPayload,
+  UpdatePrivacyPayload,
   UpdateStatusPayload,
+  UpdateVehiclePayload,
+  VehicleResponse,
 } from "../../types/user.types";
 
 const userService = {
@@ -114,6 +121,52 @@ const userService = {
 
   getDriverProfile: async (): Promise<DriverProfileResponse> => {
     const response = await apiClient.get("/users/drivers/me");
+    return response.data;
+  },
+
+  updateDriverProfile: async (
+    payload: UpdateDriverPayload,
+  ): Promise<DriverProfileResponse> => {
+    const response = await apiClient.put("/users/drivers/me", payload);
+    return response.data;
+  },
+
+  getVehicleDetails: async (): Promise<VehicleResponse> => {
+    const response = await apiClient.get("/users/drivers/me/vehicle");
+    return response.data;
+  },
+
+  updateVehicleDetails: async (
+    payload: UpdateVehiclePayload,
+  ): Promise<VehicleResponse> => {
+    const response = await apiClient.put("/users/drivers/me/vehicle", payload);
+    return response.data;
+  },
+
+  getDocuments: async (): Promise<DocumentListResponse> => {
+    const response = await apiClient.get("/users/me/documents");
+    return response.data;
+  },
+
+  getSettings: async (): Promise<SettingsResponse> => {
+    const response = await apiClient.get("/users/me/settings");
+    return response.data;
+  },
+
+  updateNotifications: async (
+    payload: UpdateNotificationsPayload,
+  ): Promise<SettingsResponse> => {
+    const response = await apiClient.put(
+      "/users/me/settings/notifications",
+      payload,
+    );
+    return response.data;
+  },
+
+  updatePrivacy: async (
+    payload: UpdatePrivacyPayload,
+  ): Promise<SettingsResponse> => {
+    const response = await apiClient.put("/users/me/settings/privacy", payload);
     return response.data;
   },
 };

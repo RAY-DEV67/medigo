@@ -22,6 +22,8 @@ import Buttons from "../../../components/buttons/buttons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDriverUpcomingRides } from "../../../hooks/queries/useDriverUpcomingRide";
 import { useUpdateDriverStatus } from "../../../hooks/mutations/useUser";
+import { RiderHomeSkeleton } from "../../../components/skelentonAnimation/riderHomeSkelento";
+import { formatHumanReadableDate } from "../../../utils/formatHumanReadableDate";
 
 const { width } = Dimensions.get("window");
 
@@ -37,16 +39,12 @@ const DriverDashboard = () => {
     }
   }, [user?.data?.is_active]);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  const { data, isLoading } = useEarningsSummary();
+  const { data, isLoading: earningsLoading } = useEarningsSummary();
   const summary = data?.data;
-  const {
-    data: driverUpcomingRides,
-    refetch,
-    isRefetching,
-  } = useDriverUpcomingRides();
+  const { data: driverUpcomingRides, isLoading } = useDriverUpcomingRides();
   const rides = driverUpcomingRides?.data || [];
 
-  const { mutate: updateStatus, isPending } = useUpdateDriverStatus();
+  const { mutate: updateStatus } = useUpdateDriverStatus();
 
   const handleToggleOnline = (value: boolean) => {
     // Update UI immediately for a snappy feel
@@ -64,7 +62,11 @@ const DriverDashboard = () => {
     );
   };
 
-  console.log(user);
+  if (isLoading || earningsLoading) {
+    return <RiderHomeSkeleton />;
+  }
+
+  console.log(rides);
 
   return (
     <SafeAreaView
@@ -468,6 +470,7 @@ const DriverDashboard = () => {
                   alignItems: "center",
                   width: width * 0.85,
                   marginTop: 16,
+                  borderColor: colors.lightPrimaryBlueBorder,
                 },
               ]}
             >
@@ -508,8 +511,8 @@ const DriverDashboard = () => {
   );
 };
 
-const RideCard = ({ time, pickup, dest }: any) => {
-  const { colors, theme } = useTheme();
+const RideCard = ({ time, pickup, dest, type, id }: any) => {
+  const { colors } = useTheme();
   const commonStyling = commonStyles(colors);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
 
@@ -533,7 +536,7 @@ const RideCard = ({ time, pickup, dest }: any) => {
             },
           ]}
         >
-          {time}
+          {formatHumanReadableDate(time)}
         </Text>
       </View>
 
@@ -605,7 +608,7 @@ const RideCard = ({ time, pickup, dest }: any) => {
               { fontSize: 12, color: colors.primaryColor },
             ]}
           >
-            Medical Appointment
+            {type}
           </Text>
         </View>
       </View>
@@ -620,6 +623,9 @@ const RideCard = ({ time, pickup, dest }: any) => {
         onPress={() => {
           navigation.navigate("DriverRideDetailsStack", {
             screen: "RideDetails",
+            params: {
+              id: id,
+            },
           });
         }}
       >

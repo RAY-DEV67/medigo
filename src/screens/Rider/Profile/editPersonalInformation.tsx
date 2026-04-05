@@ -47,6 +47,7 @@ const EditProfileScreen = () => {
       last_name: form.lastName,
       medical_notes: form.medical_notes,
       avatar_url: form.avatar_url,
+      email: form.email,
     };
 
     console.log(profileData);

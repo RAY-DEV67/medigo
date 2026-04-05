@@ -43,7 +43,11 @@ export default function Navbar({ state, navigation }: BottomTabBarProps) {
     <View>
       <SafeAreaView
         edges={["bottom"]}
-        style={{ backgroundColor: colors.surfacePrimary }}
+        style={{
+          backgroundColor: colors.surfacePrimary,
+          borderWidth: 1,
+          borderColor: colors.lightPrimaryBlueBorder,
+        }}
       >
         <View style={styles.tabBarContainer}>
           <View
@@ -109,13 +113,23 @@ export default function Navbar({ state, navigation }: BottomTabBarProps) {
             </TouchableOpacity>
 
             <TabItem
-              icon={<History color="#64748B" size={22} />}
+              icon={
+                <History
+                  color={
+                    currentRouteName === "RiderHistoryStack"
+                      ? colors.primaryColor
+                      : colors.navbarText
+                  }
+                  size={22}
+                />
+              }
               label="History"
               onPress={() => {
-                navigation.navigate("RiderRideStack", {
+                navigation.navigate("RiderHistoryStack", {
                   screen: "RideHistoryScreen",
                 });
               }}
+              active={currentRouteName === "RiderHistoryStack"}
             />
             <TabItem
               icon={

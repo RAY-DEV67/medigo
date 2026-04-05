@@ -87,3 +87,46 @@ export interface UpcomingRidesResponse {
   limit: number;
   total_pages: number;
 }
+
+export interface RideRating {
+  id: string;
+  ride_id: string;
+  rated_user_id: string;
+  rated_by_user_id: string;
+  rating_type: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+}
+
+export interface RideDetail {
+  id: string;
+  rider_id: string;
+  driver_id: string;
+  ride_type: string;
+  pickup_address: string;
+  pickup_latitude: number;
+  pickup_longitude: number;
+  destination_address: string;
+  destination_latitude: number;
+  destination_longitude: number;
+  status: string;
+  estimated_fare: number;
+  final_fare: number;
+  rider_name: string;
+  rider_rating: number;
+  special_instructions: string;
+  mobility_level: string;
+  assistance_level: string;
+  driver_rating?: RideRating; // Rating driver gave rider
+  rider_rating_given?: RideRating; // Rating rider gave driver
+  timeline: any[];
+  scheduled_at: string;
+  created_at: string;
+}
+
+export interface RideDetailResponse {
+  success: boolean;
+  message: string;
+  data: RideDetail;
+}

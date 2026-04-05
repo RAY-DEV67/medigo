@@ -7,83 +7,27 @@ import {
   ScrollView,
   StatusBar,
 } from "react-native";
-import {
-  ChevronLeft,
-  AlertCircle,
-  ChevronRight,
-  CreditCard,
-  Shield,
-  FileText,
-  Activity,
-  UserCheck,
-  UploadCloud,
-  CheckCircle2,
-} from "lucide-react-native";
+import { AlertCircle, ChevronRight, CheckCircle2 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import useTheme from "../../../hooks/useThemes";
 import { commonStyles } from "../../../styles/commonStyles";
-import { useDriverProfile } from "../../../hooks/queries/useDriverProfile";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Header from "../../../components/reuseables/header";
+import { useDriverDocuments } from "../../../hooks/queries/userDriverDocuments";
+import { DocumentsSkeleton } from "../../../components/skelentonAnimation/documentsSkelenton";
 
 const DocumentsScreen = () => {
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
 
-  const documents = [
-    {
-      id: 1,
-      title: "Driver's License",
-      sub: "Valid government-issued driver's license",
-      expiry: "Dec 31, 2027",
-      uploaded: "Jan 15, 2024",
-      status: "VERIFIED",
-      icon: <CreditCard size={20} color="#10B981" />,
-      iconBg: "#ECFDF5",
-    },
-    {
-      id: 2,
-      title: "Auto Insurance",
-      sub: "Proof of vehicle insurance coverage",
-      expiry: "Jun 30, 2025",
-      uploaded: "Jan 15, 2024",
-      status: "EXPIRING SOON",
-      icon: <Shield size={20} color="#F59E0B" />,
-      iconBg: "#FFFBEB",
-    },
-    {
-      id: 3,
-      title: "Vehicle Registration",
-      sub: "Current vehicle registration document",
-      expiry: "Dec 31, 2025",
-      uploaded: "Jan 15, 2024",
-      status: "VERIFIED",
-      icon: <FileText size={20} color="#10B981" />,
-      iconBg: "#ECFDF5",
-    },
-    {
-      id: 4,
-      title: "Medical Transport Permit",
-      sub: "Medical transportation certification",
-      expiry: "Mar 31, 2028",
-      uploaded: "Mar 10, 2024",
-      status: "PENDING",
-      icon: <Activity size={20} color="#3B82F6" />,
-      iconBg: "#EFF6FF",
-    },
-    {
-      id: 5,
-      title: "Background Check",
-      sub: "Criminal background check clearance",
-      expiry: "Jan 15, 2026",
-      uploaded: "Jan 15, 2024",
-      status: "VERIFIED",
-      icon: <UserCheck size={20} color="#10B981" />,
-      iconBg: "#ECFDF5",
-    },
-  ];
+  const { data, isLoading, refetch } = useDriverDocuments();
+  const documents = data?.data || [];
+
+  if (isLoading) {
+    return <DocumentsSkeleton />;
+  }
 
   return (
     <SafeAreaView
@@ -141,129 +85,111 @@ const DocumentsScreen = () => {
         </Text>
 
         {/* Document List */}
-        {documents.map((doc) => (
-          <TouchableOpacity
-            key={doc.id}
-            style={[
-              styles.docCard,
-              {
-                borderBottomColor: colors.lightPrimaryBlueBorder,
-              },
-            ]}
-          >
-            <View style={[styles.docIcon, { backgroundColor: doc.iconBg }]}>
-              {doc.icon}
-            </View>
-            <View style={styles.docInfo}>
-              <View style={styles.docHeaderRow}>
-                <Text
-                  style={[
-                    commonStyling.title,
-                    {
-                      fontSize: 15,
-                      fontFamily: "Bold",
-                    },
-                  ]}
-                >
-                  {doc.title}
-                </Text>
-                <View
-                  style={[
-                    styles.statusBadge,
-                    doc.status === "VERIFIED"
-                      ? styles.statusVerified
-                      : doc.status === "PENDING"
-                        ? styles.statusPending
-                        : styles.statusExpiring,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.statusText,
-                      doc.status === "VERIFIED"
-                        ? { color: "#10B981" }
-                        : doc.status === "PENDING"
-                          ? { color: "#3B82F6" }
-                          : { color: "#F59E0B" },
-                    ]}
-                  >
-                    {doc.status}
-                  </Text>
-                </View>
-              </View>
-              <Text
-                style={[
-                  styles.docSub,
-                  commonStyling.subtitle,
-                  {
-                    fontSize: 11,
-                    fontFamily: "Medium",
-                  },
-                ]}
-              >
-                {doc.sub}
-              </Text>
-              <Text
-                style={[
-                  commonStyling.title,
-                  {
-                    fontSize: 12,
-                  },
-                ]}
-              >
-                Expires {doc.expiry}
-              </Text>
-              <Text
-                style={[
-                  styles.docMetaSmall,
-                  commonStyling.subtitle,
-                  {
-                    fontSize: 11,
-                  },
-                ]}
-              >
-                Uploaded {doc.uploaded}
-              </Text>
-            </View>
-            <ChevronRight size={18} color="#CBD5E1" />
-          </TouchableOpacity>
-        ))}
-
-        {/* Upload Section */}
-        <TouchableOpacity
-          style={[
-            styles.uploadBox,
-            {
-              borderColor: colors.lightPrimaryBlueBorder,
-            },
-          ]}
-        >
-          <View style={styles.uploadIconCircle}>
-            <UploadCloud size={24} color="#3B82F6" />
-          </View>
+        {documents.length === 0 ? (
           <Text
             style={[
               commonStyling.title,
               {
                 fontSize: 15,
                 fontFamily: "Bold",
+                textAlign: "center",
+                marginTop: 16,
               },
             ]}
           >
-            Upload Additional Document
+            No uploaded document
           </Text>
-          <Text
-            style={[
-              styles.uploadSub,
-              commonStyling.subtitle,
-              {
-                fontSize: 12,
-              },
-            ]}
-          >
-            Add any additional required documents
-          </Text>
-        </TouchableOpacity>
+        ) : (
+          <View>
+            {documents.map((doc) => (
+              <TouchableOpacity
+                key={doc.id}
+                style={[
+                  styles.docCard,
+                  {
+                    borderBottomColor: colors.lightPrimaryBlueBorder,
+                  },
+                ]}
+              >
+                <View style={[styles.docIcon, { backgroundColor: doc.iconBg }]}>
+                  {doc.icon}
+                </View>
+                <View style={styles.docInfo}>
+                  <View style={styles.docHeaderRow}>
+                    <Text
+                      style={[
+                        commonStyling.title,
+                        {
+                          fontSize: 15,
+                          fontFamily: "Bold",
+                        },
+                      ]}
+                    >
+                      {doc.title}
+                    </Text>
+                    <View
+                      style={[
+                        styles.statusBadge,
+                        doc.status === "VERIFIED"
+                          ? styles.statusVerified
+                          : doc.status === "PENDING"
+                            ? styles.statusPending
+                            : styles.statusExpiring,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.statusText,
+                          doc.status === "VERIFIED"
+                            ? { color: "#10B981" }
+                            : doc.status === "PENDING"
+                              ? { color: "#3B82F6" }
+                              : { color: "#F59E0B" },
+                        ]}
+                      >
+                        {doc.status}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text
+                    style={[
+                      styles.docSub,
+                      commonStyling.subtitle,
+                      {
+                        fontSize: 11,
+                        fontFamily: "Medium",
+                      },
+                    ]}
+                  >
+                    {doc.sub}
+                  </Text>
+                  <Text
+                    style={[
+                      commonStyling.title,
+                      {
+                        fontSize: 12,
+                      },
+                    ]}
+                  >
+                    Expires {doc.expiry}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.docMetaSmall,
+                      commonStyling.subtitle,
+                      {
+                        fontSize: 11,
+                      },
+                    ]}
+                  >
+                    Uploaded {doc.uploaded}
+                  </Text>
+                </View>
+                <ChevronRight size={18} color="#CBD5E1" />
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
         {/* Requirements Footer */}
         <View

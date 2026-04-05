@@ -27,11 +27,25 @@ import useTheme from "../../../hooks/useThemes";
 import { commonStyles } from "../../../styles/commonStyles";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useUpdatePrivacy } from "../../../hooks/mutations/useUser";
+import { UpdatePrivacyPayload } from "../../../types/user.types";
+import { useDriverSettings } from "../../../hooks/queries/useDriverSettings";
+import { NotificationsSettingsSkeleton } from "../../../components/skelentonAnimation/notificationSettingsSkelenton";
 
 const PrivacySecurityScreen = () => {
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { data, isLoading } = useDriverSettings();
+  const settingsValue = data?.data;
+  const { mutate: updatePrivacy } = useUpdatePrivacy();
+
+  const handlePrivacyToggle = (
+    key: keyof UpdatePrivacyPayload,
+    value: boolean,
+  ) => {
+    updatePrivacy({ [key]: value });
+  };
 
   const [settings, setSettings] = useState({
     twoFactor: true,
@@ -43,6 +57,10 @@ const PrivacySecurityScreen = () => {
   const toggleSwitch = (key: keyof typeof settings) => {
     setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  if (isLoading) {
+    return <NotificationsSettingsSkeleton />;
+  }
 
   return (
     <SafeAreaView
@@ -263,8 +281,10 @@ const PrivacySecurityScreen = () => {
           <Switch
             trackColor={{ false: "#E2E8F0", true: "#3B82F6" }}
             thumbColor="#FFF"
-            onValueChange={() => toggleSwitch("shareLocation")}
-            value={settings.shareLocation}
+            value={!!settings?.share_location_with_rider}
+            onValueChange={(val: boolean) =>
+              handlePrivacyToggle("share_location_with_rider", val)
+            }
           />
         </View>
 

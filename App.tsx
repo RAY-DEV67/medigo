@@ -10,6 +10,7 @@ import AuthStack from "./src/navigations/authStack";
 import RiderMainStack from "./src/navigations/RiderMainStack";
 import DriverMainStack from "./src/navigations/driverMainStack";
 import RiderRideStack from "./src/navigations/riderRideStack";
+import RiderHistoryStack from "./src/navigations/riderHistoryStack";
 import DriverRideStack from "./src/navigations/driverRideStack";
 import DriverChatStack from "./src/navigations/driverChatStack";
 import DriverChatDetailsStack from "./src/navigations/driverChatDetailsStack";
@@ -58,6 +59,7 @@ const RiderMainTabs = () => (
   >
     <Tab.Screen name="Main" component={RiderMainStack} />
     <Tab.Screen name="RiderRideStack" component={RiderRideStack} />
+    <Tab.Screen name="RiderHistoryStack" component={RiderHistoryStack} />
     <Tab.Screen name="RiderProfileStack" component={RiderProfileStack} />
   </Tab.Navigator>
 );

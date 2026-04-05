@@ -22,17 +22,22 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import useTheme from "../../../hooks/useThemes";
 import { commonStyles } from "../../../styles/commonStyles";
-import { useDriverProfile } from "../../../hooks/queries/useDriverProfile";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Header from "../../../components/reuseables/header";
+import { useDriverVehicle } from "../../../hooks/queries/useDriverVehicleDetails";
+import { VehicleDetailsSkeleton } from "../../../components/skelentonAnimation/vehicleDetails";
 
 const VehicleDetails = () => {
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
-  const { data: profileData, isLoading } = useDriverProfile();
-  const profile = profileData?.data;
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { data, isLoading } = useDriverVehicle();
+  const vehicle = data?.data;
+
+  if (isLoading) {
+    return <VehicleDetailsSkeleton />;
+  }
 
   return (
     <SafeAreaView
@@ -47,29 +52,7 @@ const VehicleDetails = () => {
         barStyle={theme === "light" ? "dark-content" : "light-content"}
       />
 
-      <Header
-        title="Vehicle Details"
-        rightText={
-          <TouchableOpacity
-            onPress={() => {
-              navigation.navigate("DriverProfileContentsStack", {
-                screen: "EditVehicleDetails",
-              });
-            }}
-          >
-            <Text
-              style={[
-                commonStyling.subtitle,
-                {
-                  fontSize: 16,
-                },
-              ]}
-            >
-              Edit
-            </Text>
-          </TouchableOpacity>
-        }
-      />
+      <Header title="Vehicle Details" />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -183,7 +166,7 @@ const VehicleDetails = () => {
                   },
                 ]}
               >
-                {profile?.vehicle_make}
+                {vehicle?.vehicle_make}
               </Text>
             </View>
           </View>
@@ -224,7 +207,7 @@ const VehicleDetails = () => {
                   },
                 ]}
               >
-                {profile?.vehicle_color}
+                {vehicle?.vehicle_color}
               </Text>
             </View>
           </View>
@@ -265,7 +248,7 @@ const VehicleDetails = () => {
                   },
                 ]}
               >
-                {profile?.license_number}
+                {vehicle?.vehicle_plate}
               </Text>
             </View>
             <CheckCircle2 size={18} color="#10B981" />
@@ -307,7 +290,7 @@ const VehicleDetails = () => {
                   },
                 ]}
               >
-                {profile?.vehicle_year}
+                {vehicle?.vehicle_year}
               </Text>
             </View>
           </View>
@@ -348,7 +331,7 @@ const VehicleDetails = () => {
                   },
                 ]}
               >
-                {profile?.vehicle_vin}
+                {vehicle?.vehicle_vin}
               </Text>
             </View>
           </View>

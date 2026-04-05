@@ -31,6 +31,7 @@ import { useSavedLocations } from "../../../hooks/queries/useSavedLocations";
 import { getLocationTypeStyles } from "../../../utils/getLocationTypeStyles";
 import LocationCard from "../../../components/cards/locationCard";
 import MapScreen from "../../../components/map/map";
+import { RiderHomeSkeleton } from "../../../components/skelentonAnimation/riderHomeSkelento";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SNAP_POINTS = [SCREEN_HEIGHT * 0.5, SCREEN_HEIGHT * 0.3];
@@ -54,6 +55,10 @@ const RiderHomeScreen = () => {
       }
     }
   }, [data, isLoading]);
+
+  if (isLoading || loadingSavedLocation) {
+    return <RiderHomeSkeleton />;
+  }
 
   return (
     <View
@@ -256,7 +261,13 @@ const RiderHomeScreen = () => {
             >
               Upcoming Rides
             </Text>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate("RiderRideStack", {
+                  screen: "MyRidesScreen",
+                });
+              }}
+            >
               <Text
                 style={[
                   commonStyling.subtitle,

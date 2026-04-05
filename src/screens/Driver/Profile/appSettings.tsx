@@ -9,7 +9,6 @@ import {
   Switch,
 } from "react-native";
 import {
-  ChevronLeft,
   Globe,
   Ruler,
   Moon,

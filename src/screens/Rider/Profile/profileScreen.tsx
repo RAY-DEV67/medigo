@@ -32,6 +32,7 @@ import { useUserProfile } from "../../../hooks/queries/useUserProfile";
 import { useUserStore } from "../../../store/userStore";
 import ModalComponent from "../../../components/modals/modal";
 import Buttons from "../../../components/buttons/buttons";
+import { ProfileSkeleton } from "../../../components/skelentonAnimation/profileSkelenton";
 
 const { width } = Dimensions.get("window");
 
@@ -43,6 +44,10 @@ const ProfileScreen = () => {
   const { data, isLoading } = useUserProfile();
   const logout = useUserStore((state) => state.logout);
   const [showLogoutModal, setshowLogoutModal] = useState(false);
+
+  if (isLoading) {
+    return <ProfileSkeleton />;
+  }
 
   return (
     <SafeAreaView
@@ -97,7 +102,7 @@ const ProfileScreen = () => {
                 },
               ]}
             >
-              {data?.data.email}
+              {data?.data.email ? data?.data.email : data?.data.phone}
             </Text>
           </View>
         </View>
@@ -277,6 +282,11 @@ const ProfileScreen = () => {
           <MenuOption
             icon={<HelpCircle size={20} color="#64748B" />}
             label="Help Center"
+            onPress={() => {
+              navigation.navigate("DriverProfileContentsStack", {
+                screen: "HelpCenter",
+              });
+            }}
           />
         </View>
 

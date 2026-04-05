@@ -25,19 +25,24 @@ import Header from "../../../components/reuseables/header";
 import { useEarningsSummary } from "../../../hooks/queries/useEarningSummary";
 import { useWalletBalance } from "../../../hooks/queries/useWalletBalance";
 import { useEarningsHistory } from "../../../hooks/queries/useEarningHistory";
+import { DriverEarningsSkeleton } from "../../../components/skelentonAnimation/driverEarningsSkelenton";
 
 const DriverEarningsDashboard = () => {
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  const { data: walletBalance, refetch, isRefetching } = useWalletBalance();
+  const { data: walletBalance, isLoading: isWalletLoading } =
+    useWalletBalance();
   const balance = walletBalance?.data;
   const { data, isLoading } = useEarningsSummary();
   const summary = data?.data;
   const { data: historyData, isLoading: isHistoryLoading } =
     useEarningsHistory(7);
   const history = historyData?.data || [];
-  console.log(balance, summary, history);
+
+  if (isLoading || isWalletLoading || isHistoryLoading) {
+    return <DriverEarningsSkeleton />;
+  }
 
   return (
     <SafeAreaView

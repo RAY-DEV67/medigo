@@ -19,6 +19,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Input from "../../../components/inputs/input";
 import Buttons from "../../../components/buttons/buttons";
+import { useUpdateDriverProfile } from "../../../hooks/mutations/useUser";
 
 const EditDriverPersonalInfo = () => {
   const { user } = useUserStore();
@@ -28,11 +29,27 @@ const EditDriverPersonalInfo = () => {
   const profile = profileData?.data;
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
 
-  const [firstName, setFirstName] = useState("John");
-  const [lastName, setLastName] = useState("Driver");
-  const [email, setEmail] = useState("john.driver@email.com");
-  const [phone, setPhone] = useState("+1 (555) 123-4567");
+  const [firstName, setFirstName] = useState(user?.data.first_name);
+  const [lastName, setLastName] = useState(user?.data.last_name);
+  const [email, setEmail] = useState(user?.data.email);
+  const [phone, setPhone] = useState(user?.data.phone);
 
+  const { mutate: updateProfile, isPending } = useUpdateDriverProfile();
+
+  const handleSave = () => {
+    const formData = {
+      first_name: firstName, // Pull these from your local component state
+      last_name: lastName,
+      email: email,
+      phone: phone,
+    };
+
+    updateProfile(formData, {
+      onSuccess: () => {
+        navigation.goBack();
+      },
+    });
+  };
   return (
     <SafeAreaView
       style={[
@@ -170,7 +187,13 @@ const EditDriverPersonalInfo = () => {
           },
         ]}
       >
-        <Buttons title="Save Changes" onPress={() => {}} />
+        <Buttons
+          title="Save Changes"
+          onPress={() => {
+            handleSave();
+          }}
+          loading={isPending}
+        />
       </View>
     </SafeAreaView>
   );

@@ -27,6 +27,7 @@ import {
   useCreateEmergencyContact,
   useDeleteEmergencyContact,
 } from "../../../hooks/mutations/useUser";
+import { EmergencyContactsSkeleton } from "../../../components/skelentonAnimation/emergencyContactsSkelenton";
 
 const EmergencyContactsScreen = () => {
   const { colors, theme } = useTheme();
@@ -53,6 +54,10 @@ const EmergencyContactsScreen = () => {
       },
     });
   };
+
+  if (isLoading) {
+    return <EmergencyContactsSkeleton />;
+  }
 
   return (
     <SafeAreaView

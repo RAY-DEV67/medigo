@@ -87,6 +87,7 @@ const ReviewAndAccept = () => {
             styles.card,
             {
               backgroundColor: colors.highlightRed50,
+              borderColor: colors.lightPrimaryBlueBorder,
             },
           ]}
         >
@@ -231,6 +232,7 @@ const AgreementCard = ({
         styles.card,
         {
           backgroundColor: colors.lightGray,
+          borderColor: colors.lightPrimaryBlueBorder,
         },
       ]}
     >

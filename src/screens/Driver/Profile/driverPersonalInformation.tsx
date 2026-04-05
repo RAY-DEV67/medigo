@@ -6,10 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
   StatusBar,
-  Image,
 } from "react-native";
 import {
-  ChevronLeft,
   User,
   Mail,
   Phone,
@@ -21,18 +19,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserStore } from "../../../store/userStore";
 import useTheme from "../../../hooks/useThemes";
 import { commonStyles } from "../../../styles/commonStyles";
-import { useDriverProfile } from "../../../hooks/queries/useDriverProfile";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Header from "../../../components/reuseables/header";
+import { useRideStore } from "../../../store/useRideStore";
 
 const DriverPersonalInformationScreen = () => {
   const { user } = useUserStore();
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
-  const { data: profileData, isLoading } = useDriverProfile();
-  const profile = profileData?.data;
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const pickup = useRideStore((s) => s.pickup);
+
+  console.log(user);
 
   return (
     <SafeAreaView
@@ -47,29 +46,7 @@ const DriverPersonalInformationScreen = () => {
         barStyle={theme === "light" ? "dark-content" : "light-content"}
       />
 
-      <Header
-        title="Personal Information"
-        rightText={
-          <TouchableOpacity
-            onPress={() => {
-              navigation.navigate("DriverProfileContentsStack", {
-                screen: "EditDriverPersonalInfo",
-              });
-            }}
-          >
-            <Text
-              style={[
-                commonStyling.subtitle,
-                {
-                  fontSize: 16,
-                },
-              ]}
-            >
-              Edit
-            </Text>
-          </TouchableOpacity>
-        }
-      />
+      <Header title="Personal Information" />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -189,7 +166,7 @@ const DriverPersonalInformationScreen = () => {
                 },
               ]}
             >
-              John Driver
+              {user?.data.first_name} {user?.data.last_name}
             </Text>
           </View>
         </View>
@@ -227,7 +204,7 @@ const DriverPersonalInformationScreen = () => {
                 },
               ]}
             >
-              john.driver@email.com
+              {user?.data.email}
             </Text>
           </View>
           <CheckCircle2 size={20} color="#10B981" />
@@ -266,7 +243,7 @@ const DriverPersonalInformationScreen = () => {
                 },
               ]}
             >
-              +1 (555) 123-4567
+              {user?.data.phone}
             </Text>
           </View>
           <CheckCircle2 size={20} color="#10B981" />
@@ -317,7 +294,7 @@ const DriverPersonalInformationScreen = () => {
                 },
               ]}
             >
-              123 Main Street, Apt 4B,{"\n"}San Francisco, CA 94102
+              {pickup?.address}
             </Text>
           </View>
         </View>
@@ -387,7 +364,6 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 2,
   },
   dimensionBadge: {
     position: "absolute",

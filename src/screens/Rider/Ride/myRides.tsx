@@ -20,6 +20,7 @@ import { useMyRides } from "../../../hooks/queries/useMyRides";
 import formatScheduledDate from "../../../utils/formatScheduleDate";
 import formatTimeOnly from "../../../utils/formatScheduledTime";
 import { capitalizeFirstWord } from "../../../utils/capitalizeFirstLetter";
+import { MyRidesSkeleton } from "../../../components/skelentonAnimation/myRidesSkelenton";
 
 const MyRidesScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -33,7 +34,9 @@ const MyRidesScreen = () => {
     status: "active",
   });
 
-  console.log(activeData);
+  if (loadingUpcoming || loadingActive) {
+    return <MyRidesSkeleton />;
+  }
 
   const activeRide = activeData?.data?.[0];
   const upcomingRides = upcomingData?.data || [];
@@ -240,17 +243,7 @@ const MyRidesScreen = () => {
 };
 
 // --- Sub-components ---
-const UpcomingRideCard = ({
-  date,
-  time,
-  status,
-  statusColor,
-  statusTextColor,
-
-  isAssigning,
-  onPress,
-  ride,
-}: any) => {
+const UpcomingRideCard = ({ onPress, ride }: any) => {
   const { colors } = useTheme();
   const commonStyling = commonStyles(colors);
   return (

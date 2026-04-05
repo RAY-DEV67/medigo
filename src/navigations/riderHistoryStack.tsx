@@ -5,7 +5,7 @@ import RideHistoryScreen from "../screens/Rider/Ride/history";
 
 const Stack = createNativeStackNavigator();
 
-const RiderRideStack: React.FC = () => {
+const RiderHistoryStack: React.FC = () => {
   return (
     <Stack.Navigator
       screenOptions={{
@@ -13,9 +13,9 @@ const RiderRideStack: React.FC = () => {
         animation: "slide_from_right",
       }}
     >
-      <Stack.Screen name="MyRidesScreen" component={MyRidesScreen} />
+      <Stack.Screen name="RideHistoryScreen" component={RideHistoryScreen} />
     </Stack.Navigator>
   );
 };
 
-export default RiderRideStack;
+export default RiderHistoryStack;

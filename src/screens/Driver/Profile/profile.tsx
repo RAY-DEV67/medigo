@@ -33,6 +33,7 @@ import { useDriverProfile } from "../../../hooks/queries/useDriverProfile";
 import { useUserStore } from "../../../store/userStore";
 import ModalComponent from "../../../components/modals/modal";
 import Buttons from "../../../components/buttons/buttons";
+import { ProfileSkeleton } from "../../../components/skelentonAnimation/profileSkelenton";
 
 const { width } = Dimensions.get("window");
 
@@ -99,6 +100,10 @@ export default function DriverProfileScreen() {
   const [showLogoutModal, setshowLogoutModal] = useState(false);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const logout = useUserStore((state) => state.logout);
+
+  if (isLoading) {
+    return <ProfileSkeleton />;
+  }
 
   return (
     <SafeAreaView
@@ -200,7 +205,6 @@ export default function DriverProfileScreen() {
             style={[
               styles.card,
               {
-                backgroundColor: colors.surfaceSecondary,
                 borderColor: colors.lightPrimaryBlueBorder,
               },
             ]}
@@ -253,7 +257,6 @@ export default function DriverProfileScreen() {
             style={[
               styles.card,
               {
-                backgroundColor: colors.surfaceSecondary,
                 borderColor: colors.lightPrimaryBlueBorder,
               },
             ]}
@@ -286,7 +289,6 @@ export default function DriverProfileScreen() {
             style={[
               styles.card,
               {
-                backgroundColor: colors.surfaceSecondary,
                 borderColor: colors.lightPrimaryBlueBorder,
               },
             ]}
@@ -306,7 +308,6 @@ export default function DriverProfileScreen() {
               icon={MessageCircle}
               title="Contact Support"
               subtitle="Get help from our team"
-              isLast
               onPress={() => {
                 navigation.navigate("DriverProfileContentsStack", {
                   screen: "ContactSupport",
@@ -343,7 +344,6 @@ export default function DriverProfileScreen() {
             style={[
               styles.card,
               {
-                backgroundColor: colors.surfaceSecondary,
                 borderColor: colors.lightPrimaryBlueBorder,
               },
             ]}
@@ -363,7 +363,6 @@ export default function DriverProfileScreen() {
               icon={Lock}
               title="Privacy & Security"
               subtitle="Password and privacy settings"
-              isLast
               onPress={() => {
                 navigation.navigate("DriverProfileContentsStack", {
                   screen: "PrivacySecurityScreen",

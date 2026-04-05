@@ -20,6 +20,8 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Header from "../../../components/reuseables/header";
 import { useDriverUpcomingRides } from "../../../hooks/queries/useDriverUpcomingRide";
+import { UpcomingRidesSkeleton } from "../../../components/skelentonAnimation/upcomingRides";
+import { formatHumanReadableDate } from "../../../utils/formatHumanReadableDate";
 
 const UpcomingRidesScreen = () => {
   const { colors, theme } = useTheme();
@@ -30,8 +32,15 @@ const UpcomingRidesScreen = () => {
     data: driverUpcomingRides,
     refetch,
     isRefetching,
+    isLoading,
   } = useDriverUpcomingRides();
   const rides = driverUpcomingRides?.data || [];
+
+  if (isLoading) {
+    return <UpcomingRidesSkeleton />;
+  }
+
+  console.log(rides);
 
   return (
     <SafeAreaView
@@ -99,16 +108,18 @@ const UpcomingRidesScreen = () => {
                     },
                   ]}
                 >
-                  {ride.time}
+                  {formatHumanReadableDate(ride.scheduled_at)}
                 </Text>
               </View>
               <View
                 style={[
                   styles.statusBadge,
-                  { backgroundColor: ride.statusColor },
+                  { backgroundColor: colors.surfaceBrand },
                 ]}
               >
-                <Text style={[styles.statusText, { color: ride.statusText }]}>
+                <Text
+                  style={[styles.statusText, { color: colors.primaryColor }]}
+                >
                   {ride.status}
                 </Text>
               </View>
@@ -142,7 +153,7 @@ const UpcomingRidesScreen = () => {
                   color: colors.primaryColor,
                 }}
               >
-                Medical Appointment
+                {ride.ride_type}
               </Text>
             </View>
 
@@ -174,7 +185,7 @@ const UpcomingRidesScreen = () => {
                       },
                     ]}
                   >
-                    {ride.pickup}
+                    {ride.pickup_address}
                   </Text>
                 </View>
                 <View style={[styles.locationItem, { marginTop: 12 }]}>
@@ -197,7 +208,7 @@ const UpcomingRidesScreen = () => {
                       },
                     ]}
                   >
-                    {ride.destination}
+                    {ride.destination_address}
                   </Text>
                 </View>
               </View>
@@ -223,7 +234,7 @@ const UpcomingRidesScreen = () => {
                     },
                   ]}
                 >
-                  {ride.distance}
+                  {ride.estimated_distance_miles} mi
                 </Text>
               </View>
               <Text
@@ -236,13 +247,16 @@ const UpcomingRidesScreen = () => {
                   },
                 ]}
               >
-                {ride.fare}
+                {ride.final_fare}
               </Text>
               <TouchableOpacity
                 style={styles.detailsButton}
                 onPress={() => {
                   navigation.navigate("DriverRideDetailsStack", {
                     screen: "RideDetails",
+                    params: {
+                      id: ride.id,
+                    },
                   });
                 }}
               >

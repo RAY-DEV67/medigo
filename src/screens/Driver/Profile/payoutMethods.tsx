@@ -22,45 +22,15 @@ import { commonStyles } from "../../../styles/commonStyles";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Header from "../../../components/reuseables/header";
+import { usePaymentMethods } from "../../../hooks/queries/usePaymentMethods";
 
 const PayoutMethods = () => {
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { data, isLoading } = usePaymentMethods();
 
-  const paymentMethods = [
-    {
-      id: 1,
-      type: "Bank",
-      name: "Chase Bank",
-      detail: "Checking ••••4532",
-      isDefault: true,
-      isVerified: true,
-      icon: <Landmark size={22} color="#3B82F6" />,
-      iconBg: "#EFF6FF",
-    },
-    {
-      id: 2,
-      type: "Bank",
-      name: "Wells Fargo",
-      detail: "Savings ••••7891",
-      isDefault: false,
-      isVerified: true,
-      icon: <Landmark size={22} color="#3B82F6" />,
-      iconBg: "#EFF6FF",
-    },
-    {
-      id: 3,
-      type: "Card",
-      name: "Debit Card",
-      detail: "•••• 2845",
-      expiry: "Expires 08/27",
-      isDefault: false,
-      isVerified: false,
-      icon: <CreditCard size={22} color="#F59E0B" />,
-      iconBg: "#FFFBEB",
-    },
-  ];
+  const paymentMethods = data?.data || [];
 
   return (
     <SafeAreaView
@@ -175,80 +145,100 @@ const PayoutMethods = () => {
         </Text>
 
         {/* List of Methods */}
-        {paymentMethods.map((method) => (
-          <View
-            key={method.id}
+        {paymentMethods.length === 0 ? (
+          <Text
             style={[
-              styles.methodCard,
+              commonStyling.title,
               {
-                borderColor: colors.lightPrimaryBlueBorder,
+                fontSize: 15,
+                fontFamily: "Bold",
+                textAlign: "center",
+                marginTop: 16,
               },
             ]}
           >
-            <View
-              style={[styles.methodIcon, { backgroundColor: method.iconBg }]}
-            >
-              {method.icon}
-            </View>
-
-            <View style={styles.methodDetails}>
-              <View style={styles.nameRow}>
-                <Text
-                  style={[
-                    commonStyling.title,
-                    {
-                      fontSize: 15,
-                      fontFamily: "Bold",
-                    },
-                  ]}
-                >
-                  {method.name}
-                </Text>
-                {method.isDefault && (
-                  <View style={styles.defaultBadge}>
-                    <CheckCircle2 size={12} color="#10B981" />
-                    <Text style={styles.defaultText}>Default</Text>
-                  </View>
-                )}
-              </View>
-              <Text
+            No payment method
+          </Text>
+        ) : (
+          <View>
+            {paymentMethods.map((method) => (
+              <View
+                key={method.id}
                 style={[
-                  commonStyling.subtitle,
+                  styles.methodCard,
                   {
-                    fontSize: 14,
+                    borderColor: colors.lightPrimaryBlueBorder,
                   },
                 ]}
               >
-                {method.detail}
-              </Text>
-
-              {method.expiry && (
-                <Text
+                <View
                   style={[
-                    commonStyling.subtitle,
-                    {
-                      fontSize: 12,
-                      marginTop: 4,
-                    },
+                    styles.methodIcon,
+                    { backgroundColor: method.iconBg },
                   ]}
                 >
-                  {method.expiry}
-                </Text>
-              )}
-
-              {method.isVerified && (
-                <View style={styles.verifiedRow}>
-                  <CheckCircle2 size={12} color="#10B981" />
-                  <Text style={styles.verifiedText}>Verified</Text>
+                  {method.icon}
                 </View>
-              )}
-            </View>
 
-            <TouchableOpacity style={styles.moreButton}>
-              <MoreVertical size={20} color={colors.titleText} />
-            </TouchableOpacity>
+                <View style={styles.methodDetails}>
+                  <View style={styles.nameRow}>
+                    <Text
+                      style={[
+                        commonStyling.title,
+                        {
+                          fontSize: 15,
+                          fontFamily: "Bold",
+                        },
+                      ]}
+                    >
+                      {method.name}
+                    </Text>
+                    {method.isDefault && (
+                      <View style={styles.defaultBadge}>
+                        <CheckCircle2 size={12} color="#10B981" />
+                        <Text style={styles.defaultText}>Default</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      commonStyling.subtitle,
+                      {
+                        fontSize: 14,
+                      },
+                    ]}
+                  >
+                    {method.detail}
+                  </Text>
+
+                  {method.expiry && (
+                    <Text
+                      style={[
+                        commonStyling.subtitle,
+                        {
+                          fontSize: 12,
+                          marginTop: 4,
+                        },
+                      ]}
+                    >
+                      {method.expiry}
+                    </Text>
+                  )}
+
+                  {method.isVerified && (
+                    <View style={styles.verifiedRow}>
+                      <CheckCircle2 size={12} color="#10B981" />
+                      <Text style={styles.verifiedText}>Verified</Text>
+                    </View>
+                  )}
+                </View>
+                <TouchableOpacity style={styles.moreButton}>
+                  <MoreVertical size={20} color={colors.titleText} />
+                </TouchableOpacity>
+              </View>
+            ))}
           </View>
-        ))}
+        )}
 
         {/* Security Notice */}
         <View

@@ -27,6 +27,7 @@ import Header from "../../../components/reuseables/header";
 import { FONT_SIZES } from "../../../constants/sizes";
 import { useNotifications } from "../../../hooks/queries/useNotifications";
 import { formatDistanceToNow } from "date-fns";
+import { NotificationsSkeleton } from "../../../components/skelentonAnimation/notificationsSkelenton";
 
 const NotificationsScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -34,7 +35,6 @@ const NotificationsScreen = () => {
   const commonStyling = commonStyles(colors);
   const [unreadOnly, setUnreadOnly] = useState(false);
   const { data, isLoading } = useNotifications({
-    unread_only: unreadOnly,
     limit: 20,
   });
 
@@ -53,6 +53,12 @@ const NotificationsScreen = () => {
         return { icon: <Info size={20} color="#3B82F6" />, bg: "#EFF6FF" };
     }
   };
+
+  console.log(data?.data);
+
+  if (isLoading) {
+    return <NotificationsSkeleton />;
+  }
 
   return (
     <SafeAreaView
@@ -101,9 +107,12 @@ const NotificationsScreen = () => {
                 unread={!item.is_read}
                 onPress={() => {
                   // Handle navigation based on item.data or type
-                  if (item.notification_type === "ride")
-                    navigation.navigate("RideDetails", {
-                      id: item.data.ride_id,
+                  if (item.data.screen === "ride_detail")
+                    navigation.navigate("RiderRideDetailsStack", {
+                      screen: "RideDetails",
+                      params: {
+                        id: item.data.ride_id,
+                      },
                     });
                 }}
               />

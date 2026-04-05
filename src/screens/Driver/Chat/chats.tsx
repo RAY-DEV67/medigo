@@ -24,6 +24,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Header from "../../../components/reuseables/header";
 import { useChatConversations } from "../../../hooks/queries/useChatConversations";
+import { ChatsSkeleton } from "../../../components/skelentonAnimation/chatsSkelenton";
 
 const ChatItem = ({ item, isActive }: any) => {
   const { colors, theme } = useTheme();
@@ -123,6 +124,12 @@ export default function ChatsScreen() {
   const commonStyling = commonStyles(colors);
   const { data, isLoading, refetch } = useChatConversations();
   const conversations = data?.data || [];
+
+  if (isLoading) {
+    return <ChatsSkeleton />;
+  }
+
+  console.log(conversations);
 
   return (
     <SafeAreaView
