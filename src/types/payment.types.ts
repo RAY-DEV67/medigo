@@ -83,4 +83,28 @@ export interface EarningsHistoryResponse {
   data: EarningsHistoryItem[];
 }
 
+export interface FareEstimatePayload {
+  pickup_address?: string;
+  pickup_latitude?: number;
+  pickup_longitude?: number;
+  destination_address?: string;
+  destination_latitude?: number;
+  destination_longitude?: number;
+  scheduled_at?: string;
+  use_highway_407?: boolean;
+  is_dialysis_trip?: boolean;
+}
 
+export interface FareEstimateResponse {
+  success: boolean;
+  data: {
+    distance_km: number;
+    distance_miles: number;
+    duration_minutes: number;
+    base_fare: number;
+    distance_charge: number;
+    total_fare: number;
+    currency: string;
+    surcharge_details: any[];
+  };
+}

@@ -1,7 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Alert } from "react-native";
 import rideService from "../../api/services/rideService";
-import { CreateRideRequest } from "../../types/rides.types";
+import {
+  CancelRidePayload,
+  CreateRideRequest,
+  UpdateStatusPayload,
+} from "../../types/rides.types";
 
 export const useCreateRide = () => {
   const queryClient = useQueryClient();
@@ -23,4 +27,32 @@ export const useCreateRide = () => {
   });
 };
 
+export const useUpdateRideStatus = (rideId: string) => {
+  const queryClient = useQueryClient();
 
+  return useMutation({
+    mutationFn: (payload: UpdateStatusPayload) =>
+      rideService.updateRideStatus(rideId, payload),
+    onSuccess: (response) => {
+      // Refresh the specific ride details
+      queryClient.invalidateQueries({ queryKey: ["ride-detail", rideId] });
+
+      // Also refresh the general driver status if you have a "current ride" query
+      queryClient.invalidateQueries({ queryKey: ["active-rides"] });
+    },
+    onError: (error: any) => {},
+  });
+};
+
+export const useCancelRide = (rideId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: CancelRidePayload) =>
+      rideService.cancelRide(rideId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-rides", rideId] });
+    },
+    onError: (error: any) => {},
+  });
+};

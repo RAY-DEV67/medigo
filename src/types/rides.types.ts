@@ -130,3 +130,32 @@ export interface RideDetailResponse {
   message: string;
   data: RideDetail;
 }
+
+export type RideStatus =
+  | "accepted"
+  | "arrived"
+  | "picked_up"
+  | "dropped_off"
+  | "cancelled";
+
+export interface UpdateStatusPayload {
+  status: RideStatus;
+  notes?: string;
+}
+
+export interface TimelineEvent {
+  from_status: string;
+  to_status: string;
+  timestamp: string;
+  notes: string | null;
+}
+
+export interface TimelineResponse {
+  success: boolean;
+  message: string;
+  data: TimelineEvent[];
+}
+
+export interface CancelRidePayload {
+  reason: string;
+}

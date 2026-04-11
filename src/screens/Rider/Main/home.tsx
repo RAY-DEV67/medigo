@@ -226,6 +226,11 @@ const RiderHomeScreen = () => {
                     borderRadius: 10,
                   },
                 ]}
+                onPress={() => {
+                  navigation.navigate("RiderRideDetailsStack", {
+                    screen: "BookARide",
+                  });
+                }}
               >
                 <View style={styles.rowCenter}>
                   <Calendar color="#3B82F6" size={20} />
@@ -244,7 +249,14 @@ const RiderHomeScreen = () => {
                 <Plus color="#94A3B8" size={18} />
               </TouchableOpacity>
 
-              <Buttons title="Book Now" onPress={() => {}} />
+              <Buttons
+                title="Book Now"
+                onPress={() => {
+                  navigation.navigate("RiderRideDetailsStack", {
+                    screen: "BookARide",
+                  });
+                }}
+              />
             </View>
           </View>
 
@@ -315,7 +327,14 @@ const RiderHomeScreen = () => {
             >
               You do not have any upcoming ride yet.
             </Text>
-            <TouchableOpacity style={styles.emptyAction}>
+            <TouchableOpacity
+              style={styles.emptyAction}
+              onPress={() => {
+                navigation.navigate("RiderRideDetailsStack", {
+                  screen: "BookARide",
+                });
+              }}
+            >
               <Plus color="#3B82F6" size={16} />
               <Text
                 style={[

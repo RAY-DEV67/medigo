@@ -238,6 +238,11 @@ export default function Navbar({ state, navigation }: BottomTabBarProps) {
                 borderColor: colors.lightPrimaryBlueBorder,
               },
             ]}
+            onPress={() => {
+              navigation.navigate("RiderRideDetailsStack", {
+                screen: "BookARide",
+              });
+            }}
           >
             <View style={styles.iconContainer}>
               <Calendar color="#64748B" size={28} />

@@ -6,12 +6,12 @@ export default ({ config }) => ({
   slug: "medigo",
   version: "1.0.0",
   orientation: "portrait",
-  icon: "./assets/appIcon.png",
+  icon: "./assets/med.png",
   userInterfaceStyle: "light",
   newArchEnabled: true,
 
   splash: {
-    image: "./assets/logo.png",
+    image: "./assets/splashMed.png",
     resizeMode: "contain",
     backgroundColor: "#ffffff",
   },
@@ -26,7 +26,7 @@ export default ({ config }) => ({
 
   android: {
     adaptiveIcon: {
-      foregroundImage: "./assets/appIcon.png",
+      foregroundImage: "./assets/med.png",
       backgroundColor: "#ffffff",
     },
 
@@ -45,7 +45,7 @@ export default ({ config }) => ({
       "android.permission.RECORD_AUDIO",
     ],
 
-    package: "com.osinnowo.klimateriderider",
+    package: "com.medigo",
   },
 
   web: {
@@ -75,7 +75,7 @@ export default ({ config }) => ({
   extra: {
     expoPublicGoogleKey: process.env.EXPO_PUBLIC_GOOGLE_KEY,
     eas: {
-      projectId: "68809e59-a6f8-45db-bf14-52e25258bdd2",
+      projectId: "be1912f2-b5ef-4f3f-89f8-d1111c9a6680",
     },
   },
 
@@ -84,7 +84,7 @@ export default ({ config }) => ({
   },
 
   updates: {
-    url: "https://u.expo.dev/68809e59-a6f8-45db-bf14-52e25258bdd2",
+    url: "https://u.expo.dev/be1912f2-b5ef-4f3f-89f8-d1111c9a6680",
     checkAutomatically: "ON_LOAD",
     fallbackToCacheTimeout: 30000,
   },

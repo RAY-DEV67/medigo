@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -7,8 +7,9 @@ import {
   TouchableOpacity,
   StatusBar,
   Image,
+  ActivityIndicator,
 } from "react-native";
-import { Bell, Calendar, Headphones } from "lucide-react-native";
+import { Bell, Calendar, Headphones, X } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -212,11 +213,12 @@ const MyRidesScreen = () => {
             <UpcomingRideCard
               key={ride.id}
               ride={ride}
-              onPress={() =>
+              onPress={() => {
                 navigation.navigate("RiderRideDetailsStack", {
-                  rideId: ride.id,
-                })
-              }
+                  screen: "RideDetails",
+                  params: { id: ride.id },
+                });
+              }}
             />
           ))
         ) : (
@@ -380,9 +382,6 @@ const UpcomingRideCard = ({ onPress, ride }: any) => {
       <View style={styles.upcomingActions}>
         <TouchableOpacity style={styles.detailsBtn} onPress={onPress}>
           <Text style={styles.detailsBtnText}>View Details</Text>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -577,9 +576,6 @@ const styles = StyleSheet.create({
   },
   driverAssignText: { fontSize: 13, color: "#64748B", marginBottom: 16 },
   upcomingActions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     marginTop: 16,
   },
   detailsBtn: {
@@ -588,7 +584,7 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 12,
     justifyContent: "center",
-    width: "75%",
+    width: "100%",
     alignItems: "center",
   },
   detailsBtnText: { color: "#FFF", fontWeight: "700", fontSize: 14 },

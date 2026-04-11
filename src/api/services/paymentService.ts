@@ -4,6 +4,8 @@ import {
   AddPaymentPayload,
   EarningsHistoryResponse,
   EarningsSummaryResponse,
+  FareEstimatePayload,
+  FareEstimateResponse,
   PaymentMethodResponse,
   PaymentMethodsResponse,
   WalletResponse,
@@ -42,6 +44,13 @@ const paymentService = {
     const response = await apiClient.get("/payments/earnings/history", {
       params: { days },
     });
+    return response.data;
+  },
+
+  getFareEstimate: async (
+    payload: FareEstimatePayload,
+  ): Promise<FareEstimateResponse> => {
+    const response = await apiClient.post("/payments/base-fare-estimate", payload);
     return response.data;
   },
 };

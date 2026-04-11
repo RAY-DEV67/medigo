@@ -20,15 +20,30 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import useTheme from "../../../hooks/useThemes";
 import { commonStyles } from "../../../styles/commonStyles";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Buttons from "../../../components/buttons/buttons";
+import { useRideDetail } from "../../../hooks/queries/useRideDetails";
+import { formatHumanReadableDate } from "../../../utils/formatHumanReadableDate";
+import { formatTripTime } from "../../../utils/formatTripTime";
+import RideStatusSkeleton from "../../../components/skelentonAnimation/rideStatusSkelenton";
+import { formatDateReadable } from "../../../utils/formatDate";
 
 const RideStatusScreen = () => {
   const { colors, theme } = useTheme();
+  const route = useRoute<any>();
   const commonStyling = commonStyles(colors);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  const isDriverAssigned = true;
+
+  const rideId = route.params.rideId;
+
+  const { data: rideDetails, isLoading: loadingRideDetail } =
+    useRideDetail(rideId);
+  const rideDetail = rideDetails?.data;
+
+  if (loadingRideDetail) {
+    return <RideStatusSkeleton />;
+  }
 
   return (
     <SafeAreaView
@@ -71,7 +86,7 @@ const RideStatusScreen = () => {
       >
         {/* Awaiting Approval Banner */}
 
-        {isDriverAssigned ? (
+        {rideDetail?.status === "driver assigned" ? (
           <View
             style={[
               styles.awaitingBanner,
@@ -128,7 +143,7 @@ const RideStatusScreen = () => {
           </View>
         )}
 
-        {isDriverAssigned && (
+        {rideDetail?.status === "driver assigned" && (
           <View
             style={[
               styles.trackingCard,
@@ -299,7 +314,7 @@ const RideStatusScreen = () => {
                   },
                 ]}
               >
-                MediGo Standard
+                {rideDetail?.ride_type}
               </Text>
               <Text
                 style={[
@@ -310,7 +325,7 @@ const RideStatusScreen = () => {
                   },
                 ]}
               >
-                Transport + Escort
+                {rideDetail?.trip_type}
               </Text>
             </View>
           </View>
@@ -353,7 +368,7 @@ const RideStatusScreen = () => {
                     },
                   ]}
                 >
-                  2847 Maple Avenue, Springfield
+                  {rideDetail?.pickup_address}
                 </Text>
               </View>
             </View>
@@ -384,7 +399,7 @@ const RideStatusScreen = () => {
                     },
                   ]}
                 >
-                  Springfield General Hospital
+                  {rideDetail?.destination_address}
                 </Text>
               </View>
             </View>
@@ -425,7 +440,7 @@ const RideStatusScreen = () => {
                     },
                   ]}
                 >
-                  March 15, 2026
+                  {formatDateReadable(rideDetail?.scheduled_at)}
                 </Text>
               </View>
             </View>
@@ -453,7 +468,7 @@ const RideStatusScreen = () => {
                     },
                   ]}
                 >
-                  10:30 AM
+                  {formatTripTime(rideDetail?.appointment_time)}
                 </Text>
               </View>
             </View>
@@ -493,7 +508,7 @@ const RideStatusScreen = () => {
                   },
                 ]}
               >
-                John Anderson
+                {rideDetail?.rider_name}
               </Text>
             </View>
           </View>
@@ -538,7 +553,7 @@ const RideStatusScreen = () => {
                 fontFamily: "Bold",
               }}
             >
-              $48.50
+              ${rideDetail?.estimated_fare}
             </Text>
           </View>
 
@@ -548,7 +563,7 @@ const RideStatusScreen = () => {
           </View>
         </View>
 
-        {isDriverAssigned && (
+        {rideDetail?.status === "driver assigned" && (
           <View
             style={{
               gap: 12,

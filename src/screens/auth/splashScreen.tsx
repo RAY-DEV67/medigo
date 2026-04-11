@@ -45,7 +45,6 @@ export default function MediGoApp() {
   const [targetUser, setTargetUser] = useState<any>(null);
   const [authChecked, setAuthChecked] = useState(false);
 
-
   useEffect(() => {
     const checkAuth = async () => {
       // Set a maximum wait time of 5 seconds
@@ -136,11 +135,10 @@ export default function MediGoApp() {
         {step === "splash2" && (
           <View style={styles.logoContainer}>
             <Image
-              source={{ uri: "https://i.imgur.com/your_logo_here.png" }}
+              source={require("../../../assets/med.png")}
               style={styles.logoPlaceholder}
               resizeMode="contain"
             />
-            <Text style={styles.splashText}>MediGo</Text>
           </View>
         )}
       </LinearGradient>
@@ -360,7 +358,7 @@ const styles = StyleSheet.create({
   fullScreen: { flex: 1, justifyContent: "center", alignItems: "center" },
   container: { flex: 1 },
   logoContainer: { alignItems: "center" },
-  logoPlaceholder: { width: 150, height: 80 },
+  logoPlaceholder: { width: 330, height: 330 },
   splashText: {
     color: "white",
     fontSize: 32,
