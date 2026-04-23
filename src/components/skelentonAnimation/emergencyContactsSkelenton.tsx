@@ -1,8 +1,10 @@
 import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
 import { SkeletonBone } from "./skelentonBone";
 import useTheme from "../../hooks/useThemes";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export const EmergencyContactsSkeleton = () => {
   const { colors } = useTheme();
@@ -29,16 +31,16 @@ export const EmergencyContactsSkeleton = () => {
             <SkeletonBone width={20} height={20} borderRadius={4} />
             <View style={styles.bannerTextContent}>
               <SkeletonBone
-                width="40%"
+                width={SCREEN_WIDTH * 0.40}
                 height={14}
                 style={{ marginBottom: 8 }}
               />
               <SkeletonBone
-                width="95%"
+                width={SCREEN_WIDTH * 0.90}
                 height={12}
                 style={{ marginBottom: 4 }}
               />
-              <SkeletonBone width="80%" height={12} />
+              <SkeletonBone width={SCREEN_WIDTH * 0.80} height={12} />
             </View>
           </View>
 
@@ -85,8 +87,8 @@ const ContactCardSkeleton = () => {
     >
       <View style={styles.cardHeader}>
         <View style={{ flex: 1 }}>
-          <SkeletonBone width="50%" height={16} style={{ marginBottom: 8 }} />
-          <SkeletonBone width="30%" height={14} />
+          <SkeletonBone width={SCREEN_WIDTH * 0.50} height={16} style={{ marginBottom: 8 }} />
+          <SkeletonBone width={SCREEN_WIDTH * 0.30} height={14} />
         </View>
         <SkeletonBone width={36} height={36} borderRadius={18} />
       </View>
@@ -102,7 +104,7 @@ const ContactCardSkeleton = () => {
       {/* Phone Row */}
       <View style={styles.phoneRow}>
         <SkeletonBone width={16} height={16} borderRadius={4} />
-        <SkeletonBone width="40%" height={14} style={{ marginLeft: 10 }} />
+        <SkeletonBone width={SCREEN_WIDTH * 0.40} height={14} style={{ marginLeft: 10 }} />
       </View>
     </View>
   );

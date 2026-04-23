@@ -87,6 +87,7 @@ export default function GoogleInput({
 
         const res = await fetch(url);
         const json = await res.json();
+        console.log("GOOGLE RESPONSE:", json);
         finalSetPredictions(json.predictions || []);
       } catch (e) {
         console.warn("Autocomplete error:", e);

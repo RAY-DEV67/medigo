@@ -14,7 +14,7 @@ export const useCreateRide = () => {
     mutationFn: (data: CreateRideRequest) => rideService.createRide(data),
     onSuccess: (response) => {
       // Invalidate existing rides list to trigger a refresh
-      queryClient.invalidateQueries({ queryKey: ["rides"] });
+      queryClient.invalidateQueries({ queryKey: ["my-rides"] });
 
       Alert.alert("Success", "Your ride has been scheduled successfully!");
     },

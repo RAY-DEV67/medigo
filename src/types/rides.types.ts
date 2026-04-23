@@ -159,3 +159,19 @@ export interface TimelineResponse {
 export interface CancelRidePayload {
   reason: string;
 }
+
+export interface ActiveRideResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: string;
+    rider_id: string;
+    driver_id: string | null;
+    pickup_address: string;
+    destination_address: string;
+    status: string;
+    estimated_fare: number;
+    scheduled_at: string;
+  } | null;
+}
+

@@ -272,7 +272,7 @@ const HistoryCard = ({ ride }: { ride: any }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 120 },
+  scrollContent: { paddingHorizontal: 20, paddingBottom: 50 },
   subHeader: {
     flexDirection: "row",
     justifyContent: "space-between",

@@ -1,8 +1,10 @@
 import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
 import useTheme from "../../hooks/useThemes";
 import { SkeletonBone } from "./skelentonBone";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export const ChatsSkeleton = () => {
   const { colors } = useTheme();
@@ -59,7 +61,7 @@ export const ChatsSkeleton = () => {
               </View>
 
               <View style={styles.messageRow}>
-                <SkeletonBone width="85%" height={14} />
+                <SkeletonBone width={SCREEN_WIDTH * 0.85} height={14} />
                 {i % 2 === 0 && (
                   <SkeletonBone width={20} height={20} borderRadius={10} />
                 )}

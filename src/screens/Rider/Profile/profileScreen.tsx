@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 18, fontWeight: "800", color: "#1E293B" },
 
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 150 },
+  scrollContent: { paddingHorizontal: 20, paddingBottom: 50 },
   profileSection: {
     marginVertical: 24,
     flexDirection: "row",

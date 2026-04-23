@@ -22,6 +22,8 @@ import formatScheduledDate from "../../../utils/formatScheduleDate";
 import formatTimeOnly from "../../../utils/formatScheduledTime";
 import { capitalizeFirstWord } from "../../../utils/capitalizeFirstLetter";
 import { MyRidesSkeleton } from "../../../components/skelentonAnimation/myRidesSkelenton";
+import UpcomingRideCard from "../../../components/cards/upcomingRidesCard";
+import { useActiveRide } from "../../../hooks/queries/useActiveRide";
 
 const MyRidesScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -31,16 +33,17 @@ const MyRidesScreen = () => {
   const { data: upcomingData, isLoading: loadingUpcoming } = useMyRides({
     status: "requested",
   });
-  const { data: activeData, isLoading: loadingActive } = useMyRides({
-    status: "active",
-  });
 
-  if (loadingUpcoming || loadingActive) {
+  const { data: activeData, isLoading, error } = useActiveRide();
+
+  if (loadingUpcoming || isLoading) {
     return <MyRidesSkeleton />;
   }
 
-  const activeRide = activeData?.data?.[0];
+  const activeRide = activeData?.data;
   const upcomingRides = upcomingData?.data || [];
+
+  console.log(activeRide);
 
   return (
     <SafeAreaView
@@ -112,10 +115,14 @@ const MyRidesScreen = () => {
               <View style={styles.activeHeader}>
                 <View style={styles.statusRow}>
                   <View style={styles.pulseDot} />
-                  <Text style={[styles.activeStatusText]}>En Route</Text>
+                  <Text style={[styles.activeStatusText]}>
+                    {activeRide.status}
+                  </Text>
                 </View>
                 <View style={styles.etaBadge}>
-                  <Text style={styles.etaText}>ETA • 8 mins</Text>
+                  <Text style={styles.etaText}>
+                    ETA • {activeRide.estimated_duration_minutes} mins
+                  </Text>
                 </View>
               </View>
 
@@ -138,7 +145,7 @@ const MyRidesScreen = () => {
                       },
                     ]}
                   >
-                    2847 Maple Avenue
+                    {activeRide.pickup_address}
                   </Text>
                   <Text style={[styles.activeAddressLabel, { marginTop: 12 }]}>
                     Destination
@@ -153,7 +160,7 @@ const MyRidesScreen = () => {
                       },
                     ]}
                   >
-                    Springfield General Hospital
+                    {activeRide.destination_address}
                   </Text>
                 </View>
               </View>
@@ -167,7 +174,9 @@ const MyRidesScreen = () => {
                   style={styles.driverAvatar}
                 />
                 <View style={styles.driverInfo}>
-                  <Text style={styles.driverName}>John Smith</Text>
+                  <Text style={styles.driverName}>
+                    {activeRide.driver_name}
+                  </Text>
                   <Text style={styles.driverSub}>Your Driver</Text>
                 </View>
               </View>
@@ -175,7 +184,17 @@ const MyRidesScreen = () => {
                 Driver is on the way...
               </Text>
 
-              <TouchableOpacity style={styles.trackButton}>
+              <TouchableOpacity
+                style={styles.trackButton}
+                onPress={() => {
+                  navigation.navigate("RiderRideDetailsStack", {
+                    screen: "TripInProgress",
+                    params: {
+                      activeRide,
+                    },
+                  });
+                }}
+              >
                 <Text style={styles.trackButtonText}>Track Ride</Text>
               </TouchableOpacity>
             </View>
@@ -245,148 +264,6 @@ const MyRidesScreen = () => {
 };
 
 // --- Sub-components ---
-const UpcomingRideCard = ({ onPress, ride }: any) => {
-  const { colors } = useTheme();
-  const commonStyling = commonStyles(colors);
-  return (
-    <View
-      style={[
-        styles.upcomingCard,
-        {
-          backgroundColor: colors.homelightPrimaryBlue50,
-          borderColor: colors.lightPrimaryBlueBorder,
-        },
-      ]}
-    >
-      <View style={styles.upcomingHeader}>
-        <View style={styles.upcomingDateRow}>
-          <View
-            style={[
-              styles.iconBox,
-              {
-                backgroundColor: colors.surfaceElevated,
-              },
-            ]}
-          >
-            <Calendar color="#3B82F6" size={18} />
-          </View>
-          <View style={{ marginLeft: 10 }}>
-            <Text
-              style={[
-                commonStyling.title,
-                {
-                  fontSize: 15,
-                  fontWeight: "700",
-                  fontFamily: "Bold",
-                  marginBottom: 4,
-                },
-              ]}
-            >
-              {formatScheduledDate(ride.scheduled_at)}
-            </Text>
-            <Text
-              style={[
-                commonStyling.subtitle,
-                {
-                  fontSize: 12,
-                },
-              ]}
-            >
-              {formatTimeOnly(ride.scheduled_at)}
-            </Text>
-          </View>
-        </View>
-        <View
-          style={[
-            styles.statusBadge,
-            {
-              backgroundColor:
-                ride.status === "requested" ? colors.surfaceElevated : "red",
-            },
-          ]}
-        >
-          <Text
-            style={[
-              styles.statusBadgeText,
-              {
-                color:
-                  ride.status === "requested" ? colors.primaryColor : "red",
-              },
-            ]}
-          >
-            {capitalizeFirstWord(ride.status)}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.routeContainer}>
-        <View style={styles.timeline}>
-          <View style={styles.dotBlue} />
-          <View style={styles.line} />
-          <View style={styles.dotBlue} />
-        </View>
-        <View style={styles.addressContainer}>
-          <View>
-            <Text
-              style={[
-                commonStyling.subtitle,
-                {
-                  fontSize: FONT_SIZES.SMALL,
-                },
-              ]}
-            >
-              Pickup
-            </Text>
-            <Text
-              style={[
-                styles.addressText,
-                commonStyling.title,
-                {
-                  fontSize: FONT_SIZES.SMALL,
-                },
-              ]}
-            >
-              {ride.pickup_address}
-            </Text>
-          </View>
-          <View style={[{ marginTop: 20 }]}>
-            <Text
-              style={[
-                commonStyling.subtitle,
-                {
-                  fontSize: FONT_SIZES.SMALL,
-                },
-              ]}
-            >
-              Destination
-            </Text>
-            <Text
-              style={[
-                styles.addressText,
-                commonStyling.title,
-                {
-                  fontSize: FONT_SIZES.SMALL,
-                },
-              ]}
-            >
-              {ride.destination_address}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      <Text style={styles.driverAssignText}>
-        {ride.assigned_by_admin_id ? "Driver • John Smith" : "Assigning driver"}
-      </Text>
-
-      <View style={styles.upcomingActions}>
-        <TouchableOpacity style={styles.detailsBtn} onPress={onPress}>
-          <Text style={styles.detailsBtnText}>View Details</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-};
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -426,7 +303,7 @@ const styles = StyleSheet.create({
     borderColor: "#FFF",
   },
 
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 150 },
+  scrollContent: { paddingHorizontal: 20, paddingBottom: 50 },
   description: { marginBottom: 20 },
   sectionTitle: {
     marginTop: 10,

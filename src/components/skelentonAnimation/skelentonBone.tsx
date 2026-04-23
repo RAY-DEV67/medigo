@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from "react";
 import { View, StyleSheet, Animated, Easing } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import useTheme from "../../hooks/useThemes";
 
 export const SkeletonBone = ({
@@ -8,7 +7,12 @@ export const SkeletonBone = ({
   height,
   borderRadius = 8,
   style,
-}: any) => {
+}: {
+  width: number;
+  height: number;
+  borderRadius?: number;
+  style?: any;
+}) => {
   const { colors } = useTheme();
   const animatedValue = useRef(new Animated.Value(0)).current;
 
@@ -16,16 +20,18 @@ export const SkeletonBone = ({
     Animated.loop(
       Animated.timing(animatedValue, {
         toValue: 1,
-        duration: 1500,
+        duration: 1200,
         easing: Easing.linear,
         useNativeDriver: true,
       }),
     ).start();
   }, []);
 
+  const safeWidth = typeof width === "number" ? width : 0;
+
   const translateX = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [-width, width],
+    outputRange: [-safeWidth, safeWidth],
   });
 
   return (
@@ -42,15 +48,14 @@ export const SkeletonBone = ({
       ]}
     >
       <Animated.View
-        style={[StyleSheet.absoluteFill, { transform: [{ translateX }] }]}
-      >
-        <LinearGradient
-          colors={["transparent", "rgba(255, 255, 255, 0.3)", "transparent"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={StyleSheet.absoluteFill}
-        />
-      </Animated.View>
+        style={[
+          StyleSheet.absoluteFill,
+          {
+            backgroundColor: "rgba(255,255,255,0.2)",
+            transform: [{ translateX }],
+          },
+        ]}
+      />
     </View>
   );
 };

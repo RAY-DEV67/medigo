@@ -1,7 +1,9 @@
 import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
 import useTheme from "../../hooks/useThemes";
 import { SkeletonBone } from "./skelentonBone";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export const LocationDetailsSkeleton = () => {
   const { colors } = useTheme();
@@ -17,7 +19,7 @@ export const LocationDetailsSkeleton = () => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           {/* Subtitle Description */}
-          <SkeletonBone width="60%" height={14} style={{ marginBottom: 24 }} />
+          <SkeletonBone width={SCREEN_WIDTH * 0.60} height={14} style={{ marginBottom: 24 }} />
 
           {/* Section Label */}
           <SkeletonBone width={80} height={16} style={{ marginBottom: 12 }} />
@@ -34,11 +36,11 @@ export const LocationDetailsSkeleton = () => {
               <SkeletonBone width={50} height={50} borderRadius={12} />
               <View style={{ flex: 1, marginLeft: 16 }}>
                 <SkeletonBone
-                  width="40%"
+                  width={SCREEN_WIDTH * 0.40}
                   height={16}
                   style={{ marginBottom: 8 }}
                 />
-                <SkeletonBone width="80%" height={12} />
+                <SkeletonBone width={SCREEN_WIDTH * 0.80} height={12} />
               </View>
               <SkeletonBone width={60} height={24} borderRadius={8} />
             </View>
@@ -56,11 +58,11 @@ export const LocationDetailsSkeleton = () => {
                   <SkeletonBone width={36} height={36} borderRadius={18} />
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <SkeletonBone
-                      width="50%"
+                      width={SCREEN_WIDTH * 0.50}
                       height={14}
                       style={{ marginBottom: 6 }}
                     />
-                    <SkeletonBone width="70%" height={10} />
+                    <SkeletonBone width={SCREEN_WIDTH * 0.70} height={10} />
                   </View>
                   <SkeletonBone width={40} height={24} borderRadius={12} />
                 </View>
@@ -77,7 +79,7 @@ export const LocationDetailsSkeleton = () => {
 
           {/* Map Container Placeholder */}
           <SkeletonBone
-            width="100%"
+            width={SCREEN_WIDTH}
             height={200}
             borderRadius={16}
             style={{ marginBottom: 40 }}
@@ -85,8 +87,8 @@ export const LocationDetailsSkeleton = () => {
 
           {/* Footer Action Buttons */}
           <View style={{ gap: 16, marginBottom: 40 }}>
-            <SkeletonBone width="100%" height={56} borderRadius={28} />
-            <SkeletonBone width="100%" height={56} borderRadius={28} />
+            <SkeletonBone width={SCREEN_WIDTH} height={56} borderRadius={28} />
+            <SkeletonBone width={SCREEN_WIDTH} height={56} borderRadius={28} />
           </View>
         </View>
       </ScrollView>

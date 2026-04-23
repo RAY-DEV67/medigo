@@ -1,55 +1,10 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet, Animated, Easing } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { View, StyleSheet, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import useTheme from "../../hooks/useThemes";
+import { SkeletonBone } from "./skelentonBone";
 
-const SkeletonBone = ({ width, height, borderRadius = 8, style }: any) => {
-  const { colors } = useTheme();
-  const animatedValue = new Animated.Value(0);
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(animatedValue, {
-        toValue: 1,
-        duration: 1500,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-    ).start();
-  }, []);
-
-  const translateX = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-width, width],
-  });
-
-  return (
-    <View
-      style={[
-        {
-          width,
-          height,
-          borderRadius,
-          backgroundColor: colors.surfaceSecondary, // Adjust to your theme
-          overflow: "hidden",
-        },
-        style,
-      ]}
-    >
-      <Animated.View
-        style={[StyleSheet.absoluteFill, { transform: [{ translateX }] }]}
-      >
-        <LinearGradient
-          colors={["transparent", colors.surfacePrimary + "40", "transparent"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={StyleSheet.absoluteFill}
-        />
-      </Animated.View>
-    </View>
-  );
-};
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export const RiderHomeSkeleton = () => {
   const { colors } = useTheme();
@@ -82,24 +37,24 @@ export const RiderHomeSkeleton = () => {
         >
           <SkeletonBone width={180} height={20} style={{ marginBottom: 20 }} />
           <SkeletonBone
-            width={"100%"}
+            width={SCREEN_WIDTH}
             height={60}
             borderRadius={12}
             style={{ marginBottom: 12 }}
           />
           <SkeletonBone
-            width={"100%"}
+            width={SCREEN_WIDTH}
             height={50}
             borderRadius={20}
             style={{ marginBottom: 12 }}
           />
           <SkeletonBone
-            width={"100%"}
+            width={SCREEN_WIDTH}
             height={50}
             borderRadius={12}
             style={{ marginBottom: 12 }}
           />
-          <SkeletonBone width={"100%"} height={55} borderRadius={24} />
+          <SkeletonBone width={SCREEN_WIDTH} height={55} borderRadius={24} />
         </View>
 
         {/* Section Header */}
@@ -117,7 +72,7 @@ export const RiderHomeSkeleton = () => {
         ))}
 
         {/* Map Placeholder */}
-        <SkeletonBone width={"100%"} height={200} borderRadius={16} />
+        <SkeletonBone width={SCREEN_WIDTH} height={200} borderRadius={16} />
       </View>
     </SafeAreaView>
   );

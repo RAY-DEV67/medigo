@@ -1,8 +1,10 @@
 import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
 import useTheme from "../../hooks/useThemes";
 import { SkeletonBone } from "./skelentonBone";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export const ProfileSkeleton = () => {
   const { colors } = useTheme();
@@ -22,8 +24,8 @@ export const ProfileSkeleton = () => {
         <View style={styles.profileSection}>
           <SkeletonBone width={80} height={80} borderRadius={40} />
           <View style={{ flex: 1, marginLeft: 24 }}>
-            <SkeletonBone width="70%" height={28} style={{ marginBottom: 8 }} />
-            <SkeletonBone width="50%" height={16} />
+            <SkeletonBone width={SCREEN_WIDTH * 0.70} height={28} style={{ marginBottom: 8 }} />
+            <SkeletonBone width={SCREEN_WIDTH * 0.50} height={16} />
           </View>
         </View>
 
@@ -47,7 +49,7 @@ export const ProfileSkeleton = () => {
                 <View key={item} style={styles.optionRow}>
                   <SkeletonBone width={24} height={24} borderRadius={6} />
                   <SkeletonBone
-                    width="60%"
+                    width={SCREEN_WIDTH * 0.60}
                     height={18}
                     style={{ marginLeft: 12, flex: 1 }}
                   />
@@ -76,11 +78,11 @@ export const ProfileSkeleton = () => {
             <SkeletonBone width={40} height={40} borderRadius={20} />
             <View style={{ flex: 1, marginLeft: 12 }}>
               <SkeletonBone
-                width="40%"
+                width={SCREEN_WIDTH * 0.40}
                 height={16}
                 style={{ marginBottom: 6 }}
               />
-              <SkeletonBone width="60%" height={12} />
+              <SkeletonBone width={SCREEN_WIDTH * 0.60} height={12} />
             </View>
             <SkeletonBone width={45} height={24} borderRadius={12} />
           </View>
@@ -88,7 +90,7 @@ export const ProfileSkeleton = () => {
 
         {/* Logout Button Placeholder */}
         <SkeletonBone
-          width="100%"
+          width={SCREEN_WIDTH}
           height={56}
           borderRadius={28}
           style={{ marginTop: 32 }}

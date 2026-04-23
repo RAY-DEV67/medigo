@@ -1,8 +1,10 @@
 import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
 import useTheme from "../../hooks/useThemes";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SkeletonBone } from "./skelentonBone";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export const UpcomingRidesSkeleton = () => {
   const { colors } = useTheme();
@@ -48,7 +50,7 @@ export const UpcomingRidesSkeleton = () => {
 
             {/* Passenger Name & Medical Badge */}
             <SkeletonBone
-              width="60%"
+              width={SCREEN_WIDTH * 0.60}
               height={22}
               style={{ marginBottom: 12 }}
             />
@@ -77,7 +79,7 @@ export const UpcomingRidesSkeleton = () => {
                     height={10}
                     style={{ marginBottom: 4 }}
                   />
-                  <SkeletonBone width="80%" height={14} />
+                  <SkeletonBone width={SCREEN_WIDTH * 0.80} height={14} />
                 </View>
                 <View style={{ marginTop: 4 }}>
                   <SkeletonBone
@@ -85,7 +87,7 @@ export const UpcomingRidesSkeleton = () => {
                     height={10}
                     style={{ marginBottom: 4 }}
                   />
-                  <SkeletonBone width="75%" height={14} />
+                  <SkeletonBone width={SCREEN_WIDTH * 0.75} height={14} />
                 </View>
               </View>
             </View>

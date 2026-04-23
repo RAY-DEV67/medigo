@@ -72,7 +72,7 @@ export default function MediGoApp() {
       setTimeout(() => setStep("splash2"), 1500);
     } else if (step === "splash2" && authChecked && targetUser) {
       // 4. Role-based Navigation
-      const role = user.data.role?.toLowerCase();
+      const role = user?.data.role?.toLowerCase();
 
       if (role === "driver") {
         navigation.reset({
@@ -190,7 +190,7 @@ export default function MediGoApp() {
             <OnboardingContent
               title={
                 step === "onboarding1"
-                  ? "Safe Medical Rides"
+                  ? "Safe Medical Rides."
                   : step === "onboarding2"
                     ? "Verified Trusted Drivers"
                     : "Simple Ride Booking"

@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, View, Text, ScrollView, StatusBar } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  StatusBar,
+  TouchableOpacity,
+} from "react-native";
 import { CreditCard, Shield } from "lucide-react-native";
 import useTheme from "../../hooks/useThemes";
 import { commonStyles } from "../../styles/commonStyles";
@@ -81,6 +88,17 @@ const PaymentMethod = () => {
       {/* Header */}
       <View style={styles.header}>
         <BackButton />
+
+        <TouchableOpacity
+          onPress={() => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "RiderMainTabs" }],
+            });
+          }}
+        >
+          <Text style={[commonStyling.subtitle]}>Skip</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -263,7 +281,13 @@ const PaymentMethod = () => {
 };
 
 const styles = StyleSheet.create({
-  header: { paddingHorizontal: 20, paddingVertical: 10 },
+  header: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
 
   scrollContent: { paddingHorizontal: 24, paddingBottom: 100 },
   title: { marginTop: 24, fontSize: FONT_SIZES.HERO, fontFamily: "Bold" },

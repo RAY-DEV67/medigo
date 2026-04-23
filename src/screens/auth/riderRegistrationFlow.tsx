@@ -8,6 +8,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Eye, EyeOff, X, Mail, Lock } from "lucide-react-native";
@@ -165,264 +167,269 @@ export default function RiderRegistrationFlow() {
         style={{ flex: 1 }}
       >
         {step === "initial" && (
-          <View
-            style={{
-              flex: 1,
-              paddingHorizontal: 24,
-              flexDirection: "column",
-              justifyContent: "space-between",
-              paddingBottom: 30,
-              backgroundColor: colors.surfacePrimary,
-              paddingTop: 16,
-            }}
+          <TouchableWithoutFeedback
+            onPress={Keyboard.dismiss}
+            accessible={false}
           >
-            <View>
-              <View style={styles.header}>
-                <BackButton />
-              </View>
-
-              <Text
-                style={[
-                  commonStyling.title,
-                  styles.mainTitle,
-                  {
-                    fontSize: 30,
-                    fontFamily: "Bold",
-                  },
-                ]}
-              >
-                Create Account
-              </Text>
-              <Text style={[commonStyling.subtitle, styles.subTitle]}>
-                Sign up to book safe, reliable rides to your medical
-                appointments.
-              </Text>
-
-              <TouchableOpacity
-                style={{
-                  flexDirection: "row",
-                  borderWidth: 1,
-                  padding: 16,
-                  columnGap: 12,
-                  borderRadius: 16,
-                  borderColor:
-                    signUpMethod === "phone"
-                      ? colors.primaryColor
-                      : colors.stroke,
-                  backgroundColor:
-                    signUpMethod === "phone"
-                      ? colors.highlightBlue50
-                      : colors.surfacePrimary,
-                }}
-                onPress={() => {
-                  setsignUpMethod("phone");
-                }}
-              >
-                <View
-                  style={{
-                    height: 40,
-                    width: 40,
-                    backgroundColor:
-                      signUpMethod === "phone"
-                        ? colors.primaryColor
-                        : colors.lightGray,
-                    borderRadius: 50,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Phone
-                    color={
-                      signUpMethod === "phone" ? "#ffffff" : colors.titleText
-                    }
-                  />
+            <View
+              style={{
+                flex: 1,
+                paddingHorizontal: 24,
+                flexDirection: "column",
+                justifyContent: "space-between",
+                paddingBottom: 30,
+                backgroundColor: colors.surfacePrimary,
+                paddingTop: 16,
+              }}
+            >
+              <View>
+                <View style={styles.header}>
+                  <BackButton />
                 </View>
-                <View>
-                  <Text
-                    style={[
-                      commonStyling.subtitle,
-                      {
-                        color: colors.titleText,
-                        fontFamily: "Medium",
-                        marginBottom: 4,
-                      },
-                    ]}
-                  >
-                    Phone Number
-                  </Text>
-                  <Text
-                    style={[
-                      commonStyling.subtitle,
-                      {
-                        fontSize: FONT_SIZES.BODY,
-                        fontFamily: "Medium",
-                      },
-                    ]}
-                  >
-                    We will send you a verification code
-                  </Text>
-                </View>
-              </TouchableOpacity>
 
-              <TouchableOpacity
-                style={{
-                  flexDirection: "row",
-                  borderWidth: 1,
-                  padding: 16,
-                  columnGap: 12,
-                  borderRadius: 16,
-                  borderColor:
-                    signUpMethod === "email"
-                      ? colors.primaryColor
-                      : colors.stroke,
-                  marginTop: 16,
-                  marginBottom: 24,
-                  backgroundColor:
-                    signUpMethod === "email"
-                      ? colors.highlightBlue50
-                      : colors.surfacePrimary,
-                }}
-                onPress={() => {
-                  setsignUpMethod("email");
-                }}
-              >
-                <View
-                  style={{
-                    height: 40,
-                    width: 40,
-                    backgroundColor:
-                      signUpMethod === "email"
-                        ? colors.primaryColor
-                        : colors.lightGray,
-                    borderRadius: 50,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Mail
-                    color={
-                      signUpMethod === "email" ? "#ffffff" : colors.titleText
-                    }
-                  />
-                </View>
-                <View>
-                  <Text
-                    style={[
-                      commonStyling.subtitle,
-                      {
-                        color: colors.titleText,
-                        fontFamily: "Medium",
-                        marginBottom: 4,
-                      },
-                    ]}
-                  >
-                    Email Address
-                  </Text>
-                  <Text
-                    style={[
-                      commonStyling.subtitle,
-                      {
-                        fontSize: FONT_SIZES.BODY,
-                        fontFamily: "Medium",
-                      },
-                    ]}
-                  >
-                    Sign up with your email
-                  </Text>
-                </View>
-              </TouchableOpacity>
-
-              {signUpMethod === "phone" && (
-                <Input
-                  title="Phone Number"
-                  placeholder="(555) 000-0000"
-                  value={formData.identifier}
-                  onChangeText={(val) => updateFields({ identifier: val })}
-                  keyboardType="phone-pad"
-                />
-              )}
-
-              {signUpMethod === "email" && (
-                <Input
-                  title="Email Address"
-                  placeholder="you@example.com"
-                  value={formData.identifier}
-                  onChangeText={(val) => updateFields({ identifier: val })}
-                  keyboardType="email-address"
-                />
-              )}
-              <Text
-                style={[
-                  commonStyling.subtitle,
-                  styles.legalText,
-                  {
-                    fontSize: FONT_SIZES.SMALL,
-                  },
-                ]}
-              >
-                By signing up, you agree to our{" "}
-                <Text
-                  style={{
-                    color: colors.primaryColor,
-                    fontFamily: "Medium",
-                  }}
-                >
-                  Terms of Service
-                </Text>{" "}
-                and{" "}
-                <Text
-                  style={{
-                    color: colors.primaryColor,
-                    fontFamily: "Medium",
-                  }}
-                >
-                  Privacy Policy
-                </Text>
-                . Your health information is protected under HIPAA.
-              </Text>
-            </View>
-
-            <View>
-              <Buttons
-                title="Continue"
-                onPress={() => {
-                  setStep("password");
-                }}
-                loading={isPending}
-                rightIcon={!isPending && <RightArrow />}
-              />
-
-              <TouchableOpacity
-                style={{ marginTop: 16 }}
-                onPress={() => {
-                  navigation.navigate("Login");
-                }}
-              >
                 <Text
                   style={[
-                    commonStyling.subtitle,
-                    styles.footerText,
+                    commonStyling.title,
+                    styles.mainTitle,
                     {
-                      fontSize: FONT_SIZES.BODY,
-                      fontFamily: "SemiBold",
+                      fontSize: 30,
+                      fontFamily: "Bold",
                     },
                   ]}
                 >
-                  Already have an account?{" "}
+                  Create Account
+                </Text>
+                <Text style={[commonStyling.subtitle, styles.subTitle]}>
+                  Sign up to book safe, reliable rides to your medical
+                  appointments.
+                </Text>
+
+                <TouchableOpacity
+                  style={{
+                    flexDirection: "row",
+                    borderWidth: 1,
+                    padding: 16,
+                    columnGap: 12,
+                    borderRadius: 16,
+                    borderColor:
+                      signUpMethod === "phone"
+                        ? colors.primaryColor
+                        : colors.stroke,
+                    backgroundColor:
+                      signUpMethod === "phone"
+                        ? colors.highlightBlue50
+                        : colors.surfacePrimary,
+                  }}
+                  onPress={() => {
+                    setsignUpMethod("phone");
+                  }}
+                >
+                  <View
+                    style={{
+                      height: 40,
+                      width: 40,
+                      backgroundColor:
+                        signUpMethod === "phone"
+                          ? colors.primaryColor
+                          : colors.lightGray,
+                      borderRadius: 50,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Phone
+                      color={
+                        signUpMethod === "phone" ? "#ffffff" : colors.titleText
+                      }
+                    />
+                  </View>
+                  <View>
+                    <Text
+                      style={[
+                        commonStyling.subtitle,
+                        {
+                          color: colors.titleText,
+                          fontFamily: "Medium",
+                          marginBottom: 4,
+                        },
+                      ]}
+                    >
+                      Phone Number
+                    </Text>
+                    <Text
+                      style={[
+                        commonStyling.subtitle,
+                        {
+                          fontSize: FONT_SIZES.BODY,
+                          fontFamily: "Medium",
+                        },
+                      ]}
+                    >
+                      We will send you a verification code
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={{
+                    flexDirection: "row",
+                    borderWidth: 1,
+                    padding: 16,
+                    columnGap: 12,
+                    borderRadius: 16,
+                    borderColor:
+                      signUpMethod === "email"
+                        ? colors.primaryColor
+                        : colors.stroke,
+                    marginTop: 16,
+                    marginBottom: 24,
+                    backgroundColor:
+                      signUpMethod === "email"
+                        ? colors.highlightBlue50
+                        : colors.surfacePrimary,
+                  }}
+                  onPress={() => {
+                    setsignUpMethod("email");
+                  }}
+                >
+                  <View
+                    style={{
+                      height: 40,
+                      width: 40,
+                      backgroundColor:
+                        signUpMethod === "email"
+                          ? colors.primaryColor
+                          : colors.lightGray,
+                      borderRadius: 50,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Mail
+                      color={
+                        signUpMethod === "email" ? "#ffffff" : colors.titleText
+                      }
+                    />
+                  </View>
+                  <View>
+                    <Text
+                      style={[
+                        commonStyling.subtitle,
+                        {
+                          color: colors.titleText,
+                          fontFamily: "Medium",
+                          marginBottom: 4,
+                        },
+                      ]}
+                    >
+                      Email Address
+                    </Text>
+                    <Text
+                      style={[
+                        commonStyling.subtitle,
+                        {
+                          fontSize: FONT_SIZES.BODY,
+                          fontFamily: "Medium",
+                        },
+                      ]}
+                    >
+                      Sign up with your email
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                {signUpMethod === "phone" && (
+                  <Input
+                    title="Phone Number"
+                    placeholder="(555) 000-0000"
+                    value={formData.identifier}
+                    onChangeText={(val) => updateFields({ identifier: val })}
+                    keyboardType="phone-pad"
+                  />
+                )}
+
+                {signUpMethod === "email" && (
+                  <Input
+                    title="Email Address"
+                    placeholder="you@example.com"
+                    value={formData.identifier}
+                    onChangeText={(val) => updateFields({ identifier: val })}
+                    keyboardType="email-address"
+                  />
+                )}
+                <Text
+                  style={[
+                    commonStyling.subtitle,
+                    styles.legalText,
+                    {
+                      fontSize: FONT_SIZES.SMALL,
+                    },
+                  ]}
+                >
+                  By signing up, you agree to our{" "}
+                  <Text
+                    style={{
+                      color: colors.primaryColor,
+                      fontFamily: "Medium",
+                    }}
+                  >
+                    Terms of Service
+                  </Text>{" "}
+                  and{" "}
+                  <Text
+                    style={{
+                      color: colors.primaryColor,
+                      fontFamily: "Medium",
+                    }}
+                  >
+                    Privacy Policy
+                  </Text>
+                  . Your health information is protected under HIPAA.
+                </Text>
+              </View>
+
+              <View>
+                <Buttons
+                  title="Continue"
+                  onPress={() => {
+                    setStep("password");
+                  }}
+                  loading={isPending}
+                  rightIcon={!isPending && <RightArrow />}
+                />
+
+                <TouchableOpacity
+                  style={{ marginTop: 16 }}
+                  onPress={() => {
+                    navigation.navigate("Login");
+                  }}
+                >
                   <Text
                     style={[
-                      styles.linkText,
+                      commonStyling.subtitle,
+                      styles.footerText,
                       {
-                        color: colors.primaryColor,
+                        fontSize: FONT_SIZES.BODY,
+                        fontFamily: "SemiBold",
                       },
                     ]}
                   >
-                    Log in
+                    Already have an account?{" "}
+                    <Text
+                      style={[
+                        styles.linkText,
+                        {
+                          color: colors.primaryColor,
+                        },
+                      ]}
+                    >
+                      Log in
+                    </Text>
                   </Text>
-                </Text>
-              </TouchableOpacity>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          </TouchableWithoutFeedback>
         )}
 
         {step === "otp" && (

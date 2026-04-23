@@ -1,6 +1,7 @@
 import { AxiosResponse } from "axios";
 import apiClient from "../client";
 import {
+  ActiveRideResponse,
   CancelRidePayload,
   CreateRideRequest,
   RideDetailResponse,
@@ -53,6 +54,11 @@ const rideService = {
 
   getRideTimeline: async (rideId: string): Promise<TimelineResponse> => {
     const response = await apiClient.get(`/rides/${rideId}/timeline`);
+    return response.data;
+  },
+
+  getActiveRide: async (): Promise<ActiveRideResponse> => {
+    const response = await apiClient.get(`/rides/rider/me/active`);
     return response.data;
   },
 

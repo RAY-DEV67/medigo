@@ -1,55 +1,10 @@
-import { ScrollView } from "react-native";
+import { Dimensions, ScrollView } from "react-native";
 import React, { useEffect, useRef } from "react";
 import { View, StyleSheet, Animated, Easing } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import useTheme from "../../hooks/useThemes";
+import { SkeletonBone } from "./skelentonBone";
 
-const SkeletonBone = ({ width, height, borderRadius = 8, style }: any) => {
-  const { colors } = useTheme();
-  const animatedValue = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(animatedValue, {
-        toValue: 1,
-        duration: 1500,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-    ).start();
-  }, []);
-
-  const translateX = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-width, width],
-  });
-
-  return (
-    <View
-      style={[
-        {
-          width,
-          height,
-          borderRadius,
-          backgroundColor: colors.surfaceSecondary,
-          overflow: "hidden",
-        },
-        style,
-      ]}
-    >
-      <Animated.View
-        style={[StyleSheet.absoluteFill, { transform: [{ translateX }] }]}
-      >
-        <LinearGradient
-          colors={["transparent", "rgba(255, 255, 255, 0.3)", "transparent"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={StyleSheet.absoluteFill}
-        />
-      </Animated.View>
-    </View>
-  );
-};
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export const RideHistorySkeleton = () => {
   const { colors } = useTheme();
@@ -131,17 +86,17 @@ export const RideHistorySkeleton = () => {
               </View>
               <View style={{ flex: 1, marginLeft: 15 }}>
                 <SkeletonBone
-                  width="80%"
+                  width={SCREEN_WIDTH * 0.80}
                   height={12}
                   style={{ marginBottom: 20 }}
                 />
-                <SkeletonBone width="70%" height={12} />
+                <SkeletonBone width={SCREEN_WIDTH * 0.70} height={12} />
               </View>
             </View>
 
             <View style={styles.actionRow}>
-              <SkeletonBone width="48%" height={44} borderRadius={12} />
-              <SkeletonBone width="48%" height={44} borderRadius={12} />
+              <SkeletonBone width={SCREEN_WIDTH * 0.48} height={44} borderRadius={12} />
+              <SkeletonBone width={SCREEN_WIDTH * 0.48} height={44} borderRadius={12} />
             </View>
           </View>
         ))}

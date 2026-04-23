@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, Animated, Easing } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { View, StyleSheet, Dimensions} from "react-native";
 import useTheme from "../../hooks/useThemes";
 import { SkeletonBone } from "./skelentonBone";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export const MyRidesSkeleton = () => {
   const { colors } = useTheme();
@@ -35,18 +36,18 @@ export const MyRidesSkeleton = () => {
         </View>
         <View style={{ marginVertical: 20 }}>
           <SkeletonBone
-            width={"80%"}
+            width={SCREEN_WIDTH * 0.80}
             height={14}
             style={{ marginBottom: 10 }}
           />
-          <SkeletonBone width={"60%"} height={14} />
+          <SkeletonBone width={SCREEN_WIDTH * 0.60} height={14} />
         </View>
         <View style={styles.driverRowSkeleton}>
           <SkeletonBone width={40} height={40} borderRadius={20} />
           <SkeletonBone width={120} height={14} style={{ marginLeft: 12 }} />
         </View>
         <SkeletonBone
-          width={"100%"}
+          width={SCREEN_WIDTH}
           height={50}
           borderRadius={16}
           style={{ marginTop: 20 }}
@@ -76,15 +77,15 @@ export const MyRidesSkeleton = () => {
           </View>
           <View style={{ marginTop: 20 }}>
             <SkeletonBone
-              width={"90%"}
+              width={SCREEN_WIDTH * 0.90}
               height={12}
               style={{ marginBottom: 15 }}
             />
-            <SkeletonBone width={"90%"} height={12} />
+            <SkeletonBone width={SCREEN_WIDTH * 0.90} height={12} />
           </View>
           <View style={[styles.rowBetween, { marginTop: 20 }]}>
-            <SkeletonBone width={"70%"} height={44} borderRadius={12} />
-            <SkeletonBone width={"20%"} height={14} />
+            <SkeletonBone width={SCREEN_WIDTH * 0.90} height={44} borderRadius={12} />
+            <SkeletonBone width={SCREEN_WIDTH * 0.20} height={14} />
           </View>
         </View>
       ))}

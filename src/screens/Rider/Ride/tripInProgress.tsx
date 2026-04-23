@@ -11,7 +11,7 @@ import MapScreen from "../../../components/map/map";
 import { useState } from "react";
 import useTheme from "../../../hooks/useThemes";
 import { commonStyles } from "../../../styles/commonStyles";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import OverlayBottomSheet from "../../../components/modals/overlayBottomSheet";
 import Buttons from "../../../components/buttons/buttons";
@@ -27,9 +27,11 @@ function TripInProgress() {
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const route = useRoute();
+  const { activeRide } = route.params;
 
   const [activeSnapPoints, setActiveSnapPoints] = useState<number[]>([
-    SCREEN_HEIGHT * 0.70,
+    SCREEN_HEIGHT * 0.7,
     SCREEN_HEIGHT * 0.25,
   ]);
 
@@ -138,7 +140,7 @@ function TripInProgress() {
                     },
                   ]}
                 >
-                  2847 Maple Avenue
+                  {activeRide.pickup_address}
                 </Text>
               </View>
             </View>
@@ -167,7 +169,7 @@ function TripInProgress() {
                     },
                   ]}
                 >
-                  Springfield General Hospital
+                  {activeRide.destination_address}
                 </Text>
               </View>
             </View>
@@ -196,7 +198,7 @@ function TripInProgress() {
                   },
                 ]}
               >
-                4.2 mi
+                {activeRide.estimated_distance_miles} mi
               </Text>
             </View>
             <View style={styles.metricItem}>
@@ -220,7 +222,7 @@ function TripInProgress() {
                   },
                 ]}
               >
-                12 min
+                {activeRide.estimated_duration_minutes} min
               </Text>
             </View>
             <View style={styles.metricItem}>
@@ -245,7 +247,7 @@ function TripInProgress() {
                   },
                 ]}
               >
-                $28.50
+                ${activeRide.estimated_fare}
               </Text>
             </View>
           </View>

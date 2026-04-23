@@ -1,8 +1,10 @@
 import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
 import useTheme from "../../hooks/useThemes";
 import { SkeletonBone } from "./skelentonBone";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export const VehicleDetailsSkeleton = () => {
   const { colors } = useTheme();

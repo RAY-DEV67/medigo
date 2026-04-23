@@ -12,8 +12,8 @@ export default ({ config }) => ({
 
   splash: {
     image: "./assets/splashMed.png",
-    resizeMode: "contain",
-    backgroundColor: "#ffffff",
+    resizeMode: "cover",
+    backgroundColor: "#1A3B8E",
   },
 
   ios: {

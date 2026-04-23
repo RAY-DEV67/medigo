@@ -1,7 +1,9 @@
 import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
 import { SkeletonBone } from "./skelentonBone";
 import useTheme from "../../hooks/useThemes";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export const SavedLocationsSkeleton = () => {
   const { colors } = useTheme();
@@ -18,7 +20,7 @@ export const SavedLocationsSkeleton = () => {
         contentContainerStyle={styles.scrollContent}
       >
         {/* Description Placeholder */}
-        <SkeletonBone width="70%" height={14} style={{ marginBottom: 24 }} />
+        <SkeletonBone width={SCREEN_WIDTH * 0.70} height={14} style={{ marginBottom: 24 }} />
 
         {/* "Add New Location" Card Placeholder */}
         <View
@@ -32,8 +34,8 @@ export const SavedLocationsSkeleton = () => {
         >
           <SkeletonBone width={48} height={48} borderRadius={24} />
           <View style={{ flex: 1, marginLeft: 16 }}>
-            <SkeletonBone width="50%" height={16} style={{ marginBottom: 8 }} />
-            <SkeletonBone width="75%" height={12} />
+            <SkeletonBone width={SCREEN_WIDTH * 0.50} height={16} style={{ marginBottom: 8 }} />
+            <SkeletonBone width={SCREEN_WIDTH * 0.75} height={12} />
           </View>
         </View>
 
@@ -81,9 +83,9 @@ const LocationCardSkeleton = () => {
     >
       <SkeletonBone width={44} height={44} borderRadius={22} />
       <View style={{ flex: 1, marginLeft: 16 }}>
-        <SkeletonBone width="35%" height={14} style={{ marginBottom: 6 }} />
-        <SkeletonBone width="85%" height={12} style={{ marginBottom: 6 }} />
-        <SkeletonBone width="25%" height={10} />
+        <SkeletonBone width={SCREEN_WIDTH * 0.35} height={14} style={{ marginBottom: 6 }} />
+        <SkeletonBone width={SCREEN_WIDTH * 0.85} height={12} style={{ marginBottom: 6 }} />
+        <SkeletonBone width={SCREEN_WIDTH * 0.25} height={10} />
       </View>
     </View>
   );

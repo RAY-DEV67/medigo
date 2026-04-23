@@ -1,8 +1,10 @@
 import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
 import useTheme from "../../hooks/useThemes";
 import { SkeletonBone } from "./skelentonBone";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export const DriverEarningsSkeleton = () => {
   const { colors } = useTheme();
@@ -42,7 +44,7 @@ export const DriverEarningsSkeleton = () => {
             />
           </View>
           <SkeletonBone
-            width="70%"
+            width={SCREEN_WIDTH * 0.7}
             height={48}
             style={{ marginVertical: 16 }}
             backgroundColor="rgba(255,255,255,0.3)"
@@ -86,7 +88,7 @@ export const DriverEarningsSkeleton = () => {
             </View>
           </View>
           <SkeletonBone
-            width="100%"
+            width={SCREEN_WIDTH}
             height={50}
             borderRadius={25}
             style={{ marginTop: 20 }}
@@ -112,8 +114,8 @@ export const DriverEarningsSkeleton = () => {
             <SkeletonBone width={50} height={20} borderRadius={6} />
           </View>
           <View style={{ alignItems: "center", marginBottom: 20 }}>
-            <SkeletonBone width="50%" height={32} style={{ marginBottom: 8 }} />
-            <SkeletonBone width="40%" height={12} />
+            <SkeletonBone width={SCREEN_WIDTH * 0.50} height={32} style={{ marginBottom: 8 }} />
+            <SkeletonBone width={SCREEN_WIDTH * 0.40} height={12} />
           </View>
           <View style={{ flexDirection: "row", gap: 12 }}>
             {[1, 2, 3].map((i) => (
@@ -149,7 +151,7 @@ export const DriverEarningsSkeleton = () => {
         >
           {[1, 2, 3].map((i) => (
             <View key={i} style={{ flex: 1, padding: 4 }}>
-              <SkeletonBone width="100%" height={30} borderRadius={8} />
+              <SkeletonBone width={SCREEN_WIDTH} height={30} borderRadius={8} />
             </View>
           ))}
         </View>

@@ -1,7 +1,9 @@
 import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
 import useTheme from "../../hooks/useThemes";
 import { SkeletonBone } from "./skelentonBone";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export const NotificationsSkeleton = () => {
   const { colors } = useTheme();
@@ -19,7 +21,7 @@ export const NotificationsSkeleton = () => {
       >
         {/* Description Placeholder */}
         <View style={{ paddingHorizontal: 20, marginBottom: 24 }}>
-          <SkeletonBone width="80%" height={14} />
+          <SkeletonBone width={SCREEN_WIDTH * 0.8} height={14} />
         </View>
 
         {/* Notification List Items */}
@@ -41,7 +43,7 @@ export const NotificationsSkeleton = () => {
               <View style={styles.titleRow}>
                 {/* Title */}
                 <SkeletonBone
-                  width="40%"
+                  width={SCREEN_WIDTH * 0.4}
                   height={16}
                   style={{ marginBottom: 8 }}
                 />
@@ -49,18 +51,18 @@ export const NotificationsSkeleton = () => {
 
               {/* Body / Description (2 lines) */}
               <SkeletonBone
-                width="90%"
+                width={SCREEN_WIDTH * 0.9}
                 height={12}
                 style={{ marginBottom: 6 }}
               />
               <SkeletonBone
-                width="60%"
+                width={SCREEN_WIDTH * 0.6}
                 height={12}
                 style={{ marginBottom: 10 }}
               />
 
               {/* Time Text */}
-              <SkeletonBone width="25%" height={10} />
+              <SkeletonBone width={SCREEN_WIDTH * 0.25} height={10} />
             </View>
 
             {/* Chevron Placeholder */}

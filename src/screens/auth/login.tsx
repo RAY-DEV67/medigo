@@ -56,13 +56,13 @@ function Login() {
 
           useUserStore.getState().setUser(profile);
 
-          const role = profile.data.role?.toLowerCase();
+          const role = profile?.data?.role?.toLowerCase();
+          const targetRoute =
+            role === "driver" ? "DriverMainTabs" : "RiderMainTabs";
 
           navigation.reset({
             index: 0,
-            routes: [
-              { name: role === "driver" ? "DriverMainTabs" : "RiderMainTabs" },
-            ],
+            routes: [{ name: targetRoute }],
           });
         } catch (err) {
           console.log("Profile fetch failed", err);
@@ -70,7 +70,7 @@ function Login() {
       },
     });
   };
-  
+
   return (
     <SafeAreaView
       style={[

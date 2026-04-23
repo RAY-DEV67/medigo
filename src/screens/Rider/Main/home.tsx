@@ -32,6 +32,8 @@ import { getLocationTypeStyles } from "../../../utils/getLocationTypeStyles";
 import LocationCard from "../../../components/cards/locationCard";
 import MapScreen from "../../../components/map/map";
 import { RiderHomeSkeleton } from "../../../components/skelentonAnimation/riderHomeSkelento";
+import { useMyRides } from "../../../hooks/queries/useMyRides";
+import UpcomingRideCard from "../../../components/cards/upcomingRidesCard";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SNAP_POINTS = [SCREEN_HEIGHT * 0.5, SCREEN_HEIGHT * 0.3];
@@ -42,6 +44,9 @@ const RiderHomeScreen = () => {
   const { data, isLoading } = useUserProfile();
   const { data: savedLocations, isLoading: loadingSavedLocation } =
     useSavedLocations();
+  const { data: upcomingData, isLoading: loadingUpcoming } = useMyRides({
+    status: "requested",
+  });
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
   const [sheetHeight, setSheetHeight] = useState(SNAP_POINTS[0]);
@@ -300,58 +305,78 @@ const RiderHomeScreen = () => {
               {
                 backgroundColor: colors.homelightPrimaryBlue50,
                 borderColor: colors.lightPrimaryBlueBorder,
-                padding: 32,
               },
             ]}
           >
-            <Text
-              style={[
-                commonStyling.subtitle,
-                {
-                  fontSize: 14,
-                  fontFamily: "SemiBold",
-                },
-              ]}
-            >
-              No Upcoming Rides
-            </Text>
-            <Text
-              style={[
-                styles.emptySub,
-                commonStyling.title,
-                {
-                  fontSize: 12,
-                  fontFamily: "Regular",
-                },
-              ]}
-            >
-              You do not have any upcoming ride yet.
-            </Text>
-            <TouchableOpacity
-              style={styles.emptyAction}
-              onPress={() => {
-                navigation.navigate("RiderRideDetailsStack", {
-                  screen: "BookARide",
-                });
-              }}
-            >
-              <Plus color="#3B82F6" size={16} />
-              <Text
-                style={[
-                  commonStyling.subtitle,
-                  {
-                    fontSize: 12,
-                    color: colors.primaryColor,
-                    fontFamily: "Medium",
-                  },
-                ]}
+            {upcomingData?.data && upcomingData.data.length > 0 ? (
+              upcomingData.data.slice(0, 2).map((loc) => {
+                return (
+                  <UpcomingRideCard
+                    key={loc.id}
+                    ride={loc}
+                    onPress={() => {
+                      navigation.navigate("RiderRideDetailsStack", {
+                        screen: "RideDetails",
+                        params: { id: loc.id },
+                      });
+                    }}
+                  />
+                );
+              })
+            ) : (
+              <View
+                style={{
+                  alignItems: "center",
+                  padding: 32,
+                }}
               >
-                Book Ride
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.supportFloat}>
-              <Headphones color="#3B82F6" size={24} />
-            </TouchableOpacity>
+                <Text
+                  style={[
+                    commonStyling.subtitle,
+                    {
+                      fontSize: 14,
+                      fontFamily: "SemiBold",
+                    },
+                  ]}
+                >
+                  No Upcoming Rides
+                </Text>
+                <Text
+                  style={[
+                    styles.emptySub,
+                    commonStyling.title,
+                    {
+                      fontSize: 12,
+                      fontFamily: "Regular",
+                    },
+                  ]}
+                >
+                  You do not have any upcoming ride yet.
+                </Text>
+                <TouchableOpacity
+                  style={styles.emptyAction}
+                  onPress={() => {
+                    navigation.navigate("RiderRideDetailsStack", {
+                      screen: "BookARide",
+                    });
+                  }}
+                >
+                  <Plus color="#3B82F6" size={16} />
+                  <Text
+                    style={[
+                      commonStyling.subtitle,
+                      {
+                        fontSize: 12,
+                        color: colors.primaryColor,
+                        fontFamily: "Medium",
+                      },
+                    ]}
+                  >
+                    Book Ride
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
 
           {/* Saved Locations Section */}
@@ -373,6 +398,7 @@ const RiderHomeScreen = () => {
               {
                 backgroundColor: colors.homelightPrimaryBlue50,
                 borderColor: colors.lightPrimaryBlueBorder,
+                alignItems: "center",
               },
             ]}
           >
@@ -476,7 +502,7 @@ const RiderHomeScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { padding: 20, paddingBottom: 120 },
+  scrollContent: { padding: 20, paddingBottom: 80 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -563,7 +589,6 @@ const styles = StyleSheet.create({
   emptyStateCard: {
     borderRadius: 24,
     padding: 16,
-    alignItems: "center",
     marginBottom: 24,
     borderWidth: 1,
   },
@@ -593,7 +618,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: "hidden",
     marginTop: 12,
-    marginBottom: 40,
+
     backgroundColor: "#e5e5e5",
   },
 });
