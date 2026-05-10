@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapScreen from "../../../components/map/map";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useTheme from "../../../hooks/useThemes";
 import { commonStyles } from "../../../styles/commonStyles";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -17,6 +17,8 @@ import OverlayBottomSheet from "../../../components/modals/overlayBottomSheet";
 import Buttons from "../../../components/buttons/buttons";
 import CustomBottomSheet from "../../../components/modals/bottomSheet";
 import { Info, MessageCircle, User } from "lucide-react-native";
+import { useRideTracking } from "../../../hooks/useTracking";
+import { storage } from "../../../utils/storage";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SNAP_POINTS = [SCREEN_HEIGHT * 0.5, SCREEN_HEIGHT * 0.3];
@@ -29,6 +31,20 @@ function TripInProgress() {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const route = useRoute();
   const { activeRide } = route.params;
+
+  console.log(activeRide.id);
+
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadToken = async () => {
+      const t = await storage.getToken();
+      setToken(t);
+    };
+    loadToken();
+  }, []);
+
+  const { driverLocation } = useRideTracking(activeRide?.id, token || "");
 
   const [activeSnapPoints, setActiveSnapPoints] = useState<number[]>([
     SCREEN_HEIGHT * 0.7,
@@ -73,7 +89,7 @@ function TripInProgress() {
                     },
                   ]}
                 >
-                  John Driver
+                  {activeRide.driver_name}
                 </Text>
                 <View style={styles.ratingRow}>
                   <Text style={styles.star}>★</Text>
@@ -85,7 +101,7 @@ function TripInProgress() {
                       },
                     ]}
                   >
-                    4.8
+                    {activeRide.driver_rating}
                   </Text>
                   <View style={styles.dot} />
                   <Text

@@ -6,6 +6,8 @@ import {
   EarningsSummaryResponse,
   FareEstimatePayload,
   FareEstimateResponse,
+  PaymentIntentPayload,
+  PaymentIntentResponse,
   PaymentMethodResponse,
   PaymentMethodsResponse,
   WalletResponse,
@@ -50,7 +52,20 @@ const paymentService = {
   getFareEstimate: async (
     payload: FareEstimatePayload,
   ): Promise<FareEstimateResponse> => {
-    const response = await apiClient.post("/payments/base-fare-estimate", payload);
+    const response = await apiClient.post(
+      "/payments/base-fare-estimate",
+      payload,
+    );
+    return response.data;
+  },
+
+  createPaymentIntent: async (
+    payload: PaymentIntentPayload,
+  ): Promise<PaymentIntentResponse> => {
+    const response = await apiClient.post(
+      "/payments/mobile/payment-intent",
+      payload,
+    );
     return response.data;
   },
 };

@@ -175,7 +175,7 @@ const MyRidesScreen = () => {
                 />
                 <View style={styles.driverInfo}>
                   <Text style={styles.driverName}>
-                    {activeRide.driver_name}
+                    {activeRide?.driver_name}
                   </Text>
                   <Text style={styles.driverSub}>Your Driver</Text>
                 </View>

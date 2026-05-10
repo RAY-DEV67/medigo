@@ -1,5 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
-import { AddPaymentPayload } from "../../types/payment.types";
+import {
+  AddPaymentPayload,
+  PaymentIntentPayload,
+} from "../../types/payment.types";
 import paymentService from "../../api/services/paymentService";
 
 export const useAddPaymentMutation = () => {
@@ -16,6 +19,17 @@ export const useAddPaymentMutation = () => {
         "Payment Error:",
         validationError || "Failed to add payment method",
       );
+    },
+  });
+};
+
+export const useCreatePaymentIntent = () => {
+  return useMutation({
+    mutationFn: (payload: PaymentIntentPayload) =>
+      paymentService.createPaymentIntent(payload),
+    onError: (error: any) => {
+      const message =
+        error?.response?.data?.message || "Failed to initialize payment";
     },
   });
 };

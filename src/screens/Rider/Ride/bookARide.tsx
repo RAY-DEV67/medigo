@@ -35,6 +35,9 @@ import ChooseARide from "./chooseARide";
 import RecurringRide from "./recurringRide";
 import BookingPayment from "./bookingPayment";
 import ReviewScreen from "./review";
+import { useStripe } from "@stripe/stripe-react-native";
+import axios from "axios";
+import { useCreatePaymentIntent } from "../../../hooks/mutations/usePayments";
 
 const { width } = Dimensions.get("window");
 
@@ -60,6 +63,7 @@ const BookARide = () => {
   const [assistance, setassistance] = useState("none");
   const [additionalNotes, setadditionalNotes] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   useEffect(() => {
     const today = new Date();
@@ -96,7 +100,7 @@ const BookARide = () => {
   };
 
   const [time, setTime] = useState(getThirtyMinsFromNow());
-
+  const { data: user } = useUserProfile();
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [fare, setfare] = useState("");
   const [pickUpForm, setpickUpForm] = useState({
@@ -174,7 +178,7 @@ const BookARide = () => {
   };
 
   const nextStep = () =>
-    step < totalSteps ? setStep(step + 1) : handleConfirmBooking();
+    step < totalSteps ? setStep(step + 1) : openStripePayment();
   const prevStep = () => step > 1 && setStep(step - 1);
 
   const renderProgressBar = () => (
@@ -191,7 +195,6 @@ const BookARide = () => {
     </View>
   );
 
-  // Inside ReviewScreen.tsx
   const { mutate, isPending } = useCreateRide();
 
   const handleConfirmBooking = () => {
@@ -239,6 +242,49 @@ const BookARide = () => {
         // Optionally show an error toast here
       },
     });
+  };
+
+  const { mutateAsync: getPaymentIntent, isPending: loadingPaymentIntent } =
+    useCreatePaymentIntent();
+
+  const openStripePayment = async (amount: number) => {
+    try {
+      // 1. Get the keys from your backend
+      const response = await getPaymentIntent({
+        amount: fare,
+        currency: "usd", // or your target currency
+        description: "Wallet Funding",
+        order_id: `wallet_${Date.now()}`,
+      });
+
+      const { payment_intent, ephemeral_key, customer, publishable_key } =
+        response.data;
+
+      // 2. Initialize the Stripe sheet
+      const { error } = await initPaymentSheet({
+        merchantDisplayName: "KlimateRide",
+        customerId: customer,
+        customerEphemeralKeySecret: ephemeral_key,
+        paymentIntentClientSecret: payment_intent,
+        allowsDelayedPaymentMethods: true,
+        defaultBillingDetails: {
+          name: user?.data.first_name,
+        },
+      });
+
+      if (!error) {
+        // 3. Present the sheet to the user
+        const { error: presentError } = await presentPaymentSheet();
+        if (presentError) {
+          console.log("Payment canceled or failed");
+        } else {
+          // Success! Invalidate wallet balance queries here
+          handleConfirmBooking();
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const tomorrow = new Date();

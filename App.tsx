@@ -43,6 +43,7 @@ import DriverNavbar from "./src/components/driverNavbar";
 import { storage } from "./src/utils/storage";
 import { syncUserProfile } from "./src/utils/syncUserProfile";
 import { useUserStore } from "./src/store/userStore";
+import { StripeProvider } from "@stripe/stripe-react-native";
 
 enableScreens(true);
 
@@ -165,36 +166,38 @@ const App: React.FC = () => {
 
   return (
     <QueryProvider>
-      <AuthProvider>
-        <SafeAreaProvider>
-          <ThemeProvider>
-            <GestureHandlerRootView style={{ flex: 1 }}>
-              <NavigationContainer ref={navigationRef}>
-                {isConnected === false && (
-                  <ModalComponent
-                    visible
-                    onClose={() => {}}
-                    title="No internet connection"
-                  >
-                    <Text style={{ marginTop: 16 }}>
-                      Please check your connection and try again.
-                    </Text>
-                  </ModalComponent>
-                )}
+      <StripeProvider publishableKey="pk_test_51T9QPOLazbnskeHoNOQg7zHQWE3RzF47UWBZFPJtnIzv0PSHa90c8Bdqaxb3lKqqLPLCC21u1BReE8FBoUmgGLrl00QGw6S66V">
+        <AuthProvider>
+          <SafeAreaProvider>
+            <ThemeProvider>
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <NavigationContainer ref={navigationRef}>
+                  {isConnected === false && (
+                    <ModalComponent
+                      visible
+                      onClose={() => {}}
+                      title="No internet connection"
+                    >
+                      <Text style={{ marginTop: 16 }}>
+                        Please check your connection and try again.
+                      </Text>
+                    </ModalComponent>
+                  )}
 
-                <AppNavigator />
-              </NavigationContainer>
-              <RouteHeaderCard
-                isVisible={isVisible}
-                pickup={pickup}
-                destination={destination}
-                onClose={hideRoute}
-              />
-              <Toast config={toastConfig} />
-            </GestureHandlerRootView>
-          </ThemeProvider>
-        </SafeAreaProvider>
-      </AuthProvider>
+                  <AppNavigator />
+                </NavigationContainer>
+                <RouteHeaderCard
+                  isVisible={isVisible}
+                  pickup={pickup}
+                  destination={destination}
+                  onClose={hideRoute}
+                />
+                <Toast config={toastConfig} />
+              </GestureHandlerRootView>
+            </ThemeProvider>
+          </SafeAreaProvider>
+        </AuthProvider>
+      </StripeProvider>
     </QueryProvider>
   );
 };
