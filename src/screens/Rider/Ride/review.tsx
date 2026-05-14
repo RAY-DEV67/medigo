@@ -37,20 +37,6 @@ const ReviewScreen = ({
       <Text style={[commonStyling.title, { fontSize: 14, fontFamily: "Bold" }]}>
         {title}
       </Text>
-      {/* <TouchableOpacity style={styles.editBtn}>
-        <Edit2 size={14} color={colors.primaryColor} />
-        <Text
-          style={[
-            commonStyling.title,
-            {
-              fontSize: 12,
-              color: colors.primaryColor,
-            },
-          ]}
-        >
-          Edit
-        </Text>
-      </TouchableOpacity> */}
     </View>
   );
 

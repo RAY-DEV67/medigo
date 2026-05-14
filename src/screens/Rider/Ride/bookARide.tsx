@@ -43,7 +43,7 @@ const { width } = Dimensions.get("window");
 
 const BookARide = () => {
   const [step, setStep] = useState(1);
-  const totalSteps = 6;
+  const totalSteps = 5;
   const { colors, theme } = useTheme();
   const { data, isLoading } = useUserProfile();
   const commonStyling = commonStyles(colors);
@@ -247,7 +247,7 @@ const BookARide = () => {
   const { mutateAsync: getPaymentIntent, isPending: loadingPaymentIntent } =
     useCreatePaymentIntent();
 
-  const openStripePayment = async (amount: number) => {
+  const openStripePayment = async () => {
     try {
       // 1. Get the keys from your backend
       const response = await getPaymentIntent({
@@ -353,23 +353,42 @@ const BookARide = () => {
         );
       case 4:
         return (
-          <RecurringRide
-            recurring={recurring}
-            setRecurring={setRecurring}
+          // <RecurringRide
+          //   recurring={recurring}
+          //   setRecurring={setRecurring}
+          //   frequency={frequency}
+          //   setFrequency={setFrequency}
+          //   toggleRecurringStartDatePicker={toggleRecurringStartDatePicker}
+          //   recurringStartdate={recurringStartdate}
+          //   showrecurringStartDatePicker={showrecurringStartDatePicker}
+          //   setrecurringStartDate={setrecurringStartDate}
+          //   setShowrecurringStartDatePicker={setShowrecurringStartDatePicker}
+          //   endType={endType}
+          //   setEndType={setEndType}
+          //   toggleRecurringEndDatePicker={toggleRecurringEndDatePicker}
+          //   recurringEnddate={recurringEnddate}
+          //   showrecurringEndDatePicker={showrecurringEndDatePicker}
+          //   setrecurringEndDate={setrecurringEndDate}
+          //   setShowrecurringEndDatePicker={setShowrecurringEndDatePicker}
+          // />
+          <ReviewScreen
+            tripType={tripType}
+            appointment={appointmentType}
+            serviceType={serviceType}
+            vehicle={vehicle}
+            pickup={pickUpForm.address}
+            destination={destinationForm.address}
+            mobility={mobility}
+            assistance={assistance}
+            isRecurring={recurring}
+            notes={additionalNotes}
             frequency={frequency}
-            setFrequency={setFrequency}
-            toggleRecurringStartDatePicker={toggleRecurringStartDatePicker}
-            recurringStartdate={recurringStartdate}
-            showrecurringStartDatePicker={showrecurringStartDatePicker}
-            setrecurringStartDate={setrecurringStartDate}
-            setShowrecurringStartDatePicker={setShowrecurringStartDatePicker}
             endType={endType}
-            setEndType={setEndType}
-            toggleRecurringEndDatePicker={toggleRecurringEndDatePicker}
-            recurringEnddate={recurringEnddate}
-            showrecurringEndDatePicker={showrecurringEndDatePicker}
-            setrecurringEndDate={setrecurringEndDate}
-            setShowrecurringEndDatePicker={setShowrecurringEndDatePicker}
+            date={date}
+            time={time}
+            recurringStartDate={recurringStartdate}
+            recurringEndDate={recurringEnddate}
+            fare={fare}
           />
         );
       case 5:
@@ -395,15 +414,15 @@ const BookARide = () => {
           />
         );
 
-      case 6:
-        return (
-          <BookingPayment
-            isLoading={isLoading}
-            paymentMethods={paymentMethods}
-            vehicle={vehicle}
-            fare={fare}
-          />
-        );
+      // case 6:
+      //   return (
+      //     <BookingPayment
+      //       isLoading={isLoading}
+      //       paymentMethods={paymentMethods}
+      //       vehicle={vehicle}
+      //       fare={fare}
+      //     />
+      //   );
       default:
         return (
           <View style={styles.placeholder}>
@@ -435,7 +454,7 @@ const BookARide = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {step < 5 && (
+        {step < 4 && (
           <View>
             <Text
               style={[
@@ -500,13 +519,7 @@ const BookARide = () => {
             <ActivityIndicator />
           ) : (
             <Text style={styles.continueText}>
-              {step === 4
-                ? "Continue to review"
-                : step === 5
-                  ? "Continue to Payment"
-                  : step === 6
-                    ? "Pay"
-                    : "Continue"}
+              {step === 5 ? "Pay" : "Continue"}
             </Text>
           )}
         </TouchableOpacity>
@@ -616,12 +629,7 @@ const BookARide = () => {
 };
 
 const getStepName = (s: number) => {
-  const names = [
-    "Service Type",
-    "Trip Structure",
-    "Vehicle Type",
-    "Recurring Ride",
-  ];
+  const names = ["Service Type", "Trip Structure", "Vehicle Type"];
   return names[s - 1];
 };
 

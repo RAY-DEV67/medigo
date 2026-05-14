@@ -155,15 +155,15 @@ const ProfileScreen = () => {
               });
             }}
           />
-          <View
+          {/* <View
             style={[
               styles.divider,
               {
                 backgroundColor: colors.lightPrimaryBlueBorder,
               },
             ]}
-          />
-          <MenuOption
+          /> */}
+          {/* <MenuOption
             icon={<CreditCard size={20} color="#64748B" />}
             label="Payment Methods"
             onPress={() => {
@@ -171,7 +171,7 @@ const ProfileScreen = () => {
                 screen: "PaymentMethodsScreen",
               });
             }}
-          />
+          /> */}
         </View>
 
         {/* --- SAFETY SECTION --- */}

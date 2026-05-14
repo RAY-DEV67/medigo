@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import {
   X,
@@ -25,6 +26,10 @@ import Buttons from "../../../components/buttons/buttons";
 import { useRideDetail } from "../../../hooks/queries/useRideDetails";
 import { RideDetailsSkeleton } from "../../../components/skelentonAnimation/rideDetailsSkelenton";
 import { formatHumanReadableDate } from "../../../utils/formatHumanReadableDate";
+import OverlayBottomSheet, {
+  OverlayBottomSheetRef,
+} from "../../../components/modals/overlayBottomSheet";
+import { useCancelRide } from "../../../hooks/mutations/useRide";
 
 const RideDetails = () => {
   const { colors, theme } = useTheme();
@@ -33,12 +38,21 @@ const RideDetails = () => {
   const route = useRoute<any>();
   const { id } = route.params;
   const { data, isLoading } = useRideDetail(id);
+  const cancelRef = useRef<OverlayBottomSheetRef>(null);
+  const [selectedReason, setSelectedReason] = useState<string | null>(null);
+
+  const { mutate: cancelRide, isPending: isCancelling } = useCancelRide(id);
+
+  const reasons = [
+    { id: "1", text: "Rider taking too long" },
+    { id: "2", text: "Currently not available" },
+  ];
 
   if (isLoading || !data) {
     return <RideDetailsSkeleton />;
   }
 
-  console.log(data);
+  const activeRide = data?.data;
 
   return (
     <SafeAreaView
@@ -455,16 +469,177 @@ const RideDetails = () => {
           </View>
         </View>
 
-        <Buttons title="Navigate to Pickup" onPress={() => {}} />
+        <Buttons
+          title="Navigate to Pickup"
+          onPress={() => {
+            navigation.navigate("RiderRideDetailsStack", {
+              screen: "TripInProgress",
+              params: {
+                activeRide,
+              },
+            });
+          }}
+        />
 
         <View
           style={{
             marginTop: 16,
           }}
         >
-          <Buttons type="cancel" title="Cancel Ride" onPress={() => {}} />
+          <Buttons
+            type="cancel"
+            title="Cancel Ride"
+            onPress={() => {
+              cancelRef.current?.open();
+            }}
+          />
         </View>
       </ScrollView>
+
+      <OverlayBottomSheet ref={cancelRef} height={600} overlay={true}>
+        <View>
+          <View
+            style={[
+              styles.contentCard,
+              {
+                backgroundColor: colors.surfacePrimary,
+              },
+            ]}
+          >
+            {/* Circular Close Icon (Matches design position) */}
+
+            <View style={styles.innerContent}>
+              <View
+                style={{
+                  alignItems: "center",
+                }}
+              >
+                <TouchableOpacity>
+                  <View style={styles.closeCircle}>
+                    <X color="#EF4444" size={32} strokeWidth={3} />
+                  </View>
+                </TouchableOpacity>
+                <Text
+                  style={[
+                    styles.titleText,
+                    commonStyling.title,
+                    {
+                      fontSize: 26,
+                      fontFamily: "Bold",
+                    },
+                  ]}
+                >
+                  Cancel Ride?
+                </Text>
+                <Text
+                  style={[
+                    styles.subtitleText,
+                    commonStyling.subtitle,
+                    {
+                      fontSize: 15,
+                      width: "100%",
+                    },
+                  ]}
+                >
+                  Your have been assigned. Cancelling now would notify rider of
+                  changes.
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.divider,
+                  {
+                    backgroundColor: colors.lightPrimaryBlueBorder,
+                  },
+                ]}
+              />
+
+              {/* Why are you cancelling? Section */}
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  commonStyling.title,
+                  {
+                    fontSize: 18,
+                  },
+                ]}
+              >
+                Why are you cancelling?
+              </Text>
+
+              <View style={styles.reasonsList}>
+                {reasons.map((reason) => (
+                  <TouchableOpacity
+                    key={reason.id}
+                    style={styles.reasonItem}
+                    onPress={() => setSelectedReason(reason.text)}
+                  >
+                    <View
+                      style={[
+                        styles.radioOutline,
+                        selectedReason === reason.text && styles.radioActive,
+                      ]}
+                    >
+                      {selectedReason === reason.text && (
+                        <View style={styles.radioInner} />
+                      )}
+                    </View>
+                    <Text
+                      style={[
+                        commonStyling.subtitle,
+                        {
+                          fontSize: 15,
+                        },
+                      ]}
+                    >
+                      {reason.text}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Action Buttons */}
+            <View style={styles.buttonFooter}>
+              <TouchableOpacity
+                style={[
+                  styles.cancelRideButton,
+                  { opacity: selectedReason ? 1 : 0.6 }, // Dim if no reason selected
+                ]}
+                onPress={
+                  selectedReason
+                    ? () =>
+                        cancelRide(
+                          { reason: selectedReason },
+                          {
+                            onSuccess: () => {
+                              navigation.goBack();
+                            },
+                          },
+                        )
+                    : undefined
+                }
+                disabled={!selectedReason}
+              >
+                {isCancelling ? (
+                  <ActivityIndicator />
+                ) : (
+                  <Text style={styles.cancelButtonText}>Cancel Ride</Text>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.keepRideButton}
+                onPress={() => {
+                  cancelRef.current?.close();
+                }}
+              >
+                <Text style={styles.keepButtonText}>Keep Ride</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </OverlayBottomSheet>
     </SafeAreaView>
   );
 };
@@ -605,7 +780,218 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  cancelButtonText: { color: "#EF4444", fontSize: 16, fontWeight: "700" },
+  cancelButtonText: { color: "#ffffff", fontSize: 16, fontWeight: "700" },
+
+  headerTitle: { fontSize: 20, fontWeight: "800", color: "#1E293B" },
+  headerSubRow: { flexDirection: "row", alignItems: "center", marginTop: 4 },
+  headerTimeText: { fontSize: 13, color: "#64748B", marginLeft: 6 },
+
+  statusBadgeText: { color: "#10B981", fontSize: 11, fontWeight: "700" },
+
+  routeContainer: { flexDirection: "row" },
+
+  dotBlue: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#3B82F6",
+  },
+  dotBlueDark: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#1E293B",
+  },
+
+  addrText: { marginTop: 2 },
+
+  driverProfileRow: { flexDirection: "row", alignItems: "center" },
+  driverAvatar: { width: 50, height: 50, borderRadius: 25 },
+  driverTextContainer: { flex: 1, marginLeft: 12 },
+
+  vehicleBox: {
+    padding: 12,
+    borderRadius: 12,
+    marginTop: 16,
+  },
+  vehicleLabel: { fontSize: 11, color: "#94A3B8" },
+  vehicleText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1E293B",
+    marginTop: 2,
+  },
+
+  etaTextLarge: {
+    marginTop: 4,
+  },
+  iconCircleLightBlue: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#EFF6FF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  fareLabel: { fontSize: 14, color: "#64748B" },
+  fareValue: { fontSize: 14, fontWeight: "700", color: "#1E293B" },
+  fareDivider: { height: 1, backgroundColor: "#F1F5F9", marginVertical: 12 },
+  totalLabel: { fontSize: 16, fontWeight: "800", color: "#1E293B" },
+  totalValue: { fontSize: 20, fontWeight: "800", color: "#3B82F6" },
+  paymentRow: { flexDirection: "row", alignItems: "center", marginTop: 16 },
+  paymentIcon: { width: 32, height: 20, resizeMode: "contain" },
+  paymentText: { fontSize: 14, color: "#64748B", marginLeft: 8 },
+
+  policyCard: {
+    flexDirection: "row",
+    backgroundColor: "#FFFBEB",
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 12,
+    alignItems: "flex-start",
+  },
+  policyTextContainer: { flex: 1, marginLeft: 12 },
+  policyTitle: { fontSize: 13, fontWeight: "800", color: "#92400E" },
+  policySub: { fontSize: 12, color: "#B45309", marginTop: 4, lineHeight: 18 },
+
+  assistanceItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderRadius: 16,
+    marginBottom: 8,
+  },
+  iconCircleGray: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  assistanceSub: { fontSize: 12, color: "#64748B" },
+
+  contactBtn: {
+    backgroundColor: "#3B82F6",
+    height: 56,
+    borderRadius: 16,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 10,
+    gap: 10,
+  },
+  contactBtnText: { color: "#FFF", fontSize: 16, fontWeight: "800" },
+  shareBtn: {
+    backgroundColor: "#EFF6FF",
+    height: 56,
+    borderRadius: 16,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 12,
+    gap: 10,
+  },
+  shareBtnText: { color: "#3B82F6", fontSize: 16, fontWeight: "800" },
+  cancelLink: { marginTop: 24, alignItems: "center", marginBottom: 20 },
+  cancelLinkText: { color: "#EF4444", fontWeight: "800", fontSize: 15 },
+
+  rowBetween: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  rowCenter: { flexDirection: "row", alignItems: "center" },
+
+  tripId: { marginTop: 2, marginLeft: 4 },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  contentCard: {
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    position: "relative", // needed for positioning the close modal icon
+  },
+  innerContent: {
+    paddingHorizontal: 24,
+    paddingBottom: 16,
+  },
+
+  // Positioning the circular "X" outside the main text area like the design
+
+  closeCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#FEF2F2",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#FCA5A5",
+    marginTop: 16,
+  },
+
+  titleText: {
+    textAlign: "center",
+    marginTop: 16,
+    marginBottom: 12,
+  },
+  subtitleText: {
+    textAlign: "center",
+    lineHeight: 24,
+  },
+
+  divider: {
+    height: 1,
+    marginTop: 32,
+    marginBottom: 24,
+    marginHorizontal: -24,
+  },
+
+  sectionTitle: {
+    marginBottom: 20,
+  },
+  reasonsList: { gap: 16, marginBottom: 16 },
+  reasonItem: { flexDirection: "row", alignItems: "center", gap: 12 },
+  radioOutline: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1.5,
+    borderColor: "#CBD5E1",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  radioActive: { borderColor: "#EF4444" },
+  radioInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#EF4444",
+  },
+
+  buttonFooter: { padding: 24, borderTopWidth: 1, borderTopColor: "#F8FAFC" },
+  cancelRideButton: {
+    height: 56,
+    backgroundColor: "#EF4444",
+    borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  keepRideButton: {
+    height: 56,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 12,
+  },
+  keepButtonText: { color: "#64748B", fontSize: 16, fontWeight: "700" },
 });
 
 export default RideDetails;

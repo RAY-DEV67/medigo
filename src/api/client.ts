@@ -60,6 +60,7 @@ apiClient.interceptors.response.use(
         data: error.response.data,
         headers: error.response.headers,
       });
+      Alert.alert(error.response.data.message);
     } else if (error.request) {
       // Request made but no response
       console.error("❌ No Response from Server:", {

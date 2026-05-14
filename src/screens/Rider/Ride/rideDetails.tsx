@@ -71,7 +71,6 @@ const RideDetails = () => {
     return <RideDetailsSkeleton />;
   }
 
-  console.log(id);
 
   return (
     <SafeAreaView

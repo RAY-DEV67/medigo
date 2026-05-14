@@ -68,6 +68,9 @@ function Login() {
           console.log("Profile fetch failed", err);
         }
       },
+      onError: async (error) => {
+        console.log("Componet error",error);
+      },
     });
   };
 

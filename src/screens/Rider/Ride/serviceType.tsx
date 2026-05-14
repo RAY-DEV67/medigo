@@ -121,14 +121,14 @@ function ServiceType({
         <GridCard
           title="Surgery"
           icon={<Scissors color="#EF4444" />}
-          selected={appointmentType === "Lab Work"}
-          onPress={() => setAppointmentType("Lab Work")}
+          selected={appointmentType === "Surgery"}
+          onPress={() => setAppointmentType("Surgery")}
         />
         <GridCard
           title="Other"
           icon={<Menu color="#8B5CF6" />}
-          selected={appointmentType === "Lab Work"}
-          onPress={() => setAppointmentType("Lab Work")}
+          selected={appointmentType === "Other"}
+          onPress={() => setAppointmentType("Other")}
         />
       </View>
     </View>

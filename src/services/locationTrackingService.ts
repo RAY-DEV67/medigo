@@ -8,14 +8,21 @@ class LocationTrackingService {
   private currentRideId: string | null = null;
 
   // ✅ CONNECT SOCKET
-  connect(jwtToken: string, backendUrl = "https://staging.getmedigo.com") {
+  connect(
+    jwtToken: string,
+    onConnected?: () => void,
+    backendUrl: string = "https://staging.getmedigo.com",
+  ) {
     if (this.socket?.connected) return;
 
-    this.socket = io(`${backendUrl}/tracking`, {
-      transports: ["websocket", "polling"], // 👈 important
+    this.socket = io("https://staging.getmedigo.com/tracking", {
+      // URL + Namespace
+      path: "/api/v1/ws/socket.io", // Matches documentation exactly
+      transports: ["websocket", "polling"],
       auth: { token: jwtToken },
       reconnection: true,
       reconnectionAttempts: 5,
+      reconnectionDelay: 1000, // Added based on docs
     });
 
     this.socket.on("connect", () => {
@@ -76,15 +83,17 @@ class LocationTrackingService {
     this.isTracking = true;
   }
 
-  // ✅ SEND LOCATION
   sendLocationUpdate(location: Location.LocationObject) {
-    if (!this.socket?.connected) return;
+    if (!this.socket?.connected || !this.currentRideId) return;
+
+    console.log("📍 Sending location for ride:", this.currentRideId);
 
     this.socket.emit("update_location", {
+      ride_id: this.currentRideId, // CRITICAL: Added this
       latitude: location.coords.latitude,
       longitude: location.coords.longitude,
-      heading: location.coords.heading ?? null,
-      speed: location.coords.speed ?? null,
+      heading: location.coords.heading ?? 0,
+      speed: location.coords.speed ?? 0,
     });
   }
 

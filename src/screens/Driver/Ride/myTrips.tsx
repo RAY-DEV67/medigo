@@ -14,38 +14,19 @@ import { commonStyles } from "../../../styles/commonStyles";
 import useTheme from "../../../hooks/useThemes";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useDriverUpcomingRides } from "../../../hooks/queries/useDriverUpcomingRide";
+import { formatDate } from "date-fns";
+import { formatDateReadable } from "../../../utils/formatDate";
 
 const MyTripsScreen = () => {
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
 
-  const trips = [
-    {
-      id: "1",
-      time: "Today, 2:30 PM",
-      status: "Scheduled",
-      statusColor: colors.surfaceBrand,
-      statusTextColor: colors.primaryColor,
-      passenger: "Sarah Johnson",
-      rating: "4.9",
-      pickup: "2847 Maple Avenue",
-      destination: "Springfield General Hospital",
-      earnings: "$28.50",
-    },
-    {
-      id: "2",
-      time: "Tomorrow, 10:00 AM",
-      status: "Assigned",
-      statusColor: "#ECFDF5",
-      statusTextColor: "#10B981",
-      passenger: "Michael Chen",
-      rating: "4.8",
-      pickup: "456 Oak Street",
-      destination: "Downtown Medical Center",
-      earnings: "$28.50",
-    },
-  ];
+  const { data: driverUpcomingRides, isLoading } = useDriverUpcomingRides();
+  const trips = driverUpcomingRides?.data || [];
+
+  console.log(trips);
 
   return (
     <SafeAreaView
@@ -62,20 +43,21 @@ const MyTripsScreen = () => {
 
       <Header title="My Trips" />
 
-      {/* Tab Navigation */}
-      <View style={styles.tabContainer}>
-        <TouchableOpacity style={[styles.tab, styles.activeTab]}>
-          <Text style={[styles.tabText, styles.activeTabText]}>Upcoming</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tab}>
-          <Text style={styles.tabText}>Completed</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tab}>
-          <Text style={styles.tabText}>Canceled</Text>
-        </TouchableOpacity>
-      </View>
-
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {trips.length <= 0 && (
+          <Text
+            style={[
+              commonStyling.title,
+              {
+                fontSize: 14,
+                textAlign: "center",
+              },
+            ]}
+          >
+            No trips
+          </Text>
+        )}
+
         {trips.map((trip) => (
           <View
             key={trip.id}
@@ -96,20 +78,8 @@ const MyTripsScreen = () => {
                   },
                 ]}
               >
-                {trip.time}
+                {formatDateReadable(trip.scheduled_at)}
               </Text>
-              <View
-                style={[
-                  styles.statusBadge,
-                  { backgroundColor: trip.statusColor },
-                ]}
-              >
-                <Text
-                  style={[styles.statusText, { color: trip.statusTextColor }]}
-                >
-                  {trip.status}
-                </Text>
-              </View>
             </View>
 
             <View style={styles.riderRow}>
@@ -126,7 +96,7 @@ const MyTripsScreen = () => {
                     },
                   ]}
                 >
-                  {trip.passenger}
+                  {trip.rider_name}
                 </Text>
                 <View style={styles.ratingRow}>
                   <Star size={14} color="#F59E0B" fill="#F59E0B" />
@@ -174,7 +144,7 @@ const MyTripsScreen = () => {
                       },
                     ]}
                   >
-                    {trip.pickup}
+                    {trip.pickup_address}
                   </Text>
                 </View>
                 <View style={{ marginTop: 16 }}>
@@ -199,7 +169,7 @@ const MyTripsScreen = () => {
                       },
                     ]}
                   >
-                    {trip.destination}
+                    {trip.destination_address}
                   </Text>
                 </View>
               </View>
@@ -253,7 +223,17 @@ const MyTripsScreen = () => {
                   Estimated earnings
                 </Text>
               </View>
-              <TouchableOpacity style={styles.viewTripButton}>
+              <TouchableOpacity
+                style={styles.viewTripButton}
+                onPress={() => {
+                  navigation.navigate("DriverRideDetailsStack", {
+                    screen: "RideDetails",
+                    params: {
+                      id: trip.id,
+                    },
+                  });
+                }}
+              >
                 <Text
                   style={{
                     fontSize: 14,
