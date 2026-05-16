@@ -12,6 +12,7 @@ import SafetyCenter from "../screens/Driver/Profile/safetyCenter";
 import NotificationsScreen from "../screens/Driver/Profile/notifications";
 import PrivacySecurityScreen from "../screens/Driver/Profile/privacy";
 import AppSettings from "../screens/Driver/Profile/appSettings";
+import ChangePassword from "../screens/Driver/Profile/changePassword";
 
 const Stack = createNativeStackNavigator();
 
@@ -46,10 +47,8 @@ const DriverProfileContentsStack: React.FC = () => {
         name="PrivacySecurityScreen"
         component={PrivacySecurityScreen}
       />
-      <Stack.Screen
-        name="AppSettings"
-        component={AppSettings}
-      />
+      <Stack.Screen name="AppSettings" component={AppSettings} />
+      <Stack.Screen name="ChangePassword" component={ChangePassword} />
     </Stack.Navigator>
   );
 };

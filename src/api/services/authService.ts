@@ -20,6 +20,12 @@ import {
   ForgotPasswordResponse,
 } from "../../types/user.types";
 
+// Interface for type safety
+export interface ChangePasswordPayload {
+  current_password: string;
+  new_password: string;
+}
+
 const authService = {
   register: async (payload: RegisterPayload): Promise<RegisterResponse> => {
     const response: AxiosResponse<RegisterResponse> = await apiClient.post(
@@ -75,6 +81,10 @@ const authService = {
   ): Promise<DriverRegisterResponse> => {
     const response: AxiosResponse<DriverRegisterResponse> =
       await apiClient.post("/auth/driver/register", data);
+    return response.data;
+  },
+  changePassword: async (payload: ChangePasswordPayload) => {
+    const response = await apiClient.post("/auth/change-password", payload);
     return response.data;
   },
 };

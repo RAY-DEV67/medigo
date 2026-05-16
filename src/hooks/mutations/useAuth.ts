@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import authService from "../../api/services/authService";
+import authService, { ChangePasswordPayload } from "../../api/services/authService";
 import {
   DriverRegisterRequest,
   RegisterPayload,
@@ -126,6 +126,28 @@ export const useRegisterDriver = () => {
         error.response?.data?.detail?.[0]?.msg ||
         "Registration failed. Please check your token and try again.";
       Alert.alert("Registration Error", errorMessage);
+    },
+  });
+};
+
+export const useChangePassword = () => {
+  return useMutation({
+    mutationFn: (payload: ChangePasswordPayload) => authService.changePassword(payload),
+    onSuccess: (response) => {
+      // API returns: { "success": true, "message": "string", "data": "string" }
+      Alert.alert(
+        "Success",
+        response.message || "Password changed successfully",
+      );
+    },
+    onError: (error: any) => {
+      // Handle 422 Validation Errors or standard errors
+      const errorMessage =
+        error?.response?.data?.detail?.[0]?.msg ||
+        error?.response?.data?.message ||
+        "Failed to change password. Please check your current password.";
+
+      Alert.alert("Error", errorMessage);
     },
   });
 };

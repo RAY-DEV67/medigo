@@ -102,6 +102,11 @@ const PrivacySecurityScreen = () => {
               borderColor: colors.lightPrimaryBlueBorder,
             },
           ]}
+          onPress={() => {
+            navigation.navigate("DriverProfileContentsStack", {
+              screen: "ChangePassword",
+            });
+          }}
         >
           <View
             style={[
