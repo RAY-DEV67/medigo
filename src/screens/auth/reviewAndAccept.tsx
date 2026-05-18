@@ -51,7 +51,7 @@ const ReviewAndAccept = () => {
     consentMutation.mutate(payload, {
       onSuccess: () => {
         // Redirect to Dashboard or Success Screen
-        navigation.navigate("PaymentMethod");
+        navigation.navigate("RiderMainTabs");
       },
     });
   };

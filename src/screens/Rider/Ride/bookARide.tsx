@@ -38,6 +38,7 @@ import ReviewScreen from "./review";
 import { useStripe } from "@stripe/stripe-react-native";
 import axios from "axios";
 import { useCreatePaymentIntent } from "../../../hooks/mutations/usePayments";
+import { useUserStore } from "../../../store/userStore";
 
 const { width } = Dimensions.get("window");
 
@@ -116,6 +117,7 @@ const BookARide = () => {
     longitude: 0,
   });
   const [rideId, setrideId] = useState("");
+  const [loadingPayment, setloadingPayment] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState("visa");
   const {
     mutate: getEstimate,
@@ -248,13 +250,14 @@ const BookARide = () => {
     useCreatePaymentIntent();
 
   const openStripePayment = async () => {
+    setloadingPayment(true);
     try {
       // 1. Get the keys from your backend
       const response = await getPaymentIntent({
         amount: fare,
         currency: "usd", // or your target currency
         description: "Wallet Funding",
-        order_id: `wallet_${Date.now()}`,
+        order_id: user?.data.id,
       });
 
       const { payment_intent, ephemeral_key, customer, publishable_key } =
@@ -272,6 +275,8 @@ const BookARide = () => {
         },
       });
 
+      setloadingPayment(false);
+
       if (!error) {
         // 3. Present the sheet to the user
         const { error: presentError } = await presentPaymentSheet();
@@ -281,9 +286,11 @@ const BookARide = () => {
           // Success! Invalidate wallet balance queries here
           handleConfirmBooking();
         }
+        setloadingPayment(false);
       }
     } catch (e) {
       console.error(e);
+      setloadingPayment(false);
     }
   };
 
@@ -515,7 +522,7 @@ const BookARide = () => {
             }
           }}
         >
-          {isPending ? (
+          {isPending || loadingPayment ? (
             <ActivityIndicator />
           ) : (
             <Text style={styles.continueText}>

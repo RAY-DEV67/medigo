@@ -75,7 +75,7 @@ export default ({ config }) => ({
   extra: {
     expoPublicGoogleKey: process.env.EXPO_PUBLIC_GOOGLE_KEY,
     eas: {
-      projectId: "be1912f2-b5ef-4f3f-89f8-d1111c9a6680",
+      projectId: "2e02639c-db70-4906-951d-f927793a53e7",
     },
   },
 
@@ -84,7 +84,7 @@ export default ({ config }) => ({
   },
 
   updates: {
-    url: "https://u.expo.dev/be1912f2-b5ef-4f3f-89f8-d1111c9a6680",
+    url: "https://u.expo.dev/2e02639c-db70-4906-951d-f927793a53e7",
     checkAutomatically: "ON_LOAD",
     fallbackToCacheTimeout: 30000,
   },

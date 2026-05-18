@@ -35,7 +35,7 @@ const userService = {
   updateProfile: async (
     payload: UpdateProfilePayload,
   ): Promise<UserProfileResponse> => {
-    const response: AxiosResponse<UserProfileResponse> = await apiClient.put(
+    const response: AxiosResponse<UserProfileResponse> = await apiClient.patch(
       "/users/me",
       payload,
     );
