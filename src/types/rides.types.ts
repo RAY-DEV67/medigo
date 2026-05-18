@@ -175,3 +175,12 @@ export interface ActiveRideResponse {
   } | null;
 }
 
+export interface ShareRideResponse {
+  success: boolean;
+  message: string;
+  data: {
+    ride_id: string;
+    share_token: string;
+    share_url: string; // The link we want to share
+  };
+}

@@ -32,7 +32,9 @@ import { RideDetailsSkeleton } from "../../../components/skelentonAnimation/ride
 import OverlayBottomSheet, {
   OverlayBottomSheetRef,
 } from "../../../components/modals/overlayBottomSheet";
-import { useCancelRide } from "../../../hooks/mutations/useRide";
+import { useCancelRide, useShareRide } from "../../../hooks/mutations/useRide";
+import { formatDuration } from "../../../utils/formatDuration";
+import { formatPrice } from "../../../utils/formatPrice";
 
 const RideDetails = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -42,7 +44,7 @@ const RideDetails = () => {
   const { id } = route.params || {};
   const cancelRef = useRef<OverlayBottomSheetRef>(null);
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
-
+  const { mutate: shareTrip, isPending } = useShareRide();
   const { mutate: cancelRide, isPending: isCancelling } = useCancelRide(id);
 
   const reasons = [
@@ -51,6 +53,8 @@ const RideDetails = () => {
   ];
   // 1. Pass id safely
   const { data, isLoading } = useRideDetail(id);
+
+  console.log(data);
 
   // 2. Add an early return if id is missing entirely
   if (!id) {
@@ -70,7 +74,6 @@ const RideDetails = () => {
   if (isLoading || !data) {
     return <RideDetailsSkeleton />;
   }
-
 
   return (
     <SafeAreaView
@@ -209,72 +212,94 @@ const RideDetails = () => {
         </View>
 
         {/* Driver Card */}
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: colors.homelightPrimaryBlue50,
-              borderColor: colors.lightPrimaryBlueBorder,
-            },
-          ]}
-        >
-          <Text
+        {data?.data.status !== "pending" && (
+          <View
             style={[
-              styles.sectionLabel,
-              commonStyling.title,
+              styles.card,
               {
-                fontSize: 14,
-                fontFamily: "Bold",
+                backgroundColor: colors.homelightPrimaryBlue50,
+                borderColor: colors.lightPrimaryBlueBorder,
               },
             ]}
           >
-            Your Driver
-          </Text>
-          <View style={styles.driverProfileRow}>
-            <Image
-              source={{ uri: "https://i.pravatar.cc/100?u=john" }}
-              style={styles.driverAvatar}
-            />
-            <View style={styles.driverTextContainer}>
-              <View style={styles.rowBetween}>
-                <View style={styles.rowCenter}>
-                  <Text
-                    style={[
-                      commonStyling.title,
-                      {
-                        fontSize: 15,
-                        fontFamily: "Bold",
-                      },
-                    ]}
-                  >
-                    John Smith
-                  </Text>
-                  <CheckCircle
-                    size={14}
-                    color="#3B82F6"
-                    style={{ marginLeft: 4 }}
-                  />
+            <Text
+              style={[
+                styles.sectionLabel,
+                commonStyling.title,
+                {
+                  fontSize: 14,
+                  fontFamily: "Bold",
+                },
+              ]}
+            >
+              Your Driver
+            </Text>
+            <View style={styles.driverProfileRow}>
+              <Image
+                source={{ uri: "https://i.pravatar.cc/100?u=john" }}
+                style={styles.driverAvatar}
+              />
+              <View style={styles.driverTextContainer}>
+                <View style={styles.rowBetween}>
+                  <View style={styles.rowCenter}>
+                    <Text
+                      style={[
+                        commonStyling.title,
+                        {
+                          fontSize: 15,
+                          fontFamily: "Bold",
+                        },
+                      ]}
+                    >
+                      John Smith
+                    </Text>
+                    <CheckCircle
+                      size={14}
+                      color="#3B82F6"
+                      style={{ marginLeft: 4 }}
+                    />
+                  </View>
+                  <View style={styles.rowCenter}>
+                    <Text
+                      style={[
+                        commonStyling.subtitle,
+                        {
+                          fontSize: 18,
+                          fontFamily: "Bold",
+                        },
+                      ]}
+                    >
+                      4.9
+                    </Text>
+                    <Star
+                      size={14}
+                      color="#F59E0B"
+                      fill="#F59E0B"
+                      style={{ marginLeft: 2 }}
+                    />
+                  </View>
                 </View>
-                <View style={styles.rowCenter}>
-                  <Text
-                    style={[
-                      commonStyling.subtitle,
-                      {
-                        fontSize: 18,
-                        fontFamily: "Bold",
-                      },
-                    ]}
-                  >
-                    4.9
-                  </Text>
-                  <Star
-                    size={14}
-                    color="#F59E0B"
-                    fill="#F59E0B"
-                    style={{ marginLeft: 2 }}
-                  />
-                </View>
+                <Text
+                  style={[
+                    commonStyling.subtitle,
+                    {
+                      fontSize: 14,
+                      marginTop: 2,
+                    },
+                  ]}
+                >
+                  Verified Driver
+                </Text>
               </View>
+            </View>
+            <View
+              style={[
+                styles.vehicleBox,
+                {
+                  backgroundColor: colors.cardBackground,
+                },
+              ]}
+            >
               <Text
                 style={[
                   commonStyling.subtitle,
@@ -284,43 +309,22 @@ const RideDetails = () => {
                   },
                 ]}
               >
-                Verified Driver
+                Vehicle
+              </Text>
+              <Text
+                style={[
+                  commonStyling.title,
+                  {
+                    fontSize: 14,
+                    marginTop: 2,
+                  },
+                ]}
+              >
+                Toyota Camry • Blue
               </Text>
             </View>
           </View>
-          <View
-            style={[
-              styles.vehicleBox,
-              {
-                backgroundColor: colors.cardBackground,
-              },
-            ]}
-          >
-            <Text
-              style={[
-                commonStyling.subtitle,
-                {
-                  fontSize: 14,
-                  marginTop: 2,
-                },
-              ]}
-            >
-              Vehicle
-            </Text>
-            <Text
-              style={[
-                commonStyling.title,
-                {
-                  fontSize: 14,
-                  marginTop: 2,
-                },
-              ]}
-            >
-              Toyota Camry • Blue
-            </Text>
-          </View>
-        </View>
-
+        )}
         {/* Estimated Pickup Card */}
         <View
           style={[
@@ -341,7 +345,7 @@ const RideDetails = () => {
                 },
               ]}
             >
-              Estimated Pickup
+              Estimated duration
             </Text>
             <Text
               style={[
@@ -353,7 +357,7 @@ const RideDetails = () => {
                 },
               ]}
             >
-              1h 20m
+              {formatDuration(data?.data.estimated_duration_minutes)}
             </Text>
           </View>
           <View style={styles.iconCircleLightBlue}>
@@ -384,9 +388,11 @@ const RideDetails = () => {
           >
             Fare Details
           </Text>
-          <FareRow label="Base fare" value="$37.00" />
-          <FareRow label="Service fee" value="$5.00" />
-          <FareRow label="Medical support" value="$3.00" />
+          <FareRow
+            label="Base fare"
+            value={formatPrice(data?.data.estimated_fare)}
+          />
+
           <View style={styles.fareDivider} />
           <View style={styles.rowBetween}>
             <Text
@@ -410,24 +416,7 @@ const RideDetails = () => {
                 },
               ]}
             >
-              $45.00
-            </Text>
-          </View>
-          <View style={styles.paymentRow}>
-            <Image
-              source={{ uri: "https://img.icons8.com/color/48/visa.png" }}
-              style={styles.paymentIcon}
-            />
-            <Text
-              style={[
-                commonStyling.subtitle,
-                {
-                  fontSize: 13,
-                  fontFamily: "Bold",
-                },
-              ]}
-            >
-              Visa •••• 4242
+              {formatPrice(data?.data.estimated_fare, true)}
             </Text>
           </View>
         </View>
@@ -478,14 +467,32 @@ const RideDetails = () => {
           />
         </View>
 
-        <TouchableOpacity style={styles.contactBtn}>
-          <Phone size={20} color="#FFF" />
-          <Text style={styles.contactBtnText}>Contact Driver</Text>
-        </TouchableOpacity>
+        {data.data.status !== "pending" && (
+          <TouchableOpacity style={styles.contactBtn}>
+            <Phone size={20} color="#FFF" />
+            <Text style={styles.contactBtnText}>Contact Driver</Text>
+          </TouchableOpacity>
+        )}
 
-        <TouchableOpacity style={styles.shareBtn}>
-          <Share2 size={20} color="#3B82F6" />
-          <Text style={styles.shareBtnText}>Share Trip</Text>
+        <TouchableOpacity
+          style={styles.shareBtn}
+          onPress={() => shareTrip(data?.data.id)}
+        >
+          {isPending ? (
+            <ActivityIndicator />
+          ) : (
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 10,
+              }}
+            >
+              <Share2 size={20} color="#3B82F6" />
+              <Text style={styles.shareBtnText}>Share Trip</Text>
+            </View>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity

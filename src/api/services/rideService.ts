@@ -7,6 +7,7 @@ import {
   RideDetailResponse,
   RidesQueryParams,
   RidesResponse,
+  ShareRideResponse,
   TimelineResponse,
   UpcomingRidesResponse,
   UpdateStatusPayload,
@@ -67,6 +68,11 @@ const rideService = {
     payload: CancelRidePayload,
   ): Promise<RideDetailResponse> => {
     const response = await apiClient.put(`/rides/${rideId}/cancel`, payload);
+    return response.data;
+  },
+
+  shareRideLink: async (rideId: string): Promise<ShareRideResponse> => {
+    const response = await apiClient.post(`/rides/${rideId}/share`, {});
     return response.data;
   },
 };

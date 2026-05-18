@@ -31,7 +31,7 @@ const MyRidesScreen = () => {
   const commonStyling = commonStyles(colors);
 
   const { data: upcomingData, isLoading: loadingUpcoming } = useMyRides({
-    status: "requested",
+    status: "pending",
   });
 
   const { data: activeData, isLoading, error } = useActiveRide();
@@ -42,8 +42,6 @@ const MyRidesScreen = () => {
 
   const activeRide = activeData?.data;
   const upcomingRides = upcomingData?.data || [];
-
-  console.log(activeRide);
 
   return (
     <SafeAreaView

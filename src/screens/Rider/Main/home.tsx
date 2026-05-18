@@ -34,6 +34,7 @@ import MapScreen from "../../../components/map/map";
 import { RiderHomeSkeleton } from "../../../components/skelentonAnimation/riderHomeSkelento";
 import { useMyRides } from "../../../hooks/queries/useMyRides";
 import UpcomingRideCard from "../../../components/cards/upcomingRidesCard";
+import { useRideStore } from "../../../store/useRideStore";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SNAP_POINTS = [SCREEN_HEIGHT * 0.5, SCREEN_HEIGHT * 0.3];
@@ -45,11 +46,12 @@ const RiderHomeScreen = () => {
   const { data: savedLocations, isLoading: loadingSavedLocation } =
     useSavedLocations();
   const { data: upcomingData, isLoading: loadingUpcoming } = useMyRides({
-    status: "requested",
+    status: "pending",
   });
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
   const [sheetHeight, setSheetHeight] = useState(SNAP_POINTS[0]);
+  const pickup = useRideStore((state) => state.pickup);
 
   useEffect(() => {
     if (!isLoading && data) {
@@ -195,7 +197,7 @@ const RiderHomeScreen = () => {
                       },
                     ]}
                   >
-                    2847 Maple Avenue
+                    {pickup?.address}
                   </Text>
                 </View>
                 <TouchableOpacity>

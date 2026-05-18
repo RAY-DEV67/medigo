@@ -64,7 +64,7 @@ const UpcomingRideCard = ({ onPress, ride }: any) => {
             styles.statusBadge,
             {
               backgroundColor:
-                ride.status === "requested" ? colors.surfaceElevated : "red",
+                ride.status === "pending" ? colors.surfaceElevated : "red",
             },
           ]}
         >
@@ -73,7 +73,7 @@ const UpcomingRideCard = ({ onPress, ride }: any) => {
               styles.statusBadgeText,
               {
                 color:
-                  ride.status === "requested" ? colors.primaryColor : "red",
+                  ride.status === "pending" ? colors.primaryColor : "red",
               },
             ]}
           >
