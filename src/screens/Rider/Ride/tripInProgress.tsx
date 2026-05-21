@@ -19,6 +19,10 @@ import { useRideTracking } from "../../../hooks/useTracking";
 import { storage } from "../../../utils/storage";
 import locationTrackingService from "../../../services/locationTrackingService";
 import { useUserStore } from "../../../store/userStore";
+import { formatPrice } from "../../../utils/formatPrice";
+import { milesToKm } from "../../../utils/milesToKilometer";
+import { formatDuration } from "../../../utils/formatDuration";
+import RideRouteCard from "../../../components/map/rideRouteCard";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SNAP_POINTS = [SCREEN_HEIGHT * 0.5, SCREEN_HEIGHT * 0.3];
@@ -67,9 +71,11 @@ function TripInProgress() {
   }, [activeRide]);
 
   const [activeSnapPoints, setActiveSnapPoints] = useState<number[]>([
-    SCREEN_HEIGHT * 0.7,
+    SCREEN_HEIGHT * 0.65,
     SCREEN_HEIGHT * 0.25,
   ]);
+
+  console.log(activeRide);
 
   return (
     <View>
@@ -99,7 +105,7 @@ function TripInProgress() {
               <View style={styles.avatarContainer}>
                 <User size={32} color="#2563EB" />
               </View>
-              <View style={styles.driverMeta}>
+              <View>
                 <Text
                   style={[
                     commonStyling.title,
@@ -132,84 +138,24 @@ function TripInProgress() {
                       },
                     ]}
                   >
-                    Toyota Camry
+                    {activeRide.driver_vehicle_make}{" "}
+                    {activeRide.driver_vehicle_type}{" "}
+                    {activeRide.driver_vehicle_model}
                   </Text>
                 </View>
               </View>
             </View>
-            <TouchableOpacity style={styles.chatButton}>
+            {/* <TouchableOpacity style={styles.chatButton}>
               <MessageCircle color="#FFF" size={24} fill="#FFF" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           {/* Route Section */}
-          <View
-            style={[
-              styles.routeContainer,
-              {
-                backgroundColor: colors.cardBackground,
-              },
-            ]}
-          >
-            <View style={styles.routeRow}>
-              <View style={styles.indicatorContainer}>
-                <View style={styles.pickupRing} />
-                <View style={styles.routeLine} />
-              </View>
-              <View style={styles.locationInfo}>
-                <Text
-                  style={[
-                    styles.locationLabel,
-                    commonStyling.subtitle,
-                    {
-                      fontSize: 12,
-                    },
-                  ]}
-                >
-                  Pickup
-                </Text>
-                <Text
-                  style={[
-                    commonStyling.title,
-                    {
-                      fontSize: 14,
-                    },
-                  ]}
-                >
-                  {activeRide.pickup_address}
-                </Text>
-              </View>
-            </View>
 
-            <View style={[styles.routeRow, { marginTop: 4 }]}>
-              <View style={styles.indicatorContainer}>
-                <View style={styles.destinationDot} />
-              </View>
-              <View style={styles.locationInfo}>
-                <Text
-                  style={[
-                    styles.locationLabel,
-                    commonStyling.subtitle,
-                    {
-                      fontSize: 12,
-                    },
-                  ]}
-                >
-                  Destination
-                </Text>
-                <Text
-                  style={[
-                    commonStyling.title,
-                    {
-                      fontSize: 14,
-                    },
-                  ]}
-                >
-                  {activeRide.destination_address}
-                </Text>
-              </View>
-            </View>
-          </View>
+          <RideRouteCard
+            pickup={activeRide?.pickup_address}
+            destination={activeRide?.destination_address}
+          />
 
           {/* Trip Metrics Row */}
           <View style={styles.metricsRow}>
@@ -229,12 +175,12 @@ function TripInProgress() {
                 style={[
                   commonStyling.title,
                   {
-                    fontSize: 16,
+                    fontSize: 15,
                     fontFamily: "Bold",
                   },
                 ]}
               >
-                {activeRide.estimated_distance_miles} mi
+                {milesToKm(activeRide?.estimated_distance_miles)}
               </Text>
             </View>
             <View style={styles.metricItem}>
@@ -253,12 +199,12 @@ function TripInProgress() {
                 style={[
                   commonStyling.title,
                   {
-                    fontSize: 16,
+                    fontSize: 15,
                     fontFamily: "Bold",
                   },
                 ]}
               >
-                {activeRide.estimated_duration_minutes} min
+                {formatDuration(activeRide?.estimated_duration_minutes)}
               </Text>
             </View>
             <View style={styles.metricItem}>
@@ -277,13 +223,13 @@ function TripInProgress() {
                 style={[
                   commonStyling.title,
                   {
-                    fontSize: 16,
+                    fontSize: 15,
                     fontFamily: "Bold",
                     color: colors.primaryColor,
                   },
                 ]}
               >
-                ${activeRide.estimated_fare}
+                {formatPrice(activeRide.estimated_fare)}
               </Text>
             </View>
           </View>
@@ -414,7 +360,7 @@ const styles = StyleSheet.create({
   locationLabel: { marginBottom: 2 },
 
   // Metrics
-  metricsRow: { flexDirection: "row", gap: 12, marginBottom: 16 },
+  metricsRow: { flexDirection: "row", gap: 12, marginVertical: 16 },
   metricItem: {
     flex: 1,
     borderRadius: 16,

@@ -68,6 +68,11 @@ const paymentService = {
     );
     return response.data;
   },
+
+  getBaseFareEstimate: async (payload: FareEstimatePayload) => {
+    const response = await apiClient.post("/payments/fare-estimate", payload);
+    return response.data;
+  },
 };
 
 export default paymentService;

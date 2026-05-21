@@ -35,6 +35,8 @@ import OverlayBottomSheet, {
 import { useCancelRide, useShareRide } from "../../../hooks/mutations/useRide";
 import { formatDuration } from "../../../utils/formatDuration";
 import { formatPrice } from "../../../utils/formatPrice";
+import { useGetFareEstimateMutation } from "../../../hooks/queries/useGetBaseFareEstimate";
+import RideRouteCard from "../../../components/map/rideRouteCard";
 
 const RideDetails = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -54,7 +56,7 @@ const RideDetails = () => {
   // 1. Pass id safely
   const { data, isLoading } = useRideDetail(id);
 
-  console.log(data);
+  console.log(data?.data.status);
 
   // 2. Add an early return if id is missing entirely
   if (!id) {
@@ -116,8 +118,30 @@ const RideDetails = () => {
             >
               {formatHumanReadableDate(data.data.scheduled_at)}
             </Text>
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusBadgeText}>Confirmed</Text>
+            <View
+              style={[
+                styles.statusBadge,
+                {
+                  backgroundColor:
+                    data?.data.status === "cancelled"
+                      ? colors.highlightRed
+                      : "#DCFCE7",
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.statusBadgeText,
+                  {
+                    color:
+                      data?.data.status === "cancelled"
+                        ? colors.cancelledRed
+                        : "#10B981",
+                  },
+                ]}
+              >
+                {data?.data.status}
+              </Text>
             </View>
           </View>
         </View>
@@ -157,62 +181,15 @@ const RideDetails = () => {
           >
             Route
           </Text>
-          <View style={styles.routeContainer}>
-            <View style={styles.timeline}>
-              <View style={styles.dotBlue} />
-              <View style={styles.line} />
-              <View style={styles.dotBlue} />
-            </View>
-            <View style={styles.addressContainer}>
-              <Text
-                style={[
-                  commonStyling.subtitle,
-                  {
-                    fontSize: 11,
-                  },
-                ]}
-              >
-                Pickup
-              </Text>
-              <Text
-                style={[
-                  styles.addrText,
-                  commonStyling.title,
-                  {
-                    fontSize: 14,
-                  },
-                ]}
-              >
-                {data?.data.pickup_address}
-              </Text>
-              <Text
-                style={[
-                  commonStyling.subtitle,
-                  {
-                    fontSize: 11,
-                    marginTop: 16,
-                  },
-                ]}
-              >
-                Destination
-              </Text>
-              <Text
-                style={[
-                  styles.addrText,
-                  commonStyling.title,
-                  {
-                    fontSize: 14,
-                  },
-                ]}
-              >
-                {data?.data.destination_address}
-              </Text>
-            </View>
-          </View>
+
+          <RideRouteCard
+            pickup={data?.data.pickup_address}
+            destination={data?.data.destination_address}
+          />
         </View>
 
         {/* Driver Card */}
-        {data?.data.status !== "pending" && (
+        {data?.data.status === "confirmed" && (
           <View
             style={[
               styles.card,
@@ -460,49 +437,53 @@ const RideDetails = () => {
             title="24/7 Support"
             sub="Get help anytime"
           />
-          <AssistanceRow
+          {/* <AssistanceRow
             icon={<Info size={20} color="#3B82F6" />}
             title="Emergency Contact"
             sub="Share trip details"
-          />
+          /> */}
         </View>
 
-        {data.data.status !== "pending" && (
+        {data.data.status === "confirmed" && (
           <TouchableOpacity style={styles.contactBtn}>
             <Phone size={20} color="#FFF" />
             <Text style={styles.contactBtnText}>Contact Driver</Text>
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity
-          style={styles.shareBtn}
-          onPress={() => shareTrip(data?.data.id)}
-        >
-          {isPending ? (
-            <ActivityIndicator />
-          ) : (
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: 10,
-              }}
-            >
-              <Share2 size={20} color="#3B82F6" />
-              <Text style={styles.shareBtnText}>Share Trip</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+        {data?.data.status !== "cancelled" && (
+          <TouchableOpacity
+            style={styles.shareBtn}
+            onPress={() => shareTrip(data?.data.id)}
+          >
+            {isPending ? (
+              <ActivityIndicator />
+            ) : (
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: 10,
+                }}
+              >
+                <Share2 size={20} color="#3B82F6" />
+                <Text style={styles.shareBtnText}>Share Trip</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        )}
 
-        <TouchableOpacity
-          style={styles.cancelLink}
-          onPress={() => {
-            cancelRef.current?.open();
-          }}
-        >
-          <Text style={styles.cancelLinkText}>Cancel Ride</Text>
-        </TouchableOpacity>
+        {data?.data.status !== "cancelled" && (
+          <TouchableOpacity
+            style={styles.cancelLink}
+            onPress={() => {
+              cancelRef.current?.open();
+            }}
+          >
+            <Text style={styles.cancelLinkText}>Cancel Ride</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
 
       <OverlayBottomSheet ref={cancelRef} height={600} overlay={true}>
@@ -688,6 +669,7 @@ const FareRow = ({ label, value }: any) => {
 const AssistanceRow = ({ icon, title, sub }: any) => {
   const { colors } = useTheme();
   const commonStyling = commonStyles(colors);
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
 
   return (
     <TouchableOpacity
@@ -697,6 +679,11 @@ const AssistanceRow = ({ icon, title, sub }: any) => {
           backgroundColor: colors.cardBackground,
         },
       ]}
+      onPress={() => {
+        navigation.navigate("RiderProfileContentsStack", {
+          screen: "LiveChatScreen",
+        });
+      }}
     >
       <View style={styles.iconCircleGray}>{icon}</View>
       <View style={{ flex: 1, marginLeft: 12 }}>
@@ -743,13 +730,12 @@ const styles = StyleSheet.create({
   headerSubRow: { flexDirection: "row", alignItems: "center", marginTop: 4 },
   headerTimeText: { fontSize: 13, color: "#64748B", marginLeft: 6 },
   statusBadge: {
-    backgroundColor: "#DCFCE7",
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
     marginLeft: 10,
   },
-  statusBadgeText: { color: "#10B981", fontSize: 11, fontWeight: "700" },
+  statusBadgeText: { fontSize: 11, fontWeight: "700" },
   closeButton: {
     width: 36,
     height: 36,
@@ -878,7 +864,17 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   shareBtnText: { color: "#3B82F6", fontSize: 16, fontWeight: "800" },
-  cancelLink: { marginTop: 24, alignItems: "center", marginBottom: 20 },
+  cancelLink: {
+    marginTop: 12,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#EF4444",
+    height: 56,
+    borderRadius: 16,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   cancelLinkText: { color: "#EF4444", fontWeight: "800", fontSize: 15 },
 
   rowBetween: {

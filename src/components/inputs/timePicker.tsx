@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { View, Text, ScrollView, StyleSheet, Dimensions } from "react-native";
 import useTheme from "../../hooks/useThemes";
 
@@ -13,24 +13,47 @@ interface TimePickerProps {
   minMinutesFromNow?: number;
 }
 
+// Get current time in device's local timezone (correct for all Canadian provinces)
+const getLocalNow = () => {
+  const now = new Date();
+  return {
+    year: now.getFullYear(),
+    month: now.getMonth() + 1,
+    day: now.getDate(),
+    hour: now.getHours(),
+    minute: now.getMinutes(),
+  };
+};
+
+// Parse a YYYY-MM-DD string as local date (not UTC)
+const parseLocalDateString = (dateString: string) => {
+  const [year, month, day] = dateString.split("-").map(Number);
+  return { year, month, day };
+};
+
 const TimePicker: React.FC<TimePickerProps> = ({
-  initialHour = new Date().getHours(),
-  initialMinute = new Date().getMinutes(),
+  initialHour,
+  initialMinute,
   onChange,
   selectedDate,
   minMinutesFromNow = 20,
 }) => {
   const { colors } = useTheme();
 
-  // Check if selected date is today
-  const isToday = () => {
+  // Check if selected date is today using local timezone
+  const isToday = useCallback((): boolean => {
     if (!selectedDate) return false;
-    const today = new Date().toISOString().split("T")[0];
-    return selectedDate === today;
-  };
+    const localNow = getLocalNow();
+    const selected = parseLocalDateString(selectedDate);
+    return (
+      selected.year === localNow.year &&
+      selected.month === localNow.month &&
+      selected.day === localNow.day
+    );
+  }, [selectedDate]);
 
-  // Calculate minimum time (20 minutes from now)
-  const getMinTime = () => {
+  // Calculate minimum allowed time in local timezone
+  const getMinTime = useCallback(() => {
     if (!isToday()) return { hour: 0, minute: 0 };
 
     const now = new Date();
@@ -39,85 +62,174 @@ const TimePicker: React.FC<TimePickerProps> = ({
       hour: minTime.getHours(),
       minute: minTime.getMinutes(),
     };
-  };
+  }, [isToday, minMinutesFromNow]);
 
-  const minTime = getMinTime();
+  const getAvailableHours = useCallback((): number[] => {
+    const allHours = Array.from({ length: 24 }, (_, i) => i);
+    if (!isToday()) return allHours;
+    const { hour: minHour } = getMinTime();
+    return allHours.filter((h) => h >= minHour);
+  }, [isToday, getMinTime]);
 
-  // Filter hours based on minimum time
-  const getAvailableHours = () => {
-    if (!isToday()) {
-      return Array.from({ length: 24 }, (_, i) => i);
-    }
-    return Array.from({ length: 24 }, (_, i) => i).filter(
-      (hour) => hour >= minTime.hour,
-    );
-  };
+  const getAvailableMinutes = useCallback(
+    (hour: number): number[] => {
+      const allMinutes = Array.from({ length: 60 }, (_, i) => i);
+      if (!isToday()) return allMinutes;
 
-  // Filter minutes based on selected hour and minimum time
-  const getAvailableMinutes = (hour: number) => {
-    const allMinutes = Array.from({ length: 60 }, (_, i) => i);
+      const { hour: minHour, minute: minMinute } = getMinTime();
+      if (hour === minHour) {
+        return allMinutes.filter((m) => m >= minMinute);
+      }
+      if (hour > minHour) return allMinutes;
+      return [];
+    },
+    [isToday, getMinTime],
+  );
 
-    if (!isToday()) {
-      return allMinutes;
-    }
+  // Calculate valid initial hour
+  const getInitialHour = useCallback((): number => {
+    const hours = getAvailableHours();
+    if (hours.length === 0) return 0;
 
-    // If selected hour is the minimum hour, filter minutes
-    if (hour === minTime.hour) {
-      return allMinutes.filter((minute) => minute >= minTime.minute);
-    }
+    const { hour: minHour } = getMinTime();
+    const preferred = initialHour ?? getLocalNow().hour;
 
-    // If selected hour is after minimum hour, all minutes are available
-    if (hour > minTime.hour) {
-      return allMinutes;
-    }
+    if (!isToday()) return preferred;
+    return preferred >= minHour ? preferred : minHour;
+  }, [initialHour, isToday, getMinTime, getAvailableHours]);
 
-    return [];
-  };
+  // Calculate valid initial minute
+  const getInitialMinute = useCallback(
+    (hour: number): number => {
+      const minutes = getAvailableMinutes(hour);
+      if (minutes.length === 0) return 0;
+
+      const { hour: minHour, minute: minMinute } = getMinTime();
+      const preferred = initialMinute ?? getLocalNow().minute;
+
+      if (!isToday()) return preferred;
+      if (hour === minHour) {
+        return preferred >= minMinute ? preferred : minMinute;
+      }
+      return preferred;
+    },
+    [initialMinute, isToday, getMinTime, getAvailableMinutes],
+  );
 
   const hours = getAvailableHours();
-  const [selectedHour, setSelectedHour] = useState(() => {
-    // Ensure initial hour is valid
-    if (isToday() && initialHour < minTime.hour) {
-      return minTime.hour;
-    }
-    return initialHour;
-  });
-
-  const minutes = getAvailableMinutes(selectedHour);
-  const [selectedMinute, setSelectedMinute] = useState(() => {
-    // Ensure initial minute is valid
-    if (
-      isToday() &&
-      selectedHour === minTime.hour &&
-      initialMinute < minTime.minute
-    ) {
-      return minTime.minute;
-    }
-    return initialMinute;
-  });
+  const [selectedHour, setSelectedHour] = useState<number>(getInitialHour);
+  const [selectedMinute, setSelectedMinute] = useState<number>(() =>
+    getInitialMinute(getInitialHour()),
+  );
 
   const hourRef = useRef<ScrollView>(null);
   const minuteRef = useRef<ScrollView>(null);
+  const initialScrollDone = useRef(false);
 
-  // Update minutes when hour changes
+  // Scroll to correct position on mount
   useEffect(() => {
-    const availableMinutes = getAvailableMinutes(selectedHour);
+    if (initialScrollDone.current) return;
 
-    // If current selected minute is no longer available, select the first available minute
+    const hourIndex = hours.indexOf(selectedHour);
+    const minuteList = getAvailableMinutes(selectedHour);
+    const minuteIndex = minuteList.indexOf(selectedMinute);
+
+    const timer = setTimeout(() => {
+      if (hourIndex >= 0) {
+        hourRef.current?.scrollTo({
+          y: hourIndex * ITEM_HEIGHT,
+          animated: false,
+        });
+      }
+      if (minuteIndex >= 0) {
+        minuteRef.current?.scrollTo({
+          y: minuteIndex * ITEM_HEIGHT,
+          animated: false,
+        });
+      }
+      initialScrollDone.current = true;
+
+      // Fire initial onChange so parent has correct value
+      if (onChange) {
+        const formatted = `${String(selectedHour).padStart(2, "0")}:${String(selectedMinute).padStart(2, "0")}`;
+        onChange(formatted);
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // When selectedDate changes, revalidate selected time
+  useEffect(() => {
+    const availableHours = getAvailableHours();
+    let newHour = selectedHour;
+    let newMinute = selectedMinute;
+    let changed = false;
+
+    if (!availableHours.includes(selectedHour)) {
+      newHour = availableHours[0] ?? 0;
+      changed = true;
+    }
+
+    const availableMinutes = getAvailableMinutes(newHour);
     if (!availableMinutes.includes(selectedMinute)) {
-      const newMinute = availableMinutes[0] || 0;
+      newMinute = availableMinutes[0] ?? 0;
+      changed = true;
+    }
+
+    if (changed) {
+      setSelectedHour(newHour);
       setSelectedMinute(newMinute);
 
+      const hourIndex = availableHours.indexOf(newHour);
+      const minuteIndex = availableMinutes.indexOf(newMinute);
+
+      setTimeout(() => {
+        if (hourIndex >= 0) {
+          hourRef.current?.scrollTo({
+            y: hourIndex * ITEM_HEIGHT,
+            animated: true,
+          });
+        }
+        if (minuteIndex >= 0) {
+          minuteRef.current?.scrollTo({
+            y: minuteIndex * ITEM_HEIGHT,
+            animated: true,
+          });
+        }
+      }, 100);
+
       if (onChange) {
-        const formatted = `${String(selectedHour).padStart(2, "0")}:${String(
-          newMinute,
-        ).padStart(2, "0")}`;
+        const formatted = `${String(newHour).padStart(2, "0")}:${String(newMinute).padStart(2, "0")}`;
         onChange(formatted);
       }
     }
-  }, [selectedHour, selectedDate]);
+  }, [selectedDate]);
 
-  // Snap to closest item
+  // When hour changes, revalidate minutes
+  useEffect(() => {
+    const availableMinutes = getAvailableMinutes(selectedHour);
+    if (!availableMinutes.includes(selectedMinute)) {
+      const newMinute = availableMinutes[0] ?? 0;
+      setSelectedMinute(newMinute);
+
+      const minuteIndex = availableMinutes.indexOf(newMinute);
+      setTimeout(() => {
+        if (minuteIndex >= 0) {
+          minuteRef.current?.scrollTo({
+            y: minuteIndex * ITEM_HEIGHT,
+            animated: true,
+          });
+        }
+      }, 50);
+
+      if (onChange) {
+        const formatted = `${String(selectedHour).padStart(2, "0")}:${String(newMinute).padStart(2, "0")}`;
+        onChange(formatted);
+      }
+    }
+  }, [selectedHour]);
+
   const onScrollEnd = (
     e: any,
     list: number[],
@@ -126,17 +238,15 @@ const TimePicker: React.FC<TimePickerProps> = ({
   ) => {
     const offsetY = e.nativeEvent.contentOffset.y;
     const index = Math.round(offsetY / ITEM_HEIGHT);
+    const clampedIndex = Math.max(0, Math.min(index, list.length - 1));
+    const value = list[clampedIndex];
 
-    const value = list[index];
     setter(value);
 
     if (onChange) {
-      const formatted = `${String(
-        type === "hour" ? value : selectedHour,
-      ).padStart(2, "0")}:${String(
-        type === "minute" ? value : selectedMinute,
-      ).padStart(2, "0")}`;
-
+      const hour = type === "hour" ? value : selectedHour;
+      const minute = type === "minute" ? value : selectedMinute;
+      const formatted = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
       onChange(formatted);
     }
   };
@@ -147,16 +257,19 @@ const TimePicker: React.FC<TimePickerProps> = ({
         <Text
           style={[
             styles.itemText,
-            selectedValue === item && styles.selectedText,
-            {
-              color: colors.inputText,
-            },
+            { color: colors.inputText },
+            selectedValue === item && [
+              styles.selectedText,
+              { color: colors.titleText },
+            ],
           ]}
         >
           {String(item).padStart(2, "0")}
         </Text>
       </View>
     ));
+
+  const minutes = getAvailableMinutes(selectedHour);
 
   return (
     <View
@@ -169,12 +282,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
       ]}
     >
       <View
-        style={[
-          styles.centerHighlight,
-          {
-            backgroundColor: colors.lightGray,
-          },
-        ]}
+        style={[styles.centerHighlight, { backgroundColor: colors.lightGray }]}
       />
 
       {/* Hours */}
@@ -190,6 +298,13 @@ const TimePicker: React.FC<TimePickerProps> = ({
       >
         {renderList(hours, selectedHour)}
       </ScrollView>
+
+      {/* Separator */}
+      <View style={styles.separator}>
+        <Text style={[styles.separatorText, { color: colors.titleText }]}>
+          :
+        </Text>
+      </View>
 
       {/* Minutes */}
       <ScrollView
@@ -212,30 +327,25 @@ const styles = StyleSheet.create({
   container: {
     height: ITEM_HEIGHT * 4,
     flexDirection: "row",
+    alignItems: "center",
     width: SCREEN_WIDTH * 0.7,
     borderRadius: 16,
     borderWidth: 1,
     overflow: "hidden",
     paddingHorizontal: 50,
   },
-
   item: {
     height: ITEM_HEIGHT,
     justifyContent: "center",
     alignItems: "center",
   },
-
   itemText: {
     fontSize: 20,
-    color: "#5a5a5a",
     fontFamily: "Medium",
   },
-
   selectedText: {
-    color: "#2d2d2d",
     fontFamily: "Medium",
   },
-
   centerHighlight: {
     position: "absolute",
     height: ITEM_HEIGHT,
@@ -245,6 +355,15 @@ const styles = StyleSheet.create({
     marginTop: -ITEM_HEIGHT / 2,
     zIndex: -1,
     borderRadius: 5,
+  },
+  separator: {
+    height: ITEM_HEIGHT,
+    justifyContent: "center",
+    paddingHorizontal: 4,
+  },
+  separatorText: {
+    fontSize: 20,
+    fontFamily: "Medium",
   },
 });
 

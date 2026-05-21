@@ -1,408 +1,3 @@
-// import React, { useState } from "react";
-// import {
-//   View,
-//   StyleSheet,
-//   Text,
-//   TouchableOpacity,
-//   Modal,
-//   ScrollView,
-// } from "react-native";
-// import { Calendar } from "react-native-calendars";
-// import useTheme from "../../hooks/useThemes";
-// import DownArrow from "../../../assets/icons/downArrow";
-// import { commonStyles } from "../../styles/commonStyles";
-// import { FONT_SIZES } from "../../constants/sizes";
-
-// interface DatePickerProps {
-//   date?: string;
-//   setDate: (value: string) => void;
-//   setShowCalendar: (value: boolean) => void;
-//   top: number;
-//   onPress: () => void;
-//   minAge?: number; // Minimum age in years (e.g., 16 for age restriction)
-//   minDate?: string; // Minimum selectable date (ISO format: YYYY-MM-DD)
-//   maxDate?: string; // Maximum selectable date (ISO format: YYYY-MM-DD)
-// }
-
-// const CalendarComponent: React.FC<DatePickerProps> = ({
-//   date,
-//   setDate,
-//   setShowCalendar,
-//   top,
-//   onPress,
-//   minAge,
-//   minDate,
-//   maxDate,
-// }) => {
-//   const { colors } = useTheme();
-//   const commonStyling = commonStyles(colors);
-//   const [currentDate, setCurrentDate] = useState(
-//     date || new Date().toISOString().split("T")[0]
-//   );
-//   const [showYearPicker, setShowYearPicker] = useState(false);
-//   const [showMonthPicker, setShowMonthPicker] = useState(false);
-
-//   // Calculate date ranges based on constraints
-//   const today = new Date();
-
-//   // For age restriction (e.g., must be 16+ years old)
-//   let calculatedMaxDate = maxDate;
-//   if (minAge) {
-//     const maxBirthDate = new Date();
-//     maxBirthDate.setFullYear(maxBirthDate.getFullYear() - minAge);
-//     calculatedMaxDate = maxBirthDate.toISOString().split("T")[0];
-//   }
-
-//   // Generate years based on constraints
-//   const getYearRange = () => {
-//     let startYear = 1950;
-//     let endYear = new Date().getFullYear();
-
-//     if (minAge) {
-//       // For age restriction, max year is (current year - minAge)
-//       endYear = new Date().getFullYear() - minAge;
-//       startYear = endYear - 100; // Show 100 years back
-//     } else if (minDate && maxDate) {
-//       // For date range restriction
-//       startYear = new Date(minDate).getFullYear();
-//       endYear = new Date(maxDate).getFullYear();
-//     }
-
-//     return Array.from(
-//       { length: endYear - startYear + 1 },
-//       (_, i) => startYear + i
-//     ).reverse(); // Reverse to show recent years first
-//   };
-
-//   const years = getYearRange();
-
-//   // Months
-//   const months = [
-//     { month: "January", label: "Jan" },
-//     { month: "February", label: "Feb" },
-//     { month: "March", label: "Mar" },
-//     { month: "April", label: "Apr" },
-//     { month: "May", label: "May" },
-//     { month: "June", label: "June" },
-//     { month: "July", label: "July" },
-//     { month: "August", label: "Aug" },
-//     { month: "September", label: "Sep" },
-//     { month: "October", label: "Oct" },
-//     { month: "November", label: "Nov" },
-//     { month: "December", label: "Dec" },
-//   ];
-
-//   const parsedDate = new Date(currentDate);
-//   const currentYear = parsedDate.getFullYear();
-//   const currentMonth = parsedDate.getMonth();
-
-//   const handleYearSelect = (year: number) => {
-//     const currentDay = parsedDate.getDate();
-//     const newDate = new Date(year, currentMonth, currentDay);
-//     setCurrentDate(newDate.toISOString().split("T")[0]);
-//     setShowYearPicker(false);
-//   };
-
-//   const handleMonthSelect = (monthIndex: number) => {
-//     const currentDay = parsedDate.getDate();
-//     const newDate = new Date(currentYear, monthIndex, currentDay);
-//     setCurrentDate(newDate.toISOString().split("T")[0]);
-//     setShowMonthPicker(false);
-//   };
-
-//   const CustomHeader = (props: any) => {
-//     const headerDate = new Date(currentDate);
-//     const year = headerDate.getFullYear();
-//     const month = months[headerDate.getMonth()];
-
-//     return (
-//       <View
-//         style={{
-//           alignItems: "center",
-//           borderBottomWidth: 1,
-//           borderBottomColor: colors.stroke,
-//         }}
-//       >
-//         <View
-//           style={[
-//             styles.headerContainer,
-//             {
-//               borderColor: colors.stroke,
-//             },
-//           ]}
-//         >
-//           <TouchableOpacity
-//             style={[
-//               styles.headerButton,
-//               {
-//                 borderRightWidth: 1,
-//                 borderTopRightRadius: 0,
-//                 borderBottomRightRadius: 0,
-//                 borderRightColor: colors.stroke,
-//               },
-//             ]}
-//             onPress={() => setShowMonthPicker(true)}
-//           >
-//             <Text
-//               style={{
-//                 color: colors.subTitleText,
-//                 fontSize: FONT_SIZES.SUBTITLE,
-//                 fontFamily: "Regular",
-//               }}
-//             >
-//               {month.label}
-//             </Text>
-//             <DownArrow />
-//           </TouchableOpacity>
-
-//           <TouchableOpacity
-//             style={styles.headerButton}
-//             onPress={() => setShowYearPicker(true)}
-//           >
-//             <Text
-//               style={{
-//                 color: colors.subTitleText,
-//                 fontSize: FONT_SIZES.SUBTITLE,
-//                 fontFamily: "Regular",
-//               }}
-//             >
-//               {year}
-//             </Text>
-//             <DownArrow />
-//           </TouchableOpacity>
-//         </View>
-//       </View>
-//     );
-//   };
-
-//   return (
-//     <View>
-//       <Calendar
-//         key={currentDate}
-//         style={[
-//           styles.calendar,
-//           {
-//             top: top,
-//             borderWidth: 1,
-//             borderColor: colors.stroke,
-//             backgroundColor: colors.surfacePrimary,
-//           },
-//         ]}
-//         current={currentDate}
-//         minDate={minDate}
-//         maxDate={calculatedMaxDate || maxDate}
-//         onDayPress={(day) => {
-//           setDate(day.dateString);
-//           setCurrentDate(day.dateString);
-//           setShowCalendar(false);
-//           onPress();
-//         }}
-//         theme={{
-//           // background
-//           backgroundColor: colors.surfacePrimary,
-//           calendarBackground: colors.surfacePrimary,
-
-//           // INACTIVE (default days)
-//           dayTextColor: colors.titleText,
-//         }}
-//         markedDates={
-//           date
-//             ? {
-//                 [date]: {
-//                   selected: true,
-//                   selectedColor: colors.krGreen,
-//                   selectedTextColor: "#fff",
-//                 },
-//               }
-//             : {}
-//         }
-//         customHeader={CustomHeader}
-//         onMonthChange={(month) => {
-//           setCurrentDate(month.dateString);
-//         }}
-//       />
-
-//       {/* Year Picker Modal */}
-//       <Modal
-//         visible={showYearPicker}
-//         transparent={true}
-//         animationType="fade"
-//         onRequestClose={() => setShowYearPicker(false)}
-//       >
-//         <TouchableOpacity
-//           style={commonStyling.overlay}
-//           activeOpacity={1}
-//           onPress={() => setShowYearPicker(false)}
-//         >
-//           <TouchableOpacity
-//             activeOpacity={1}
-//             onPress={(e) => e.stopPropagation()}
-//           >
-//             <View
-//               style={[
-//                 styles.pickerContainer,
-//                 {
-//                   backgroundColor: colors.surfacePrimary,
-//                 },
-//               ]}
-//             >
-//               <Text style={commonStyling.title}>Select Year</Text>
-//               <ScrollView
-//                 style={styles.scrollView}
-//                 showsVerticalScrollIndicator={false}
-//               >
-//                 {years.map((year) => (
-//                   <TouchableOpacity
-//                     key={year}
-//                     style={[
-//                       styles.pickerItem,
-//                       {
-//                         backgroundColor: colors.lightGray,
-//                       },
-//                       year === currentYear && {
-//                         backgroundColor: colors.krGreen,
-//                       },
-//                     ]}
-//                     onPress={() => handleYearSelect(year)}
-//                   >
-//                     <Text
-//                       style={[
-//                         styles.pickerItemText,
-//                         commonStyling.subtitle,
-//                         year === currentYear && {
-//                           color: colors.buttonPrimaryText,
-//                         },
-//                       ]}
-//                     >
-//                       {year}
-//                     </Text>
-//                   </TouchableOpacity>
-//                 ))}
-//               </ScrollView>
-//             </View>
-//           </TouchableOpacity>
-//         </TouchableOpacity>
-//       </Modal>
-
-//       {/* Month Picker Modal */}
-//       <Modal
-//         visible={showMonthPicker}
-//         transparent={true}
-//         animationType="fade"
-//         onRequestClose={() => setShowMonthPicker(false)}
-//       >
-//         <TouchableOpacity
-//           style={commonStyling.overlay}
-//           activeOpacity={1}
-//           onPress={() => setShowMonthPicker(false)}
-//         >
-//           <TouchableOpacity
-//             activeOpacity={1}
-//             onPress={(e) => e.stopPropagation()}
-//           >
-//             <View
-//               style={[
-//                 styles.pickerContainer,
-//                 {
-//                   backgroundColor: colors.surfacePrimary,
-//                 },
-//               ]}
-//             >
-//               <Text style={commonStyling.title}>Select Month</Text>
-//               <ScrollView
-//                 style={styles.scrollView}
-//                 showsVerticalScrollIndicator={false}
-//               >
-//                 {months.map((month, index) => (
-//                   <TouchableOpacity
-//                     key={month.month}
-//                     style={[
-//                       styles.pickerItem,
-//                       {
-//                         backgroundColor: colors.lightGray,
-//                       },
-//                       index === currentMonth && {
-//                         backgroundColor: colors.krGreen,
-//                       },
-//                     ]}
-//                     onPress={() => handleMonthSelect(index)}
-//                   >
-//                     <Text
-//                       style={[
-//                         styles.pickerItemText,
-//                         commonStyling.subtitle,
-//                         index === currentMonth && {
-//                           color: colors.buttonPrimaryText,
-//                         },
-//                       ]}
-//                     >
-//                       {month.month}
-//                     </Text>
-//                   </TouchableOpacity>
-//                 ))}
-//               </ScrollView>
-//             </View>
-//           </TouchableOpacity>
-//         </TouchableOpacity>
-//       </Modal>
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   calendar: {
-//     borderRadius: 12,
-//     elevation: 4,
-//     width: 330,
-//     marginTop: 15,
-//     backgroundColor: "white",
-//     zIndex: 9999,
-//     alignSelf: "center",
-//     position: "absolute",
-//     right: 0,
-//   },
-//   headerContainer: {
-//     flexDirection: "row",
-//     justifyContent: "center",
-//     alignItems: "center",
-//     borderWidth: 1,
-//     width: "50%",
-//     marginVertical: 16,
-//     borderRadius: 50,
-//   },
-//   headerButton: {
-//     paddingHorizontal: 12,
-//     borderRadius: 8,
-//     flexDirection: "row",
-//     alignItems: "center",
-//     columnGap: 8,
-//     width: "50%",
-//     paddingVertical: 4,
-//   },
-//   pickerContainer: {
-//     borderRadius: 12,
-//     width: 280,
-//     maxHeight: 400,
-//     padding: 20,
-//     elevation: 1,
-//   },
-//   scrollView: {
-//     maxHeight: 320,
-//     marginTop: 16,
-//   },
-//   pickerItem: {
-//     paddingVertical: 12,
-//     paddingHorizontal: 16,
-//     borderRadius: 8,
-//     marginBottom: 8,
-//   },
-//   pickerItemText: {
-//     fontSize: 16,
-//     textAlign: "center",
-//   },
-// });
-
-// export default CalendarComponent;
 import React, { useState } from "react";
 import {
   View,
@@ -436,6 +31,15 @@ interface DatePickerProps {
   maxDate?: string;
 }
 
+// Add this helper at the top of the file outside the component
+const parseLocalDate = (dateString: string): Date => {
+  // Append T00:00:00 to force local time interpretation instead of UTC
+  if (dateString.length === 10) {
+    return new Date(`${dateString}T00:00:00`);
+  }
+  return new Date(dateString);
+};
+
 const CalendarComponent: React.FC<DatePickerProps> = ({
   date,
   setDate,
@@ -448,9 +52,12 @@ const CalendarComponent: React.FC<DatePickerProps> = ({
 }) => {
   const { colors } = useTheme();
   const commonStyling = commonStyles(colors);
+
   const [currentDate, setCurrentDate] = useState(
     date || new Date().toISOString().split("T")[0],
   );
+
+  const parsedDate = parseLocalDate(currentDate);
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
 
@@ -458,7 +65,8 @@ const CalendarComponent: React.FC<DatePickerProps> = ({
   if (minAge) {
     const maxBirthDate = new Date();
     maxBirthDate.setFullYear(maxBirthDate.getFullYear() - minAge);
-    calculatedMaxDate = maxBirthDate.toISOString().split("T")[0];
+
+    calculatedMaxDate = `${maxBirthDate.getFullYear()}-${String(maxBirthDate.getMonth() + 1).padStart(2, "0")}-${String(maxBirthDate.getDate()).padStart(2, "0")}`;
   }
 
   const getYearRange = () => {
@@ -469,8 +77,8 @@ const CalendarComponent: React.FC<DatePickerProps> = ({
       endYear = new Date().getFullYear() - minAge;
       startYear = endYear - 100;
     } else if (minDate && maxDate) {
-      startYear = new Date(minDate).getFullYear();
-      endYear = new Date(maxDate).getFullYear();
+      startYear = parseLocalDate(minDate).getFullYear();
+      endYear = parseLocalDate(maxDate).getFullYear();
     }
 
     return Array.from(
@@ -496,26 +104,27 @@ const CalendarComponent: React.FC<DatePickerProps> = ({
     { month: "December", label: "Dec" },
   ];
 
-  const parsedDate = new Date(currentDate);
   const currentYear = parsedDate.getFullYear();
   const currentMonth = parsedDate.getMonth();
 
   const handleYearSelect = (year: number) => {
     const currentDay = parsedDate.getDate();
     const newDate = new Date(year, currentMonth, currentDay);
-    setCurrentDate(newDate.toISOString().split("T")[0]);
+    const localDateString = `${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, "0")}-${String(newDate.getDate()).padStart(2, "0")}`;
+    setCurrentDate(localDateString);
     setShowYearPicker(false);
   };
 
   const handleMonthSelect = (monthIndex: number) => {
     const currentDay = parsedDate.getDate();
     const newDate = new Date(currentYear, monthIndex, currentDay);
-    setCurrentDate(newDate.toISOString().split("T")[0]);
+    const localDateString = `${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, "0")}-${String(newDate.getDate()).padStart(2, "0")}`;
+    setCurrentDate(localDateString);
     setShowMonthPicker(false);
   };
 
   const CustomHeader = (props: any) => {
-    const headerDate = new Date(currentDate);
+    const headerDate = parseLocalDate(currentDate);
     const year = headerDate.getFullYear();
     const month = months[headerDate.getMonth()];
 

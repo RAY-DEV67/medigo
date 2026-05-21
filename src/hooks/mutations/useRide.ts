@@ -53,7 +53,7 @@ export const useCancelRide = (rideId: string) => {
       rideService.cancelRide(rideId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["my-rides", "upcoming-rides", rideId],
+        queryKey: ["my-rides"],
       });
     },
     onError: (error: any) => {},

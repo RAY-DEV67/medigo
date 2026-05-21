@@ -28,6 +28,10 @@ import { formatHumanReadableDate } from "../../../utils/formatHumanReadableDate"
 import { formatTripTime } from "../../../utils/formatTripTime";
 import RideStatusSkeleton from "../../../components/skelentonAnimation/rideStatusSkelenton";
 import { formatDateReadable } from "../../../utils/formatDate";
+import { formatPrice } from "../../../utils/formatPrice";
+import { formatDisplayText } from "../../../utils/formatText";
+import RouteHeaderCard from "../../../components/map/routeHeaderCard";
+import RideRouteCard from "../../../components/map/rideRouteCard";
 
 const RideStatusScreen = () => {
   const { colors, theme } = useTheme();
@@ -314,7 +318,7 @@ const RideStatusScreen = () => {
                   },
                 ]}
               >
-                {rideDetail?.ride_type}
+                {formatDisplayText(rideDetail?.ride_type)}
               </Text>
               <Text
                 style={[
@@ -325,7 +329,7 @@ const RideStatusScreen = () => {
                   },
                 ]}
               >
-                {rideDetail?.trip_type}
+                {formatDisplayText(rideDetail?.trip_type)}
               </Text>
             </View>
           </View>
@@ -344,65 +348,11 @@ const RideStatusScreen = () => {
             >
               ROUTE
             </Text>
-            <View style={styles.locationRow}>
-              <View style={styles.locationIconBgBlue}>
-                <MapPin size={16} color="#2563EB" fill="#2563EB" />
-              </View>
-              <View style={styles.locationTextContainer}>
-                <Text
-                  style={[
-                    commonStyling.subtitle,
-                    {
-                      fontSize: 12,
-                    },
-                  ]}
-                >
-                  Pickup
-                </Text>
-                <Text
-                  style={[
-                    commonStyling.title,
-                    {
-                      fontSize: 14,
-                      fontFamily: "SemiBold",
-                    },
-                  ]}
-                >
-                  {rideDetail?.pickup_address}
-                </Text>
-              </View>
-            </View>
 
-            <View style={styles.routeLine} />
-
-            <View style={styles.locationRow}>
-              <View style={styles.locationIconBgYellow}>
-                <MapPin size={16} color="#EAB308" fill="#EAB308" />
-              </View>
-              <View style={styles.locationTextContainer}>
-                <Text
-                  style={[
-                    commonStyling.subtitle,
-                    {
-                      fontSize: 12,
-                    },
-                  ]}
-                >
-                  Destination
-                </Text>
-                <Text
-                  style={[
-                    commonStyling.title,
-                    {
-                      fontSize: 14,
-                      fontFamily: "SemiBold",
-                    },
-                  ]}
-                >
-                  {rideDetail?.destination_address}
-                </Text>
-              </View>
-            </View>
+            <RideRouteCard
+              pickup={rideDetail?.pickup_address}
+              destination={rideDetail?.destination_address}
+            />
           </View>
 
           <View
@@ -553,7 +503,7 @@ const RideStatusScreen = () => {
                 fontFamily: "Bold",
               }}
             >
-              ${rideDetail?.estimated_fare}
+              {formatPrice(rideDetail?.estimated_fare)}
             </Text>
           </View>
 

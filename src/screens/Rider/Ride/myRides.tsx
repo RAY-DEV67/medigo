@@ -9,30 +9,25 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import { Bell, Calendar, Headphones, X } from "lucide-react-native";
+import { Bell, Calendar, Headphones, MapPin, X } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import useTheme from "../../../hooks/useThemes";
 import { commonStyles } from "../../../styles/commonStyles";
 import Header from "../../../components/reuseables/header";
-import { FONT_SIZES } from "../../../constants/sizes";
 import { useMyRides } from "../../../hooks/queries/useMyRides";
-import formatScheduledDate from "../../../utils/formatScheduleDate";
-import formatTimeOnly from "../../../utils/formatScheduledTime";
-import { capitalizeFirstWord } from "../../../utils/capitalizeFirstLetter";
 import { MyRidesSkeleton } from "../../../components/skelentonAnimation/myRidesSkelenton";
 import UpcomingRideCard from "../../../components/cards/upcomingRidesCard";
 import { useActiveRide } from "../../../hooks/queries/useActiveRide";
+import { formatDuration } from "../../../utils/formatDuration";
 
 const MyRidesScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
 
-  const { data: upcomingData, isLoading: loadingUpcoming } = useMyRides({
-    status: "pending",
-  });
+  const { data: upcomingData, isLoading: loadingUpcoming } = useMyRides();
 
   const { data: activeData, isLoading, error } = useActiveRide();
 
@@ -42,6 +37,8 @@ const MyRidesScreen = () => {
 
   const activeRide = activeData?.data;
   const upcomingRides = upcomingData?.data || [];
+
+  console.log("Real active ride", activeRide);
 
   return (
     <SafeAreaView
@@ -119,47 +116,78 @@ const MyRidesScreen = () => {
                 </View>
                 <View style={styles.etaBadge}>
                   <Text style={styles.etaText}>
-                    ETA • {activeRide.estimated_duration_minutes} mins
+                    ETA •{" "}
+                    {formatDuration(activeRide?.estimated_duration_minutes)}
                   </Text>
                 </View>
               </View>
 
               {/* Active Timeline */}
-              <View style={styles.activeRoute}>
-                <View style={styles.timelineActive}>
-                  <View style={styles.dotWhite} />
-                  <View style={styles.lineDashed} />
-                  <View style={styles.dotWhite} />
+              <View>
+                <View style={styles.locationRow}>
+                  <View style={styles.locationIconBgBlue}>
+                    <MapPin size={16} color="#2563EB" fill="#2563EB" />
+                  </View>
+                  <View style={styles.locationTextContainer}>
+                    <Text
+                      style={[
+                        commonStyling.subtitle,
+                        {
+                          fontSize: 12,
+                          color: "white",
+                        },
+                      ]}
+                    >
+                      Pickup
+                    </Text>
+                    <Text
+                      style={[
+                        commonStyling.title,
+                        {
+                          fontSize: 13,
+                          fontFamily: "SemiBold",
+                          color: "white",
+                        },
+                      ]}
+                      numberOfLines={2}
+                    >
+                      {activeRide.pickup_address}
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.addressWrapper}>
-                  <Text style={styles.activeAddressLabel}>Pickup</Text>
-                  <Text
-                    style={[
-                      styles.activeAddressText,
-                      commonStyling.title,
-                      {
-                        color: "#FFF",
-                        fontSize: 14,
-                      },
-                    ]}
-                  >
-                    {activeRide.pickup_address}
-                  </Text>
-                  <Text style={[styles.activeAddressLabel, { marginTop: 12 }]}>
-                    Destination
-                  </Text>
-                  <Text
-                    style={[
-                      styles.activeAddressText,
-                      commonStyling.title,
-                      {
-                        color: "#FFF",
-                        fontSize: 14,
-                      },
-                    ]}
-                  >
-                    {activeRide.destination_address}
-                  </Text>
+
+                <View style={styles.routeLine} />
+
+                <View style={styles.locationRow}>
+                  <View style={styles.locationIconBgYellow}>
+                    <MapPin size={16} color="#EAB308" fill="#EAB308" />
+                  </View>
+                  <View style={styles.locationTextContainer}>
+                    <Text
+                      style={[
+                        commonStyling.subtitle,
+                        {
+                          fontSize: 12,
+                          color: "white",
+                        },
+                      ]}
+                    >
+                      Destination
+                    </Text>
+                    <Text
+                      style={[
+                        commonStyling.title,
+                        {
+                          fontSize: 13,
+                          fontFamily: "SemiBold",
+                          color: "white",
+                        },
+                      ]}
+                      numberOfLines={2}
+                    >
+                      {activeRide.destination_address}
+                    </Text>
+                  </View>
                 </View>
               </View>
 
@@ -254,7 +282,14 @@ const MyRidesScreen = () => {
       </ScrollView>
 
       {/* Floating Support */}
-      <TouchableOpacity style={styles.supportFloat}>
+      <TouchableOpacity
+        style={styles.supportFloat}
+        onPress={() => {
+          navigation.navigate("RiderProfileContentsStack", {
+            screen: "LiveChatScreen",
+          });
+        }}
+      >
         <Headphones color="#3B82F6" size={24} />
       </TouchableOpacity>
     </SafeAreaView>
@@ -488,6 +523,32 @@ const styles = StyleSheet.create({
   addressContainer: { flex: 1, marginLeft: 12 },
   addressText: {
     marginTop: 2,
+  },
+  locationRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  locationIconBgBlue: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#EFF6FF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  locationIconBgYellow: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#FEFCE8",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  locationTextContainer: { flex: 1 },
+
+  routeLine: {
+    width: 1,
+    height: 24,
+    backgroundColor: "#E2E8F0",
+    marginLeft: 16,
+    marginVertical: 4,
   },
 });
 

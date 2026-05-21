@@ -61,8 +61,8 @@ function ServiceType({
         onPress={() => setServiceType("Transport Only")}
       />
       <SelectionCard
-        title="Transport + Escort"
-        desc="Driver accompanies you inside the facility"
+        title="Transport + Care Assistant"
+        desc="The care assistant accompanies you inside the facility"
         icon={<UserPlus color="#94A3B8" size={24} />}
         selected={serviceType === "Transport + Escort"}
         onPress={() => setServiceType("Transport + Escort")}

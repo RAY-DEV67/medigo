@@ -9,6 +9,7 @@ import {
   Stethoscope,
 } from "lucide-react-native";
 import { format } from "date-fns";
+import { formatPrice } from "../../../utils/formatPrice";
 
 const ReviewScreen = ({
   tripType,
@@ -27,7 +28,13 @@ const ReviewScreen = ({
   time,
   recurringStartDate,
   recurringEndDate,
-  fare,
+  totalFare,
+  accessibilityFee,
+  attendantFee,
+  baseFare,
+  careAssistantFee,
+  platformFee,
+  distanceCharge,
 }: any) => {
   const { colors } = useTheme();
   const commonStyling = commonStyles(colors);
@@ -183,7 +190,7 @@ const ReviewScreen = ({
               color: colors.primaryColor,
             }}
           >
-            ${fare}
+            {formatPrice(baseFare)}
           </Text>
         </View>
       </View>
@@ -221,6 +228,7 @@ const ReviewScreen = ({
                   fontFamily: "SemiBold",
                 },
               ]}
+              numberOfLines={1}
             >
               {pickup}
             </Text>
@@ -249,6 +257,7 @@ const ReviewScreen = ({
                   fontFamily: "SemiBold",
                 },
               ]}
+              numberOfLines={1}
             >
               {destination}
             </Text>
@@ -561,7 +570,7 @@ const ReviewScreen = ({
               },
             ]}
           >
-            Per ride
+            Base fare
           </Text>
           <Text
             style={[
@@ -572,7 +581,161 @@ const ReviewScreen = ({
               },
             ]}
           >
-            ${fare}
+            {formatPrice(baseFare)}
+          </Text>
+        </View>
+        {attendantFee > 0 && (
+          <View style={[styles.rowBetween, { marginTop: 12 }]}>
+            <Text
+              style={[
+                styles.detailLabel,
+                commonStyling.subtitle,
+                {
+                  fontSize: 12,
+                },
+              ]}
+            >
+              Attendant fee
+            </Text>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: 12,
+                  fontFamily: "SemiBold",
+                },
+              ]}
+            >
+              {formatPrice(attendantFee)}
+            </Text>
+          </View>
+        )}
+
+        {accessibilityFee > 0 && (
+          <View style={[styles.rowBetween, { marginTop: 12 }]}>
+            <Text
+              style={[
+                styles.detailLabel,
+                commonStyling.subtitle,
+                {
+                  fontSize: 12,
+                },
+              ]}
+            >
+              Accessibility fee
+            </Text>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: 12,
+                  fontFamily: "SemiBold",
+                },
+              ]}
+            >
+              {formatPrice(accessibilityFee)}
+            </Text>
+          </View>
+        )}
+
+        {careAssistantFee > 0 && (
+          <View style={[styles.rowBetween, { marginTop: 12 }]}>
+            <Text
+              style={[
+                styles.detailLabel,
+                commonStyling.subtitle,
+                {
+                  fontSize: 12,
+                },
+              ]}
+            >
+              Care assistant fee
+            </Text>
+            <Text
+              style={[
+                commonStyling.title,
+                {
+                  fontSize: 12,
+                  fontFamily: "SemiBold",
+                },
+              ]}
+            >
+              {formatPrice(careAssistantFee)}
+            </Text>
+          </View>
+        )}
+
+        <View style={[styles.rowBetween, { marginTop: 12 }]}>
+          <Text
+            style={[
+              styles.detailLabel,
+              commonStyling.subtitle,
+              {
+                fontSize: 12,
+              },
+            ]}
+          >
+            Distance charge
+          </Text>
+          <Text
+            style={[
+              commonStyling.title,
+              {
+                fontSize: 12,
+                fontFamily: "SemiBold",
+              },
+            ]}
+          >
+            {formatPrice(distanceCharge)}
+          </Text>
+        </View>
+        <View style={[styles.rowBetween, { marginTop: 12 }]}>
+          <Text
+            style={[
+              styles.detailLabel,
+              commonStyling.subtitle,
+              {
+                fontSize: 12,
+              },
+            ]}
+          >
+            Platform fee
+          </Text>
+          <Text
+            style={[
+              commonStyling.title,
+              {
+                fontSize: 12,
+                fontFamily: "SemiBold",
+              },
+            ]}
+          >
+            {formatPrice(platformFee)}
+          </Text>
+        </View>
+
+        <View style={[styles.rowBetween, { marginTop: 12 }]}>
+          <Text
+            style={[
+              styles.detailLabel,
+              commonStyling.subtitle,
+              {
+                fontSize: 12,
+              },
+            ]}
+          >
+            Total fare
+          </Text>
+          <Text
+            style={[
+              commonStyling.title,
+              {
+                fontSize: 12,
+                fontFamily: "SemiBold",
+              },
+            ]}
+          >
+            {formatPrice(totalFare)}
           </Text>
         </View>
         {isRecurring && (

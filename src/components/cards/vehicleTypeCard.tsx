@@ -55,6 +55,7 @@ const VehicleTypeCard = ({
                 {
                   fontFamily: "Bold",
                   fontSize: 15,
+                  width: 200,
                 },
               ]}
             >

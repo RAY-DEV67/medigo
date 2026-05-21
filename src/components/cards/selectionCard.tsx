@@ -39,6 +39,7 @@ const SelectionCard = ({
               {
                 fontSize: 16,
                 fontFamily: "Bold",
+                width: 150,
               },
             ]}
           >
@@ -160,7 +161,11 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   continueText: { color: "#FFF", fontSize: 16, fontWeight: "700" },
-  row: { flexDirection: "row", alignItems: "center" },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   rowBetween: {
     flexDirection: "row",
     alignItems: "center",

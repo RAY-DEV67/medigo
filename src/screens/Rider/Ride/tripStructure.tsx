@@ -19,6 +19,7 @@ import CalendarComponent from "../../../components/inputs/calender";
 import TimePicker from "../../../components/inputs/timePicker";
 import MultilineInput from "../../../components/inputs/multilineInput";
 
+
 function TripStructure({
   tripType,
   setTripType,

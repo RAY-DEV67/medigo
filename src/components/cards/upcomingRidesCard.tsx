@@ -1,4 +1,10 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import useTheme from "../../hooks/useThemes";
 import { commonStyles } from "../../styles/commonStyles";
 import { Calendar } from "lucide-react-native";
@@ -6,10 +12,77 @@ import formatScheduledDate from "../../utils/formatScheduleDate";
 import formatTimeOnly from "../../utils/formatScheduledTime";
 import { capitalizeFirstWord } from "../../utils/capitalizeFirstLetter";
 import { FONT_SIZES } from "../../constants/sizes";
+import { useState } from "react";
+import { useCreatePaymentIntent } from "../../hooks/mutations/usePayments";
+import { useStripe } from "@stripe/stripe-react-native";
+import { useUserProfile } from "../../hooks/queries/useUserProfile";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useQueryClient } from "@tanstack/react-query";
+import RideRouteCard from "../map/rideRouteCard";
 
 const UpcomingRideCard = ({ onPress, ride }: any) => {
   const { colors } = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const commonStyling = commonStyles(colors);
+  const [loadingPayment, setloadingPayment] = useState(false);
+  const { mutateAsync: getPaymentIntent, isPending: loadingPaymentIntent } =
+    useCreatePaymentIntent();
+  const { data: user } = useUserProfile();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+
+  const queryClient = useQueryClient();
+
+  const openStripePayment = async () => {
+    setloadingPayment(true);
+
+    try {
+      const response = await getPaymentIntent({
+        amount: ride?.estimated_fare,
+        currency: "cad",
+        description: "Wallet Funding",
+        order_id: ride?.id,
+      });
+
+      const { payment_intent, ephemeral_key, customer } = response.data;
+
+      const { error } = await initPaymentSheet({
+        merchantDisplayName: "MediGo",
+        customerId: customer,
+        customerEphemeralKeySecret: ephemeral_key,
+        paymentIntentClientSecret: payment_intent,
+        allowsDelayedPaymentMethods: true,
+        defaultBillingDetails: {
+          name: user?.data.first_name,
+        },
+      });
+
+      if (error) {
+        setloadingPayment(false);
+        return;
+      }
+
+      const { error: presentError } = await presentPaymentSheet();
+
+      if (presentError) {
+        console.log("Payment canceled or failed");
+      } else {
+        // Payment successful
+        await queryClient.invalidateQueries({
+          queryKey: ["my-rides"],
+        });
+
+        // optional immediate refetch
+        await queryClient.refetchQueries({
+          queryKey: ["my-rides"],
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setloadingPayment(false);
+    }
+  };
 
   return (
     <View
@@ -64,7 +137,9 @@ const UpcomingRideCard = ({ onPress, ride }: any) => {
             styles.statusBadge,
             {
               backgroundColor:
-                ride.status === "pending" ? colors.surfaceElevated : "red",
+                ride.status === "cancelled"
+                  ? colors.highlightRed
+                  : colors.surfaceElevated,
             },
           ]}
         >
@@ -73,7 +148,9 @@ const UpcomingRideCard = ({ onPress, ride }: any) => {
               styles.statusBadgeText,
               {
                 color:
-                  ride.status === "pending" ? colors.primaryColor : "red",
+                  ride.status === "cancelled"
+                    ? colors.cancelledRed
+                    : colors.primaryColor,
               },
             ]}
           >
@@ -82,69 +159,38 @@ const UpcomingRideCard = ({ onPress, ride }: any) => {
         </View>
       </View>
 
-      <View style={styles.routeContainer}>
-        <View style={styles.timeline}>
-          <View style={styles.dotBlue} />
-          <View style={styles.line} />
-          <View style={styles.dotBlue} />
-        </View>
-        <View style={styles.addressContainer}>
-          <View>
-            <Text
-              style={[
-                commonStyling.subtitle,
-                {
-                  fontSize: FONT_SIZES.SMALL,
-                },
-              ]}
-            >
-              Pickup
-            </Text>
-            <Text
-              style={[
-                styles.addressText,
-                commonStyling.title,
-                {
-                  fontSize: FONT_SIZES.SMALL,
-                },
-              ]}
-            >
-              {ride.pickup_address}
-            </Text>
-          </View>
-          <View style={[{ marginTop: 20 }]}>
-            <Text
-              style={[
-                commonStyling.subtitle,
-                {
-                  fontSize: FONT_SIZES.SMALL,
-                },
-              ]}
-            >
-              Destination
-            </Text>
-            <Text
-              style={[
-                styles.addressText,
-                commonStyling.title,
-                {
-                  fontSize: FONT_SIZES.SMALL,
-                },
-              ]}
-            >
-              {ride.destination_address}
-            </Text>
-          </View>
-        </View>
-      </View>
+      <RideRouteCard
+        pickup={ride?.pickup_address}
+        destination={ride?.destination_address}
+      />
 
-      <Text style={styles.driverAssignText}>
-        {ride.assigned_by_admin_id ? "Driver • John Smith" : "Assigning driver"}
-      </Text>
+      {ride.status !== "cancelled" && (
+        <Text style={styles.driverAssignText}>
+          {ride.assigned_by_admin_id
+            ? "Driver • John Smith"
+            : "Assigning driver"}
+        </Text>
+      )}
 
       <View style={styles.upcomingActions}>
-        <TouchableOpacity style={styles.detailsBtn} onPress={onPress}>
-          <Text style={styles.detailsBtnText}>View Details</Text>
+        <TouchableOpacity
+          style={styles.detailsBtn}
+          onPress={() => {
+            ride.status === "pending"
+              ? openStripePayment()
+              : navigation.navigate("RiderRideDetailsStack", {
+                  screen: "RideDetails",
+                  params: { id: ride.id },
+                });
+          }}
+        >
+          {loadingPayment ? (
+            <ActivityIndicator />
+          ) : (
+            <Text style={styles.detailsBtnText}>
+              {ride.status === "pending" ? "Pay now" : "View Details"}
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>

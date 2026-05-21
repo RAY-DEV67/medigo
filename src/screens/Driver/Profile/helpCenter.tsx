@@ -276,7 +276,14 @@ const HelpCenter = () => {
               width: "100%",
             }}
           >
-            <Buttons title="Contact Support" onPress={() => {}} />
+            <Buttons
+              title="Contact Support"
+              onPress={() => {
+                navigation.navigate("RiderProfileContentsStack", {
+                  screen: "LiveChatScreen",
+                });
+              }}
+            />
           </View>
         </View>
       </ScrollView>

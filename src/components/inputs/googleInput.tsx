@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#222",
   },
-  searchInput: { flex: 1, fontSize: 15 },
+  searchInput: { flex: 1, fontSize: 15, paddingRight: 20 },
   searchContainer: {
     height: 56,
     borderRadius: 16,

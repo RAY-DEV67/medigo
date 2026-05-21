@@ -1,23 +1,21 @@
-export const formatDuration = (minutes?: number) => {
-  if (!minutes || minutes < 1) return '0m';
+export const formatDuration = (minutes: number | string | undefined) => {
+  const totalMinutes = Number(minutes);
 
-  const days = Math.floor(minutes / (60 * 24));
-  const hours = Math.floor((minutes % (60 * 24)) / 60);
-  const mins = minutes % 60;
+  if (!totalMinutes || totalMinutes < 0) return "0m";
 
-  let formatted = '';
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
 
-  if (days > 0) {
-    formatted += `${days}d `;
+  // Less than 1 hour
+  if (hours === 0) {
+    return `${mins}m`;
   }
 
-  if (hours > 0) {
-    formatted += `${hours}h `;
+  // Exact hour (e.g. 120 → 2h)
+  if (mins === 0) {
+    return `${hours}h`;
   }
 
-  if (mins > 0) {
-    formatted += `${mins}m`;
-  }
-
-  return formatted.trim();
+  // Hour + minutes (e.g. 62 → 1h 2m)
+  return `${hours}h ${mins}m`;
 };

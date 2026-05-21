@@ -28,25 +28,34 @@ import { useCreateRide } from "../../../hooks/mutations/useRide";
 import { CreateRideRequest } from "../../../types/rides.types";
 import { useUserProfile } from "../../../hooks/queries/useUserProfile";
 import { useFareEstimate } from "../../../hooks/queries/useFareEstimates";
+import { useGetFareEstimateMutation } from "../../../hooks/queries/useGetBaseFareEstimate";
 import { usePaymentMethods } from "../../../hooks/queries/usePaymentMethods";
 import ServiceType from "./serviceType";
 import TripStructure from "./tripStructure";
 import ChooseARide from "./chooseARide";
-import RecurringRide from "./recurringRide";
-import BookingPayment from "./bookingPayment";
 import ReviewScreen from "./review";
 import { useStripe } from "@stripe/stripe-react-native";
 import axios from "axios";
 import { useCreatePaymentIntent } from "../../../hooks/mutations/usePayments";
 import { useUserStore } from "../../../store/userStore";
+import { useRideStore } from "../../../store/useRideStore";
+import { useQueryClient } from "@tanstack/react-query";
+import { formatPrice } from "../../../utils/formatPrice";
 
 const { width } = Dimensions.get("window");
 
 const BookARide = () => {
   const [step, setStep] = useState(1);
-  const totalSteps = 5;
+  const totalSteps = 4;
   const { colors, theme } = useTheme();
+  const pickup = useRideStore((state) => state.pickup);
   const { data, isLoading } = useUserProfile();
+  const {
+    mutate: fetchEstimates,
+    isPendingBaseFareEstimate,
+    data: estimateResults,
+  } = useGetFareEstimateMutation();
+
   const commonStyling = commonStyles(colors);
   const successRef = useRef<OverlayBottomSheetRef>(null);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -106,9 +115,9 @@ const BookARide = () => {
   const [fare, setfare] = useState("");
   const [pickUpForm, setpickUpForm] = useState({
     label: "",
-    address: "",
-    latitude: 0,
-    longitude: 0,
+    address: pickup?.address,
+    latitude: pickup?.latitude,
+    longitude: pickup?.longitude,
   });
   const [destinationForm, setdestinationForm] = useState({
     label: "",
@@ -125,10 +134,23 @@ const BookARide = () => {
     isPending: loadingEstimates,
   } = useFareEstimate();
   const estimate = estimateData?.data.estimates;
-  const { data: getPaymentMethods, isLoading: loadingPaymentMethods } =
-    usePaymentMethods();
 
-  const paymentMethods = getPaymentMethods?.data || [];
+  const handleCalculateFare = () => {
+    fetchEstimates({
+      pickup_address: pickUpForm.address,
+      destination_address: destinationForm.address,
+      pickup_latitude: pickUpForm.latitude,
+      pickup_longitude: pickUpForm.longitude,
+      destination_latitude: destinationForm.latitude,
+      destination_longitude: destinationForm.longitude,
+      ride_type: mobility.toLowerCase(),
+      trip_type:
+        serviceType === "Transport Only"
+          ? serviceType.toLowerCase().replace(/ /g, "_")
+          : "transport_escort",
+      trip_structure: tripType.toLowerCase().replace(/ /g, "_"),
+    });
+  };
 
   // 3. The Button Trigger function
   const handleGetEstimate = () => {
@@ -171,16 +193,14 @@ const BookARide = () => {
     setShowPicker(true);
   };
 
-  const toggleRecurringStartDatePicker = () => {
-    setShowrecurringStartDatePicker(true);
-  };
-
-  const toggleRecurringEndDatePicker = () => {
-    setShowrecurringEndDatePicker(true);
-  };
-
   const nextStep = () =>
-    step < totalSteps ? setStep(step + 1) : openStripePayment();
+    step === 3
+      ? handleConfirmBooking()
+      : step === 4
+        ? openStripePayment()
+        : step < totalSteps
+          ? setStep(step + 1)
+          : null;
   const prevStep = () => step > 1 && setStep(step - 1);
 
   const renderProgressBar = () => (
@@ -200,7 +220,11 @@ const BookARide = () => {
   const { mutate, isPending } = useCreateRide();
 
   const handleConfirmBooking = () => {
-    const scheduledDate = new Date(date);
+    const [year, month, day] = date.split("-").map(Number);
+    const [hours, minutes] = time.split(":").map(Number);
+
+    // This creates the date in LOCAL timezone (correct for Canada)
+    const scheduledDate = new Date(year, month - 1, day, hours, minutes, 0);
 
     const payload: CreateRideRequest = {
       ride_type: mobility.toLowerCase(),
@@ -233,7 +257,9 @@ const BookARide = () => {
       onSuccess: (response) => {
         console.log("✅ Ride Created Successfully:", response.data.id);
         setrideId(response.data.id);
-        successRef.current?.open();
+        setStep(4);
+        handleCalculateFare();
+        // nextStep();
       },
       onError: (error: any) => {
         console.error(
@@ -249,23 +275,23 @@ const BookARide = () => {
   const { mutateAsync: getPaymentIntent, isPending: loadingPaymentIntent } =
     useCreatePaymentIntent();
 
+  const queryClient = useQueryClient();
+
   const openStripePayment = async () => {
     setloadingPayment(true);
+
     try {
-      // 1. Get the keys from your backend
       const response = await getPaymentIntent({
-        amount: fare,
-        currency: "usd", // or your target currency
+        amount: estimateResults?.data.total_fare,
+        currency: "cad", // or your target currency
         description: "Wallet Funding",
-        order_id: user?.data.id,
+        order_id: rideId,
       });
 
-      const { payment_intent, ephemeral_key, customer, publishable_key } =
-        response.data;
+      const { payment_intent, ephemeral_key, customer } = response.data;
 
-      // 2. Initialize the Stripe sheet
       const { error } = await initPaymentSheet({
-        merchantDisplayName: "KlimateRide",
+        merchantDisplayName: "MediGo",
         customerId: customer,
         customerEphemeralKeySecret: ephemeral_key,
         paymentIntentClientSecret: payment_intent,
@@ -275,21 +301,29 @@ const BookARide = () => {
         },
       });
 
-      setloadingPayment(false);
-
-      if (!error) {
-        // 3. Present the sheet to the user
-        const { error: presentError } = await presentPaymentSheet();
-        if (presentError) {
-          console.log("Payment canceled or failed");
-        } else {
-          // Success! Invalidate wallet balance queries here
-          handleConfirmBooking();
-        }
+      if (error) {
         setloadingPayment(false);
+        return;
+      }
+
+      const { error: presentError } = await presentPaymentSheet();
+
+      if (presentError) {
+        console.log("Payment canceled or failed");
+      } else {
+        // Payment successful
+        await queryClient.invalidateQueries({
+          queryKey: ["my-rides"],
+        });
+        successRef.current?.open();
+        // optional immediate refetch
+        await queryClient.refetchQueries({
+          queryKey: ["my-rides"],
+        });
       }
     } catch (e) {
       console.error(e);
+    } finally {
       setloadingPayment(false);
     }
   };
@@ -395,41 +429,16 @@ const BookARide = () => {
             time={time}
             recurringStartDate={recurringStartdate}
             recurringEndDate={recurringEnddate}
-            fare={fare}
-          />
-        );
-      case 5:
-        return (
-          <ReviewScreen
-            tripType={tripType}
-            appointment={appointmentType}
-            serviceType={serviceType}
-            vehicle={vehicle}
-            pickup={pickUpForm.address}
-            destination={destinationForm.address}
-            mobility={mobility}
-            assistance={assistance}
-            isRecurring={recurring}
-            notes={additionalNotes}
-            frequency={frequency}
-            endType={endType}
-            date={date}
-            time={time}
-            recurringStartDate={recurringStartdate}
-            recurringEndDate={recurringEnddate}
-            fare={fare}
+            totalFare={estimateResults?.data.total_fare}
+            accessibilityFee={estimateResults?.data.accessibility_fee}
+            attendantFee={estimateResults?.data.attendant_fee}
+            baseFare={estimateResults?.data.base_fare}
+            careAssistantFee={estimateResults?.data.care_assistant_fee}
+            platformFee={estimateResults?.data.platform_fee}
+            distanceCharge={estimateResults?.data.distance_charge}
           />
         );
 
-      // case 6:
-      //   return (
-      //     <BookingPayment
-      //       isLoading={isLoading}
-      //       paymentMethods={paymentMethods}
-      //       vehicle={vehicle}
-      //       fare={fare}
-      //     />
-      //   );
       default:
         return (
           <View style={styles.placeholder}>
@@ -526,7 +535,7 @@ const BookARide = () => {
             <ActivityIndicator />
           ) : (
             <Text style={styles.continueText}>
-              {step === 5 ? "Pay" : "Continue"}
+              {step === 4 ? "Pay" : "Continue"}
             </Text>
           )}
         </TouchableOpacity>
@@ -608,7 +617,7 @@ const BookARide = () => {
                 color: "#10B981",
               }}
             >
-              ${fare}
+              {formatPrice(estimateResults?.data.total_fare)}
             </Text>
           </View>
 

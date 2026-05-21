@@ -88,6 +88,11 @@ const SafetyCenterScreen = () => {
             iconBg="#FEF2F2"
             title="Emergency Assistance"
             subtitle="24/7 support line"
+            onPress={() => {
+              navigation.navigate("RiderProfileContentsStack", {
+                screen: "LiveChatScreen",
+              });
+            }}
           />
           <SafetyItem
             icon={<Share2 size={20} color="#3B82F6" />}
@@ -177,7 +182,14 @@ const SafetyCenterScreen = () => {
           >
             Our safety team is available 24/7 to assist you.
           </Text>
-          <Buttons title="Contact Safety Team" onPress={() => {}} />
+          <Buttons
+            title="Contact Safety Team"
+            onPress={() => {
+              navigation.navigate("RiderProfileContentsStack", {
+                screen: "LiveChatScreen",
+              });
+            }}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -185,7 +197,14 @@ const SafetyCenterScreen = () => {
 };
 
 // Sub-component for individual list items
-const SafetyItem = ({ icon, iconBg, title, subtitle, isLast }: any) => {
+const SafetyItem = ({
+  icon,
+  iconBg,
+  title,
+  subtitle,
+  isLast,
+  onPress,
+}: any) => {
   const { colors } = useTheme();
   const commonStyling = commonStyles(colors);
 
@@ -198,6 +217,7 @@ const SafetyItem = ({ icon, iconBg, title, subtitle, isLast }: any) => {
           borderBottomColor: colors.lightPrimaryBlueBorder,
         },
       ]}
+      onPress={onPress}
     >
       <View style={[styles.iconBox, { backgroundColor: iconBg }]}>{icon}</View>
       <View style={styles.itemTextContainer}>

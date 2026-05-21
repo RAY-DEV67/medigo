@@ -45,9 +45,7 @@ const RiderHomeScreen = () => {
   const { data, isLoading } = useUserProfile();
   const { data: savedLocations, isLoading: loadingSavedLocation } =
     useSavedLocations();
-  const { data: upcomingData, isLoading: loadingUpcoming } = useMyRides({
-    status: "pending",
-  });
+  const { data: upcomingData, isLoading: loadingUpcoming } = useMyRides();
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
   const [sheetHeight, setSheetHeight] = useState(SNAP_POINTS[0]);
