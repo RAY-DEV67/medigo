@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -49,13 +49,41 @@ const RideDetails = () => {
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const { mutate: shareTrip, isPending } = useShareRide();
   const { mutate: cancelRide, isPending: isCancelling } = useCancelRide(id);
+  const { data, isLoading } = useRideDetail(id);
+
+  const {
+    mutate: fetchEstimates,
+    isPendingBaseFareEstimate,
+    data: estimateResults,
+  } = useGetFareEstimateMutation();
+
+  console.log(estimateResults);
+
+  const handleCalculateFare = () => {
+    fetchEstimates({
+      pickup_address: data?.data.pickup_address,
+      destination_address: data?.data.destination_address,
+      pickup_latitude: data?.data.pickup_latitude,
+      pickup_longitude: data?.data.pickup_longitude,
+      destination_latitude: data?.data.destination_latitude,
+      destination_longitude: data?.data.destination_longitude,
+      ride_type: data?.data.mobility_level,
+      trip_type: data?.data.trip_type,
+      trip_structure: data?.data.trip_structure,
+    });
+  };
+
+  useEffect(() => {
+    if (!data) {
+      return;
+    }
+    handleCalculateFare();
+  }, [data]);
 
   const reasons = [
     { id: "1", text: "Driver taking too long" },
     { id: "2", text: "Booked by mistake" },
   ];
-  // 1. Pass id safely
-  const { data, isLoading } = useRideDetail(id);
 
   // 2. Add an early return if id is missing entirely
   if (!id) {
@@ -72,7 +100,7 @@ const RideDetails = () => {
   }
 
   // 3. Keep your existing skeleton check
-  if (isLoading || !data) {
+  if (isLoading || !data || isPendingBaseFareEstimate) {
     return <RideDetailsSkeleton />;
   }
 
@@ -366,7 +394,11 @@ const RideDetails = () => {
           </Text>
           <FareRow
             label="Base fare"
-            value={formatPrice(data?.data.estimated_fare)}
+            value={formatPrice(estimateResults?.data.base_fare, true)}
+          />
+          <FareRow
+            label="Distance charge"
+            value={formatPrice(estimateResults?.data.distance_charge, true)}
           />
 
           <View style={styles.fareDivider} />
@@ -392,7 +424,7 @@ const RideDetails = () => {
                 },
               ]}
             >
-              {formatPrice(data?.data.estimated_fare, true)}
+              {formatPrice(estimateResults?.data.total_fare, true)}
             </Text>
           </View>
         </View>
