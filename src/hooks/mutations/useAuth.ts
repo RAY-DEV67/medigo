@@ -1,7 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
-import authService, { ChangePasswordPayload } from "../../api/services/authService";
+import authService, {
+  ChangePasswordPayload,
+} from "../../api/services/authService";
 import {
   DriverRegisterRequest,
+  RegisterDriverPayload,
+  RegisterDriverResponse,
   RegisterPayload,
   ResendOtpParams,
   VerifyOTPPayload,
@@ -110,29 +114,26 @@ export const useResendOtp = () => {
 };
 
 export const useRegisterDriver = () => {
-  return useMutation({
-    mutationFn: (data: DriverRegisterRequest) =>
-      authService.registerDriver(data),
-
-    onSuccess: (response) => {
-      Alert.alert(
-        "Success",
-        response.data.message || "Account created successfully.",
-      );
+  return useMutation<RegisterDriverResponse, any, RegisterDriverPayload>({
+    mutationFn: authService.registerDriver,
+    onSuccess: (data) => {
+      console.log("🎉 Driver registered successfully:", data);
     },
+    onError: (error) => {
+      console.error("❌ Driver registration failed:", error);
 
-    onError: (error: any) => {
       const errorMessage =
-        error.response?.data?.detail?.[0]?.msg ||
-        "Registration failed. Please check your token and try again.";
-      Alert.alert("Registration Error", errorMessage);
+        error?.response?.data?.detail?.[0]?.msg ||
+        error?.response?.data?.message ||
+        "Registration failed. Please check your invite token and try again.";
     },
   });
 };
 
 export const useChangePassword = () => {
   return useMutation({
-    mutationFn: (payload: ChangePasswordPayload) => authService.changePassword(payload),
+    mutationFn: (payload: ChangePasswordPayload) =>
+      authService.changePassword(payload),
     onSuccess: (response) => {
       // API returns: { "success": true, "message": "string", "data": "string" }
       Alert.alert(

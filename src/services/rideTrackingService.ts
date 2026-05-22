@@ -186,6 +186,39 @@ class RideTrackingService {
 
     console.log("✅ Socket fully disconnected");
   }
+
+  /**
+   * Emits the driver's current GPS telemetry to the tracking namespace.
+   * @param telemetry Coordinates, direction, and speed data packets.
+   */
+  updateLocation(telemetry: {
+    latitude: number;
+    longitude: number;
+    heading: number | null;
+    speed: number | null;
+  }) {
+    if (!this.socket || !this.socket.connected) {
+      console.log("⚠️ Cannot update location: Socket is not connected");
+      return;
+    }
+
+    // Pass telemetry directly and safely log the entire raw response object
+    this.socket.emit("update_location", telemetry, (response: any) => {
+      if (response?.error) {
+        console.error(
+          "❌ Server rejected driver location update:",
+          response.error,
+        );
+      } else {
+        console.log(
+          `⚡ [GPS Broadcast] Lat: ${telemetry.latitude.toFixed(5)} | Lng: ${telemetry.longitude.toFixed(5)} | Speed: ${telemetry.speed?.toFixed(1)} km/h`,
+        );
+        if (response) {
+          console.log("📦 Server Ack Payload:", JSON.stringify(response));
+        }
+      }
+    });
+  }
 }
 
 export default new RideTrackingService();

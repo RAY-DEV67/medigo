@@ -7,6 +7,8 @@ import {
   ScrollView,
   StatusBar,
   ActivityIndicator,
+  Alert,
+  Linking,
 } from "react-native";
 import {
   X,
@@ -29,7 +31,14 @@ import { formatHumanReadableDate } from "../../../utils/formatHumanReadableDate"
 import OverlayBottomSheet, {
   OverlayBottomSheetRef,
 } from "../../../components/modals/overlayBottomSheet";
-import { useCancelRide } from "../../../hooks/mutations/useRide";
+import {
+  useCancelRide,
+  useUpdateRideStatus,
+} from "../../../hooks/mutations/useRide";
+import RideRouteCard from "../../../components/map/rideRouteCard";
+import { milesToKm } from "../../../utils/milesToKilometer";
+import { formatDuration } from "../../../utils/formatDuration";
+import { formatPrice } from "../../../utils/formatPrice";
 
 const RideDetails = () => {
   const { colors, theme } = useTheme();
@@ -40,7 +49,7 @@ const RideDetails = () => {
   const { data, isLoading } = useRideDetail(id);
   const cancelRef = useRef<OverlayBottomSheetRef>(null);
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
-
+  const { mutate: updateStatus, isPending } = useUpdateRideStatus();
   const { mutate: cancelRide, isPending: isCancelling } = useCancelRide(id);
 
   const reasons = [
@@ -53,6 +62,27 @@ const RideDetails = () => {
   }
 
   const activeRide = data?.data;
+
+  console.log(activeRide);
+
+  const callRider = async () => {
+    const phoneNumber = activeRide?.rider_phone;
+
+    if (!phoneNumber) {
+      Alert.alert("Error", "Rider phone number not available");
+      return;
+    }
+
+    const url = `tel:${phoneNumber}`;
+
+    const supported = await Linking.canOpenURL(url);
+
+    if (supported) {
+      await Linking.openURL(url);
+    } else {
+      Alert.alert("Error", "Phone dialer is not supported");
+    }
+  };
 
   return (
     <SafeAreaView
@@ -116,7 +146,7 @@ const RideDetails = () => {
               ]}
             >
               {" "}
-              {formatHumanReadableDate(data.data.scheduled_at)}
+              {formatHumanReadableDate(data?.data.scheduled_at)}
             </Text>
           </View>
         </View>
@@ -166,7 +196,7 @@ const RideDetails = () => {
                   },
                 ]}
               >
-                {data.data.rider_name}
+                {data?.data.rider_name}
               </Text>
               <Text
                 style={[
@@ -177,7 +207,8 @@ const RideDetails = () => {
                   },
                 ]}
               >
-                ⭐ {data.data.rider_rating} • {data.data.rider_trip_count} rides
+                ⭐ {data?.data.rider_rating} • {data?.data.rider_trip_count}{" "}
+                rides
               </Text>
               <View style={[styles.medicalBadge]}>
                 <CircleDot size={12} color={colors.primaryColor} />
@@ -188,11 +219,12 @@ const RideDetails = () => {
                     color: colors.primaryColor,
                   }}
                 >
-                  {data.data.ride_type}
+                  {data?.data?.ride_type?.charAt(0).toUpperCase() +
+                    data?.data?.ride_type?.slice(1)}
                 </Text>
               </View>
             </View>
-            <TouchableOpacity style={styles.phoneButton}>
+            <TouchableOpacity style={styles.phoneButton} onPress={callRider}>
               <Phone size={20} color="#FFF" fill="#FFF" />
             </TouchableOpacity>
           </View>
@@ -233,7 +265,7 @@ const RideDetails = () => {
                   },
                 ]}
               >
-                {formatHumanReadableDate(data.data.appointment_time)}
+                {formatHumanReadableDate(data?.data.appointment_time)}
               </Text>
               <Text
                 style={[
@@ -270,63 +302,10 @@ const RideDetails = () => {
             },
           ]}
         >
-          <View style={styles.routeRow}>
-            <View style={styles.timeline}>
-              <View style={styles.pickupDot} />
-              <View style={styles.line} />
-              <View style={styles.destDot} />
-            </View>
-            <View style={styles.addressContainer}>
-              <View>
-                <Text
-                  style={[
-                    styles.addressLabel,
-                    commonStyling.subtitle,
-                    {
-                      fontSize: 10,
-                    },
-                  ]}
-                >
-                  Pickup
-                </Text>
-                <Text
-                  style={[
-                    commonStyling.title,
-                    {
-                      fontSize: 14,
-                      fontFamily: "SemiBold",
-                    },
-                  ]}
-                >
-                  {data.data.pickup_address}
-                </Text>
-              </View>
-              <View style={{ marginTop: 24 }}>
-                <Text
-                  style={[
-                    styles.addressLabel,
-                    commonStyling.subtitle,
-                    {
-                      fontSize: 10,
-                    },
-                  ]}
-                >
-                  Destination
-                </Text>
-                <Text
-                  style={[
-                    commonStyling.title,
-                    {
-                      fontSize: 14,
-                      fontFamily: "SemiBold",
-                    },
-                  ]}
-                >
-                  {data.data.destination_address}
-                </Text>
-              </View>
-            </View>
-          </View>
+          <RideRouteCard
+            pickup={data?.data.pickup_address}
+            destination={data?.data.destination_address}
+          />
         </View>
 
         {/* Trip Details Metrics */}
@@ -381,7 +360,10 @@ const RideDetails = () => {
                 },
               ]}
             >
-              {data.data.actual_distance_miles} mi
+              {milesToKm(
+                data?.data.estimated_distance_miles ||
+                  data?.data.actual_distance_miles,
+              )}
             </Text>
           </View>
           <View
@@ -422,7 +404,10 @@ const RideDetails = () => {
                 },
               ]}
             >
-              {data.data.actual_duration_minutes} min
+              {formatDuration(
+                data?.data.actual_duration_minutes ||
+                  data?.data.estimated_duration_minutes,
+              )}
             </Text>
           </View>
           <View
@@ -464,20 +449,48 @@ const RideDetails = () => {
                 },
               ]}
             >
-              ${data.data.final_fare}
+              {formatPrice(data.data.estimated_fare, true)}
             </Text>
           </View>
         </View>
 
         <Buttons
           title="Navigate to Pickup"
+          loading={isPending}
           onPress={() => {
-            navigation.navigate("RiderRideDetailsStack", {
-              screen: "TripInProgress",
-              params: {
-                activeRide,
+            if (!data?.data?.id) return;
+            if (
+              activeRide?.timeline?.at(-1).to_status === "driver_en_route" ||
+              activeRide?.timeline?.at(-1).to_status === "driver_arrived" ||
+              activeRide?.timeline?.at(-1).to_status === "in_progress"
+            ) {
+              navigation.navigate("RiderRideDetailsStack", {
+                screen: "TripInProgress",
+                params: {
+                  activeRide,
+                },
+              });
+              return;
+            }
+            updateStatus(
+              {
+                rideId: data.data.id,
+                payload: {
+                  status: "driver_en_route",
+                  notes: "",
+                },
               },
-            });
+              {
+                onSuccess: (responseData) => {
+                  navigation.navigate("RiderRideDetailsStack", {
+                    screen: "TripInProgress",
+                    params: {
+                      activeRide,
+                    },
+                  });
+                },
+              },
+            );
           }}
         />
 

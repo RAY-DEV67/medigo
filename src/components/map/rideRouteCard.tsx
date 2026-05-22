@@ -48,6 +48,7 @@ export default function RideRouteCard({
               commonStyling.subtitle,
               {
                 fontSize: 12,
+                marginBottom: 4,
               },
             ]}
           >
@@ -80,6 +81,7 @@ export default function RideRouteCard({
               commonStyling.subtitle,
               {
                 fontSize: 12,
+                marginBottom: 4,
               },
             ]}
           >

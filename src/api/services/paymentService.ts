@@ -11,6 +11,9 @@ import {
   PaymentMethodResponse,
   PaymentMethodsResponse,
   WalletResponse,
+  WithdrawalFeeResponse,
+  WithdrawalPayload,
+  WithdrawalResponse,
 } from "../../types/payment.types";
 
 const paymentService = {
@@ -71,6 +74,26 @@ const paymentService = {
 
   getBaseFareEstimate: async (payload: FareEstimatePayload) => {
     const response = await apiClient.post("/payments/fare-estimate", payload);
+    return response.data;
+  },
+
+  requestWithdrawal: async (
+    payload: WithdrawalPayload,
+  ): Promise<WithdrawalResponse> => {
+    const response = await apiClient.post<WithdrawalResponse>(
+      "/payments/withdrawals/request",
+      payload,
+    );
+    return response.data;
+  },
+
+  getWithdrawalFee: async (amount: number): Promise<WithdrawalFeeResponse> => {
+    const response = await apiClient.get<WithdrawalFeeResponse>(
+      "/payments/withdrawals/fee",
+      {
+        params: { amount }, // Injects ?amount=value into the request query parameters
+      },
+    );
     return response.data;
   },
 };

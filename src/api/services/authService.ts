@@ -14,6 +14,8 @@ import {
   ResendOtpResponse,
   DriverRegisterRequest,
   DriverRegisterResponse,
+  RegisterDriverPayload,
+  RegisterDriverResponse,
 } from "../../types/auth.types";
 import {
   ForgotPasswordRequest,
@@ -76,15 +78,15 @@ const authService = {
     return response.data;
   },
 
-  registerDriver: async (
-    data: DriverRegisterRequest,
-  ): Promise<DriverRegisterResponse> => {
-    const response: AxiosResponse<DriverRegisterResponse> =
-      await apiClient.post("/auth/driver/register", data);
-    return response.data;
-  },
   changePassword: async (payload: ChangePasswordPayload) => {
     const response = await apiClient.post("/auth/change-password", payload);
+    return response.data;
+  },
+
+  registerDriver: async (
+    payload: RegisterDriverPayload,
+  ): Promise<RegisterDriverResponse> => {
+    const response = await apiClient.post("/auth/driver/register", payload);
     return response.data;
   },
 };

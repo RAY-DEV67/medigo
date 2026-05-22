@@ -12,7 +12,8 @@ type ButtonType =
   | "onboarding"
   | "cancel"
   | "message"
-  | "icon";
+  | "icon"
+  | "outline";
 
 interface ButtonsProps {
   title: string;
@@ -57,6 +58,12 @@ const Buttons: React.FC<ButtonsProps> = ({
     inactive: {
       backgroundColor: colors.buttonPrimaryInactive,
       textColor: colors.inactiveButtonText,
+    },
+    outline: {
+      backgroundColor: "transparent",
+      textColor: colors.primaryColor,
+      borderWidth: 1,
+      borderColor: colors.primaryColor,
     },
     onboarding: {
       backgroundColor: colors.buttonPrimary,

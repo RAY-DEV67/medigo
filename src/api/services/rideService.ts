@@ -10,6 +10,8 @@ import {
   ShareRideResponse,
   TimelineResponse,
   UpcomingRidesResponse,
+  UpdateRideStatusPayload,
+  UpdateRideStatusResponse,
   UpdateStatusPayload,
 } from "../../types/rides.types";
 
@@ -45,14 +47,6 @@ const rideService = {
     return response.data;
   },
 
-  updateRideStatus: async (
-    rideId: string,
-    payload: UpdateStatusPayload,
-  ): Promise<RideDetailResponse> => {
-    const response = await apiClient.put(`/rides/${rideId}/status`, payload);
-    return response.data;
-  },
-
   getRideTimeline: async (rideId: string): Promise<TimelineResponse> => {
     const response = await apiClient.get(`/rides/${rideId}/timeline`);
     return response.data;
@@ -73,6 +67,14 @@ const rideService = {
 
   shareRideLink: async (rideId: string): Promise<ShareRideResponse> => {
     const response = await apiClient.post(`/rides/${rideId}/share`, {});
+    return response.data;
+  },
+
+  updateRideStatus: async (
+    rideId: string,
+    payload: UpdateRideStatusPayload,
+  ): Promise<UpdateRideStatusResponse> => {
+    const response = await apiClient.put(`/rides/${rideId}/status`, payload);
     return response.data;
   },
 };

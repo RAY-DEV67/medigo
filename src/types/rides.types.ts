@@ -184,3 +184,79 @@ export interface ShareRideResponse {
     share_url: string; // The link we want to share
   };
 }
+
+export type RideStatusType =
+  | "searching"
+  | "accepted"
+  | "arrived"
+  | "in_progress"
+  | "completed"
+  | "cancelled";
+
+export interface UpdateRideStatusPayload {
+  status: RideStatusType | string;
+  notes?: string;
+}
+
+export interface RideDataResponse {
+  id: string;
+  rider_id: string;
+  driver_id: string | null;
+  caregiver_id: string | null;
+  business_id: string | null;
+  ride_type: string;
+  trip_type: string;
+  trip_structure: string;
+  pickup_address: string;
+  destination_address: string;
+  scheduled_at: string;
+  status: RideStatusType | string;
+  passenger_id: string | null;
+  passenger_first_name: string;
+  passenger_last_name: string;
+  passenger_phone: string;
+  estimated_distance_miles: number;
+  estimated_duration_minutes: number;
+  estimated_fare: number;
+  final_fare: number;
+  special_instructions: string | null;
+  visit_type: string | null;
+  facility_name: string | null;
+  booking_channel: "mobile_app" | string;
+  facility_id: string | null;
+  guest_session_id: string | null;
+  recurring_ride_id: string | null;
+  use_highway_407: boolean;
+  highway_407_route: string | null;
+  is_dialysis_trip: boolean;
+  created_at: string;
+  rider_name: string;
+  driver_name: string | null;
+  driver_phone: string | null;
+  driver_avatar_url: string | null;
+  driver_rating: number;
+  driver_vehicle_type: string | null;
+  driver_vehicle_make: string | null;
+  driver_vehicle_model: string | null;
+  driver_vehicle_color: string | null;
+  driver_vehicle_plate: string | null;
+}
+
+export interface UpdateRideStatusResponse {
+  success: boolean;
+  message: string;
+  data: RideDataResponse;
+}
+
+export interface TimelineStep {
+  from_status: string;
+  to_status: string;
+  timestamp: string; // ISO Date String
+  notes: string | null;
+}
+
+export interface RideTimelineResponse {
+  success: boolean;
+  message: string;
+  data: TimelineStep[];
+}

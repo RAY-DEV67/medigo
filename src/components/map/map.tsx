@@ -3,7 +3,6 @@ import React, {
   useState,
   useRef,
   useCallback,
-  useMemo,
 } from "react";
 import * as Location from "expo-location";
 import {
@@ -11,8 +10,6 @@ import {
   StyleSheet,
   Image,
   Animated,
-  Text,
-  TouchableOpacity,
   ImageSourcePropType,
 } from "react-native";
 import MapView, {
@@ -34,7 +31,6 @@ import Svg, {
 } from "react-native-svg";
 import useTheme from "../../hooks/useThemes";
 import MapPlaceholder from "./mapPlaceholder";
-import { MaterialIcons } from "@expo/vector-icons";
 import ZoomControl from "./zoomControl";
 import RecenterButton from "./recenterButton";
 import { fetchRoute } from "../../services/map";

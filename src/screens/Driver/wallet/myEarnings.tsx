@@ -26,6 +26,7 @@ import { useEarningsSummary } from "../../../hooks/queries/useEarningSummary";
 import { useWalletBalance } from "../../../hooks/queries/useWalletBalance";
 import { useEarningsHistory } from "../../../hooks/queries/useEarningHistory";
 import { DriverEarningsSkeleton } from "../../../components/skelentonAnimation/driverEarningsSkelenton";
+import { formatPrice } from "../../../utils/formatPrice";
 
 const DriverEarningsDashboard = () => {
   const { colors, theme } = useTheme();
@@ -94,21 +95,8 @@ const DriverEarningsDashboard = () => {
             </Text>
           </View>
           <Text style={styles.balanceAmount}>
-            ${balance?.available_balance}
+            {formatPrice(balance?.available_balance)}
           </Text>
-
-          <View style={styles.payoutInfo}>
-            <View style={styles.payoutRow}>
-              <Text style={styles.payoutLabel}>Next payout</Text>
-              <Text style={styles.payoutValue}>
-                {summary?.next_payout_date}
-              </Text>
-            </View>
-            <View style={styles.payoutRow}>
-              <Text style={styles.payoutLabel}>Payout method</Text>
-              <Text style={styles.payoutValue}>Bank ****4242</Text>
-            </View>
-          </View>
 
           <TouchableOpacity
             style={styles.withdrawBtn}
@@ -120,9 +108,6 @@ const DriverEarningsDashboard = () => {
           >
             <Download size={20} color="#2563EB" style={{ marginRight: 8 }} />
             <Text style={styles.withdrawText}>Withdraw Earnings</Text>
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Text style={styles.changeMethod}>Change payout method</Text>
           </TouchableOpacity>
         </View>
 
@@ -480,7 +465,14 @@ const DriverEarningsDashboard = () => {
       </ScrollView>
 
       {/* Floating Support Button */}
-      <TouchableOpacity style={styles.fab}>
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => {
+          navigation.navigate("RiderProfileContentsStack", {
+            screen: "LiveChatScreen",
+          });
+        }}
+      >
         <Headset color="#2563EB" size={24} />
       </TouchableOpacity>
     </SafeAreaView>

@@ -131,3 +131,40 @@ export interface PaymentIntentResponse {
     currency: string;
   };
 }
+
+export interface WithdrawalPayload {
+  amount: number;
+  payment_method_id?: string;
+}
+
+// 2. Declare the response structures matching your Swagger spec
+export interface WithdrawalData {
+  id: string;
+  driver_id: string;
+  amount: number;
+  transaction_fee: number;
+  net_amount: number;
+  payment_method_id: string;
+  status: string;
+  processed_at: string; // ISO Timestamp
+  failure_reason: string | null;
+  created_at: string; // ISO Timestamp
+}
+
+export interface WithdrawalResponse {
+  success: boolean;
+  message: string;
+  data: WithdrawalData;
+}
+
+export interface WithdrawalFeeData {
+  amount: number;
+  transaction_fee: number;
+  net_amount: number;
+}
+
+export interface WithdrawalFeeResponse {
+  success: boolean;
+  message: string;
+  data: WithdrawalFeeData;
+}

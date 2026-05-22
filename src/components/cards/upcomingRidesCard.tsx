@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
     color: "#1E293B",
     marginTop: 2,
   },
-  driverAssignText: { fontSize: 13, color: "#64748B", marginBottom: 16 },
+  driverAssignText: { fontSize: 13, color: "#64748B", marginVertical: 16 },
   upcomingActions: {
     marginTop: 16,
   },

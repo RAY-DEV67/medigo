@@ -5,6 +5,8 @@ import {
   CancelRidePayload,
   CreateRideRequest,
   ShareRideResponse,
+  UpdateRideStatusPayload,
+  UpdateRideStatusResponse,
   UpdateStatusPayload,
 } from "../../types/rides.types";
 
@@ -28,20 +30,37 @@ export const useCreateRide = () => {
   });
 };
 
-export const useUpdateRideStatus = (rideId: string) => {
+interface MutationParams {
+  rideId: string;
+  payload: UpdateRideStatusPayload;
+}
+
+export const useUpdateRideStatus = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (payload: UpdateStatusPayload) =>
+  return useMutation<UpdateRideStatusResponse, any, MutationParams>({
+    mutationFn: ({ rideId, payload }) =>
       rideService.updateRideStatus(rideId, payload),
-    onSuccess: (response) => {
-      // Refresh the specific ride details
-      queryClient.invalidateQueries({ queryKey: ["ride-detail", rideId] });
+    onSuccess: (response, variables) => {
+      console.log(
+        `✅ Ride ${variables.rideId} status moved to: ${variables.payload.status}`,
+      );
 
-      // Also refresh the general driver status if you have a "current ride" query
-      queryClient.invalidateQueries({ queryKey: ["active-rides"] });
+      // Invalidate active ride data caches to trigger screen UI updates automatically
+      queryClient.invalidateQueries({
+        queryKey: ["active-ride", variables.rideId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["rides-history"] });
+      queryClient.invalidateQueries({ queryKey: ["rideTimeline"] });
     },
-    onError: (error: any) => {},
+    onError: (error) => {
+      console.error("❌ Failed to transition ride status:", error);
+
+      const errorMessage =
+        error?.response?.data?.detail?.[0]?.msg ||
+        error?.response?.data?.message ||
+        "Could not update ride progress. Please check connection.";
+    },
   });
 };
 

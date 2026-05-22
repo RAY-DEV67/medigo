@@ -28,9 +28,11 @@ import { FONT_SIZES } from "../../../constants/sizes";
 import { useNotifications } from "../../../hooks/queries/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { NotificationsSkeleton } from "../../../components/skelentonAnimation/notificationsSkelenton";
+import { useUserStore } from "../../../store/userStore";
 
 const NotificationsScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { user } = useUserStore();
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
   const [unreadOnly, setUnreadOnly] = useState(false);
@@ -53,8 +55,6 @@ const NotificationsScreen = () => {
         return { icon: <Info size={20} color="#3B82F6" />, bg: "#EFF6FF" };
     }
   };
-
-  console.log(data?.data);
 
   if (isLoading) {
     return <NotificationsSkeleton />;
@@ -108,12 +108,17 @@ const NotificationsScreen = () => {
                 onPress={() => {
                   // Handle navigation based on item.data or type
                   if (item.data.screen === "ride_detail")
-                    navigation.navigate("RiderRideDetailsStack", {
-                      screen: "RideDetails",
-                      params: {
-                        id: item.data.ride_id,
+                    navigation.navigate(
+                      user.data.role === "driver"
+                        ? "DriverRideDetailsStack"
+                        : "RiderRideDetailsStack",
+                      {
+                        screen: "RideDetails",
+                        params: {
+                          id: item.data.ride_id,
+                        },
                       },
-                    });
+                    );
                 }}
               />
             );

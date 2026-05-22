@@ -1,7 +1,9 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   AddPaymentPayload,
   PaymentIntentPayload,
+  WithdrawalPayload,
+  WithdrawalResponse,
 } from "../../types/payment.types";
 import paymentService from "../../api/services/paymentService";
 
@@ -30,6 +32,24 @@ export const useCreatePaymentIntent = () => {
     onError: (error: any) => {
       const message =
         error?.response?.data?.message || "Failed to initialize payment";
+    },
+  });
+};
+
+export const useRequestWithdrawal = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<WithdrawalResponse, Error, WithdrawalPayload>({
+    mutationFn: (payload) => paymentService.requestWithdrawal(payload),
+    onSuccess: (data) => {
+      console.log("✅ Withdrawal requested successfully:", data);
+
+      // Force an immediate refresh of wallet balances and transaction list caches
+      queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
+      queryClient.invalidateQueries({ queryKey: ["walletTransactions"] });
+    },
+    onError: (error) => {
+      console.error("❌ Withdrawal error response:", error);
     },
   });
 };

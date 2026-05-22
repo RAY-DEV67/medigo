@@ -37,6 +37,7 @@ import { formatDuration } from "../../../utils/formatDuration";
 import { formatPrice } from "../../../utils/formatPrice";
 import { useGetFareEstimateMutation } from "../../../hooks/queries/useGetBaseFareEstimate";
 import RideRouteCard from "../../../components/map/rideRouteCard";
+import { formatDisplayText } from "../../../utils/formatText";
 
 const RideDetails = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -55,8 +56,6 @@ const RideDetails = () => {
   ];
   // 1. Pass id safely
   const { data, isLoading } = useRideDetail(id);
-
-  console.log(data?.data.status);
 
   // 2. Add an early return if id is missing entirely
   if (!id) {
@@ -140,7 +139,7 @@ const RideDetails = () => {
                   },
                 ]}
               >
-                {data?.data.status}
+                {formatDisplayText(data?.data.status)}
               </Text>
             </View>
           </View>

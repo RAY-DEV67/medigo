@@ -23,6 +23,7 @@ import RightArrow from "../../../assets/icons/rightArrow";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import BackButton from "../../components/buttons/backButton";
 import {
+  useRegisterDriver,
   useRegisterMutation,
   useResendOtp,
   useVerifyOTPMutation,
@@ -45,35 +46,44 @@ export default function DriverRegistrationFlow() {
   const [otpCode, setOtpCode] = useState("");
   const verifyMutation = useVerifyOTPMutation();
   const { mutate: resendOTP, isPending: isPendingResend } = useResendOtp();
+  const [inviteToken, setinviteToken] = useState("");
 
   const [formData, setFormData] = useState<RegisterPayload>({
     identifier: "",
     password: "",
     role: "rider",
   });
+  const { mutate: register, isPending: registeringDriver } =
+    useRegisterDriver();
+
+  const handleRegister = () => {
+    if (!inviteToken || !formData.password) return;
+
+    register(
+      { invite_token: inviteToken, password: formData.password },
+      {
+        onSuccess: (authToken) => {
+          // e.g., Save token to secure store, update userStore, and route to onboarding/home
+          navigation.navigate("Login");
+        },
+      },
+    );
+  };
 
   const handleRegistration = () => {
-    // Simple logic to determine if input is email or phone
-    // const isEmail = formData.identifier.includes("@");
-    // const payload = isEmail
-    //   ? {
-    //       email: formData.identifier,
-    //       password: formData.password,
-    //       role: "rider",
-    //     }
-    //   : {
-    //       phone: formData.identifier,
-    //       password: formData.password,
-    //       role: "rider",
-    //     };
+    const payload = {
+      email: formData.identifier,
+      password: formData.password,
+      role: "rider",
+    };
 
-    // mutate(payload, {
-    //   onSuccess: (res) => {
-    //     console.log(res);
-    //     setUserId(res.data.user_id);
-    //     setStep("otp");
-    //   },
-    // });
+    mutate(payload, {
+      onSuccess: (res) => {
+        console.log(res);
+        setUserId(res.data.user_id);
+        setStep("otp");
+      },
+    });
     setStep("otp");
   };
 
@@ -184,60 +194,22 @@ export default function DriverRegistrationFlow() {
                 current={1}
                 total={3}
                 title="Verify Your Identity"
-                subTitle="Enter the email address that was approved by our medical transportation team."
+                subTitle="Enter the invite token that was sent by our medical transportation team."
               />
 
               <Input
-                title="Approved Email Address"
-                placeholder="you@example.com"
-                value={formData.identifier}
-                onChangeText={(val) => updateFields({ identifier: val })}
+                title="Invite token"
+                value={inviteToken}
+                onChangeText={(val) => {
+                  setinviteToken(val);
+                }}
                 keyboardType="email-address"
               />
-              <View
-                style={[
-                  styles.privacyBanner,
-                  {
-                    backgroundColor: colors.surfaceBrand,
-                  },
-                ]}
-              >
-                <View style={styles.lockIconWrapper}>
-                  <Lock size={16} color="#3B82F6" fill="#3B82F6" />
-                </View>
-                <View style={styles.bannerTextContainer}>
-                  <Text
-                    style={[
-                      styles.bannerTitle,
-                      commonStyling.title,
-                      {
-                        color: colors.primaryColor,
-                        fontSize: FONT_SIZES.BODY,
-                      },
-                    ]}
-                  >
-                    Security Information
-                  </Text>
-                  <Text
-                    style={[
-                      styles.bannerSub,
-                      commonStyling.subtitle,
-                      {
-                        color: colors.lightPrimaryBlue,
-                        fontSize: FONT_SIZES.BODY,
-                      },
-                    ]}
-                  >
-                    We'll send a one-time verification code to confirm your
-                    identity. Your information is encrypted and protected.
-                  </Text>
-                </View>
-              </View>
             </View>
 
             <View>
               <Buttons
-                title="Send OTP"
+                title="Create password"
                 onPress={() => {
                   setStep("password");
                 }}
@@ -447,8 +419,8 @@ export default function DriverRegistrationFlow() {
 
             <Buttons
               title="Create Account"
-              onPress={handleRegistration}
-              loading={isPending}
+              onPress={handleRegister}
+              loading={registeringDriver}
               rightIcon={<RightArrow />}
             />
           </View>

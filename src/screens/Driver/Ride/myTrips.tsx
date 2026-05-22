@@ -17,6 +17,9 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useDriverUpcomingRides } from "../../../hooks/queries/useDriverUpcomingRide";
 import { formatDate } from "date-fns";
 import { formatDateReadable } from "../../../utils/formatDate";
+import formatScheduledDate from "../../../utils/formatScheduleDate";
+import RideRouteCard from "../../../components/map/rideRouteCard";
+import { formatPrice } from "../../../utils/formatPrice";
 
 const MyTripsScreen = () => {
   const { colors, theme } = useTheme();
@@ -25,8 +28,6 @@ const MyTripsScreen = () => {
 
   const { data: driverUpcomingRides, isLoading } = useDriverUpcomingRides();
   const trips = driverUpcomingRides?.data || [];
-
-  console.log(trips);
 
   return (
     <SafeAreaView
@@ -78,7 +79,7 @@ const MyTripsScreen = () => {
                   },
                 ]}
               >
-                {formatDateReadable(trip.scheduled_at)}
+                {formatScheduledDate(trip.scheduled_at)}
               </Text>
             </View>
 
@@ -115,65 +116,10 @@ const MyTripsScreen = () => {
               </View>
             </View>
 
-            <View style={styles.routeContainer}>
-              <View style={styles.timeline}>
-                <View style={styles.pickupDot} />
-                <View style={styles.line} />
-                <View style={styles.destDot} />
-              </View>
-              <View>
-                <View>
-                  <Text
-                    style={[
-                      styles.addressLabel,
-                      commonStyling.subtitle,
-                      {
-                        fontSize: 11,
-                        fontFamily: "SemiBold",
-                      },
-                    ]}
-                  >
-                    PICKUP
-                  </Text>
-                  <Text
-                    style={[
-                      commonStyling.title,
-                      {
-                        fontSize: 14,
-                        fontFamily: "SemiBold",
-                      },
-                    ]}
-                  >
-                    {trip.pickup_address}
-                  </Text>
-                </View>
-                <View style={{ marginTop: 16 }}>
-                  <Text
-                    style={[
-                      styles.addressLabel,
-                      commonStyling.subtitle,
-                      {
-                        fontSize: 11,
-                        fontFamily: "SemiBold",
-                      },
-                    ]}
-                  >
-                    DESTINATION
-                  </Text>
-                  <Text
-                    style={[
-                      commonStyling.title,
-                      {
-                        fontSize: 14,
-                        fontFamily: "SemiBold",
-                      },
-                    ]}
-                  >
-                    {trip.destination_address}
-                  </Text>
-                </View>
-              </View>
-            </View>
+            <RideRouteCard
+              pickup={trip?.pickup_address}
+              destination={trip?.destination_address}
+            />
 
             <View style={styles.medicalIndicator}>
               <Stethoscope size={16} color="#94A3B8" />
@@ -208,7 +154,7 @@ const MyTripsScreen = () => {
                     },
                   ]}
                 >
-                  {trip.earnings}
+                  {formatPrice(trip.estimated_fare, true)}
                 </Text>
                 <Text
                   style={[
@@ -356,7 +302,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginBottom: 20,
+    marginVertical: 20,
   },
 
   cardFooter: {

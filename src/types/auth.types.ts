@@ -135,3 +135,11 @@ export interface DriverRegisterResponse {
     message: string;
   };
 }
+
+export interface RegisterDriverPayload {
+  invite_token: string;
+  password: string;
+}
+
+// The API returns a simple string on success (e.g., an auth token or success message)
+export type RegisterDriverResponse = string;

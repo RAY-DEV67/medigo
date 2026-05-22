@@ -23,6 +23,8 @@ import { useUpdateDriverStatus } from "../../../hooks/mutations/useUser";
 import { RiderHomeSkeleton } from "../../../components/skelentonAnimation/riderHomeSkelento";
 import { formatHumanReadableDate } from "../../../utils/formatHumanReadableDate";
 import locationTrackingService from "../../../services/locationTrackingService";
+import RideRouteCard from "../../../components/map/rideRouteCard";
+import { formatDisplayText } from "../../../utils/formatText";
 
 const { width } = Dimensions.get("window");
 
@@ -551,58 +553,7 @@ const RideCard = ({ time, pickup, dest, type, id }: any) => {
         </Text>
       </View>
 
-      <View style={styles.routeContainer}>
-        <View style={styles.routeLineBox}>
-          <View style={styles.dotBlue} />
-          <View style={styles.line} />
-          <View style={styles.dotRed} />
-        </View>
-        <View style={styles.addressBox}>
-          <Text
-            style={[
-              commonStyling.subtitle,
-              {
-                fontSize: 12,
-              },
-            ]}
-          >
-            Pickup
-          </Text>
-          <Text
-            style={[
-              styles.addrText,
-              commonStyling.title,
-              {
-                fontSize: 14,
-              },
-            ]}
-          >
-            {pickup}
-          </Text>
-          <Text
-            style={[
-              commonStyling.subtitle,
-              {
-                fontSize: 12,
-                marginTop: 12,
-              },
-            ]}
-          >
-            Destination
-          </Text>
-          <Text
-            style={[
-              styles.addrText,
-              commonStyling.title,
-              {
-                fontSize: 14,
-              },
-            ]}
-          >
-            {dest}
-          </Text>
-        </View>
-      </View>
+      <RideRouteCard pickup={pickup} destination={dest} />
 
       <View style={styles.badgeRow}>
         <View
@@ -619,7 +570,7 @@ const RideCard = ({ time, pickup, dest, type, id }: any) => {
               { fontSize: 12, color: colors.primaryColor },
             ]}
           >
-            {type}
+            {formatDisplayText(type)}
           </Text>
         </View>
       </View>

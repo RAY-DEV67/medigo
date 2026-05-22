@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, Image, TouchableOpacity } from "react-native";
 import { Users, Clock, CheckCircle2 } from "lucide-react-native";
 import useTheme from "../../hooks/useThemes";
 import { commonStyles } from "../../styles/commonStyles";
+import { formatPrice } from "../../utils/formatPrice";
 
 const VehicleTypeCard = ({
   feature2,
@@ -251,7 +252,7 @@ const VehicleTypeCard = ({
               },
             ]}
           >
-            {fare}
+            {formatPrice(fare)}
           </Text>
           <Text
             style={[

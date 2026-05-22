@@ -1,6 +1,7 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import RideDetails from "../screens/Driver/Ride/rideDetails";
+import CompletedRide from "../screens/Driver/Ride/completedRide";
 
 
 const Stack = createNativeStackNavigator();
@@ -14,7 +15,7 @@ const DriverRideDetailsStack: React.FC = () => {
       }}
     >
       <Stack.Screen name="RideDetails" component={RideDetails} />
-      
+      <Stack.Screen name="CompletedRide" component={CompletedRide} />      
     </Stack.Navigator>
   );
 };

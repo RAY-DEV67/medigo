@@ -1,12 +1,14 @@
 import {
+  Alert,
+  Button,
   Dimensions,
+  Linking,
   StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import MapScreen from "../../../components/map/map";
 import { useEffect, useState } from "react";
 import useTheme from "../../../hooks/useThemes";
@@ -17,27 +19,42 @@ import CustomBottomSheet from "../../../components/modals/bottomSheet";
 import { Info, MessageCircle, User } from "lucide-react-native";
 import { useRideTracking } from "../../../hooks/useTracking";
 import { storage } from "../../../utils/storage";
-import locationTrackingService from "../../../services/locationTrackingService";
 import { useUserStore } from "../../../store/userStore";
 import { formatPrice } from "../../../utils/formatPrice";
 import { milesToKm } from "../../../utils/milesToKilometer";
 import { formatDuration } from "../../../utils/formatDuration";
 import RideRouteCard from "../../../components/map/rideRouteCard";
+import { useDriverTracking } from "../../../hooks/useDriverTracking";
+import { useRideDetail } from "../../../hooks/queries/useRideDetails";
+import { useGetRideTimeline } from "../../../hooks/queries/useRideTimeline";
+import { formatDisplayText } from "../../../utils/formatText";
+import Buttons from "../../../components/buttons/buttons";
+import { useUpdateRideStatus } from "../../../hooks/mutations/useRide";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
-const SNAP_POINTS = [SCREEN_HEIGHT * 0.5, SCREEN_HEIGHT * 0.3];
 const BUTTON_GAP = 16;
 
 function TripInProgress() {
-  const [sheetHeight, setSheetHeight] = useState(SNAP_POINTS[0]);
+  const RIDER_SNAP_POINTS = [SCREEN_HEIGHT * 0.7, SCREEN_HEIGHT * 0.3];
+  const DRIVER_SNAP_POINTS = [SCREEN_HEIGHT * 0.5, SCREEN_HEIGHT * 0.25]; // Or whatever your driver layout needs
+  const { user } = useUserStore();
+  // ✅ Dynamically assign the correct array reference based on the user's role
+  const activeSnapPoints =
+    user?.role === "driver" ? DRIVER_SNAP_POINTS : RIDER_SNAP_POINTS;
+  const { mutate: updateStatus, isPending } = useUpdateRideStatus();
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const route = useRoute();
   const { activeRide } = route.params;
-  const { user } = useUserStore();
   const [token, setToken] = useState<string | null>(null);
-
+  const {
+    data: rideTimeline,
+    isLoading: loadingTimeline,
+    error,
+    refetch,
+  } = useGetRideTimeline(activeRide?.id);
+  const { data, isLoading } = useRideDetail(activeRide?.id);
   useEffect(() => {
     const loadToken = async () => {
       const t = await storage.getToken();
@@ -46,36 +63,52 @@ function TripInProgress() {
     loadToken();
   }, []);
 
-  const { driverLocation } = useRideTracking(activeRide?.id, token || "");
+  console.log(data?.data.destination_latitude);
 
-  useEffect(() => {
-    // 1. Connect the socket if not already connected
-    locationTrackingService.connect(user.token);
+  const pickup = {
+    latitude: data?.data?.pickup_latitude,
+    longitude: data?.data?.pickup_longitude,
+    address: data?.data?.pickup_address,
+  };
 
-    // 3. Logic to Start/Stop tracking
-    if (activeRide) {
-      console.log("🚀 Starting location tracking for:", activeRide.id);
-      locationTrackingService.startTracking(activeRide.id).catch((err) => {
-        console.error("Tracking Error:", err);
-      });
-    } else {
-      console.log("🛑 Stopping location tracking");
-      // Pass the ID to leave the room correctly
-      locationTrackingService.stopTracking(activeRide?.id || "");
+  const destination = {
+    latitude: data?.data.destination_latitude,
+    longitude: data?.data.destination_longitude,
+    address: data?.data.destination_address,
+  };
+
+  // 3. Conditional Role Checking Execution
+  const isDriver = user?.data.role === "driver";
+  const isRider =
+    user?.data.role === "rider" || user?.data.role === "passenger" || !isDriver;
+
+  // Run Rider listening hook ONLY if user is a rider
+  const { driverLocation, eta } = useRideTracking(
+    isRider ? activeRide?.id : null,
+    token,
+  );
+
+  // Run Driver broadcasting hook ONLY if user is a driver
+  useDriverTracking(isDriver ? activeRide?.id : null, token);
+
+  const callDriver = async () => {
+    const phoneNumber = activeRide?.driver_phone;
+
+    if (!phoneNumber) {
+      Alert.alert("Error", "Driver phone number not available");
+      return;
     }
 
-    // Cleanup on unmount
-    return () => {
-      locationTrackingService.disconnect();
-    };
-  }, [activeRide]);
+    const url = `tel:${phoneNumber}`;
 
-  const [activeSnapPoints, setActiveSnapPoints] = useState<number[]>([
-    SCREEN_HEIGHT * 0.65,
-    SCREEN_HEIGHT * 0.25,
-  ]);
+    const supported = await Linking.canOpenURL(url);
 
-  console.log(activeRide);
+    if (supported) {
+      await Linking.openURL(url);
+    } else {
+      Alert.alert("Error", "Phone dialer is not supported");
+    }
+  };
 
   return (
     <View>
@@ -90,7 +123,7 @@ function TripInProgress() {
           overflow: "hidden",
         }}
       >
-        <MapScreen bottomOffset={sheetHeight + BUTTON_GAP} />
+        <MapScreen pickup={pickup} destination={destination} />
       </View>
 
       <CustomBottomSheet
@@ -99,6 +132,26 @@ function TripInProgress() {
         isScrollable={false}
       >
         <View style={styles.card}>
+          <Text
+            style={[
+              commonStyling.title,
+              {
+                fontSize: 18,
+                fontFamily: "Bold",
+                textAlign: "center",
+                marginVertical: 16,
+              },
+            ]}
+          >
+            {user?.data.role === "rider"
+              ? formatDisplayText(rideTimeline?.data?.at(-1).to_status)
+              : rideTimeline?.data?.at(-1).to_status === "driver_en_route"
+                ? formatDisplayText(rideTimeline?.data?.at(-1).to_status)
+                : rideTimeline?.data?.at(-1).to_status === "driver_arrived"
+                  ? "Arrived at Pick up"
+                  : formatDisplayText(rideTimeline?.data?.at(-1).to_status)}
+          </Text>
+
           {/* Driver Header Section */}
           <View style={styles.driverHeader}>
             <View style={styles.driverProfile}>
@@ -110,12 +163,14 @@ function TripInProgress() {
                   style={[
                     commonStyling.title,
                     {
-                      fontSize: 18,
-                      fontFamily: "Bold",
+                      fontSize: 16,
+                      fontFamily: "SemiBold",
                     },
                   ]}
                 >
-                  {activeRide.driver_name}
+                  {user?.data.role === "rider"
+                    ? activeRide.driver_name
+                    : activeRide.rider_name}
                 </Text>
                 <View style={styles.ratingRow}>
                   <Text style={styles.star}>★</Text>
@@ -235,48 +290,151 @@ function TripInProgress() {
           </View>
 
           {/* Medical Appointment Alert */}
-          <View
-            style={[
-              styles.alertBox,
-              {
-                backgroundColor: colors.surfaceBrand,
-              },
-            ]}
-          >
-            <Info size={20} color="#2563EB" />
-            <View style={styles.alertContent}>
-              <Text
-                style={[
-                  styles.alertTitle,
-                  commonStyling.title,
-                  {
-                    fontSize: 14,
-                    color: colors.primaryColor,
-                  },
-                ]}
-              >
-                Medical Appointment
-              </Text>
-              <Text
-                style={[
-                  styles.alertDescription,
-                  commonStyling.subtitle,
-                  {
-                    fontSize: 12,
-                    color: colors.primaryColor,
-                  },
-                ]}
-              >
-                Your driver is aware this is a medical appointment and will
-                ensure a comfortable, timely journey.
-              </Text>
+          {user?.data.role === "rider" && (
+            <View
+              style={[
+                styles.alertBox,
+                {
+                  backgroundColor: colors.surfaceBrand,
+                },
+              ]}
+            >
+              <Info size={20} color="#2563EB" />
+              <View style={styles.alertContent}>
+                <Text
+                  style={[
+                    styles.alertTitle,
+                    commonStyling.title,
+                    {
+                      fontSize: 14,
+                      color: colors.primaryColor,
+                    },
+                  ]}
+                >
+                  Medical Appointment
+                </Text>
+                <Text
+                  style={[
+                    styles.alertDescription,
+                    commonStyling.subtitle,
+                    {
+                      fontSize: 12,
+                      color: colors.primaryColor,
+                    },
+                  ]}
+                >
+                  Your driver is aware this is a medical appointment and will
+                  ensure a comfortable, timely journey.
+                </Text>
+              </View>
             </View>
-          </View>
+          )}
+
+          {user?.data.role === "rider" && (
+            <TouchableOpacity style={styles.contactButton} onPress={callDriver}>
+              <Text style={styles.contactButtonText}>Contact Driver</Text>
+            </TouchableOpacity>
+          )}
+
+          {user?.data.role === "driver" && (
+            <View
+              style={{
+                marginTop: 16,
+              }}
+            >
+              {rideTimeline?.data?.at(-1).to_status === "driver_en_route" && (
+                <Buttons
+                  title="Notify Passenger of Arrival"
+                  loading={isPending}
+                  onPress={() => {
+                    updateStatus({
+                      rideId: activeRide?.id,
+                      payload: {
+                        status: "driver_arrived",
+                        notes: "",
+                      },
+                    });
+                  }}
+                />
+              )}
+
+              {rideTimeline?.data?.at(-1).to_status === "driver_arrived" && (
+                <Buttons
+                  title="Resend notification"
+                  type="outline"
+                  onPress={() => {}}
+                />
+              )}
+
+              {rideTimeline?.data?.at(-1).to_status === "driver_en_route" ||
+                (rideTimeline?.data?.at(-1).to_status === "driver_arrived" && (
+                  <View
+                    style={{
+                      marginTop: 8,
+                    }}
+                  >
+                    <Buttons
+                      title="Start trip"
+                      loading={isPending}
+                      type={
+                        rideTimeline?.data?.at(-1).to_status ===
+                        "driver_arrived"
+                          ? "primary"
+                          : "inactive"
+                      }
+                      onPress={() => {
+                        if (
+                          rideTimeline?.data?.at(-1).to_status ===
+                          "driver_arrived"
+                        ) {
+                          updateStatus({
+                            rideId: activeRide?.id,
+                            payload: {
+                              status: "in_progress",
+                              notes: "",
+                            },
+                          });
+                        }
+                      }}
+                    />
+                  </View>
+                ))}
+
+              {rideTimeline?.data?.at(-1).to_status === "in_progress" && (
+                <View
+                  style={{
+                    marginTop: 8,
+                  }}
+                >
+                  <Buttons
+                    title="Arrived at Destination"
+                    loading={isPending}
+                    type={"primary"}
+                    onPress={() => {
+                      updateStatus(
+                        {
+                          rideId: activeRide?.id,
+                          payload: {
+                            status: "completed",
+                            notes: "",
+                          },
+                        },
+                        {
+                          onSuccess: (responseData) => {
+                            navigation.navigate("DriverRideDetailsStack", {
+                              screen: "CompletedRide",
+                            });
+                          },
+                        },
+                      );
+                    }}
+                  />
+                </View>
+              )}
+            </View>
+          )}
 
           {/* Contact Action */}
-          <TouchableOpacity style={styles.contactButton}>
-            <Text style={styles.contactButtonText}>Contact Driver</Text>
-          </TouchableOpacity>
         </View>
       </CustomBottomSheet>
     </View>

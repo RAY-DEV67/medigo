@@ -10,6 +10,8 @@ function ChooseARide({
   setVehicle,
   setfare,
 }: any) {
+  console.log(estimate);
+
   const { colors } = useTheme();
   const commonStyling = commonStyles(colors);
   return (
@@ -45,7 +47,7 @@ function ChooseARide({
           <VehicleTypeCard
             key={est.ride_type}
             title={est.display_name}
-            fare={est.base_fare}
+            fare={est.estimated_total}
             category={est.category}
             description={est.description}
             passengers={est.passengers}

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   TextInput,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import { X, Landmark, Check } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,15 +18,44 @@ import Buttons from "../../../components/buttons/buttons";
 import OverlayBottomSheet, {
   OverlayBottomSheetRef,
 } from "../../../components/modals/overlayBottomSheet";
+import { useWalletBalance } from "../../../hooks/queries/useWalletBalance";
+import { formatPrice } from "../../../utils/formatPrice";
+import { useRequestWithdrawal } from "../../../hooks/mutations/usePayments";
+import { useGetWithdrawalFee } from "../../../hooks/queries/useGetWithdrawalFee";
 
 const WithdrawEarnings = () => {
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  const [amount, setAmount] = useState("536.44");
+  const [amount, setAmount] = useState("0");
   const percentages = ["25%", "50%", "75%", "Max"];
   const [selectedPercent, setSelectedPercent] = useState("25%");
   const withdrawRef = useRef<OverlayBottomSheetRef>(null);
+  const { data: walletBalance, isLoading: isWalletLoading } =
+    useWalletBalance();
+  const { data, isLoading, isError } = useGetWithdrawalFee(amount);
+  const { mutate, isPending } = useRequestWithdrawal();
+
+  console.log(data);
+
+  const handleWithdrawalSubmit = () => {
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) return;
+
+    mutate(
+      { amount: parsedAmount },
+      {
+        onSuccess: () => {
+          alert("Your withdrawal request is processing successfully.");
+          setAmount("");
+          withdrawRef.current?.open();
+        },
+        onError: (err) => {
+          alert(`Withdrawal failed: ${err.message}`);
+        },
+      },
+    );
+  };
 
   return (
     <SafeAreaView
@@ -88,7 +118,7 @@ const WithdrawEarnings = () => {
               },
             ]}
           >
-            $2,145.75
+            {formatPrice(walletBalance?.data.available_balance)}
           </Text>
         </View>
 
@@ -176,67 +206,6 @@ const WithdrawEarnings = () => {
           ]}
         />
 
-        {/* Payout Method */}
-        <Text
-          style={[
-            styles.sectionLabel,
-            commonStyling.subtitle,
-            {
-              fontSize: 12,
-              fontFamily: "SemiBold",
-            },
-          ]}
-        >
-          PAYOUT METHOD
-        </Text>
-        <View
-          style={[
-            styles.bankCard,
-            {
-              borderColor: colors.lightPrimaryBlueBorder,
-            },
-          ]}
-        >
-          <View style={styles.bankIconBg}>
-            <Landmark size={20} color="#FFF" />
-          </View>
-          <View style={styles.bankInfo}>
-            <Text
-              style={[
-                commonStyling.title,
-                {
-                  fontSize: 14,
-                  fontFamily: "SemiBold",
-                },
-              ]}
-            >
-              Chase Bank
-            </Text>
-            <Text
-              style={[
-                styles.bankDetails,
-                commonStyling.subtitle,
-                {
-                  fontSize: 12,
-                },
-              ]}
-            >
-              ****4242
-            </Text>
-          </View>
-          <TouchableOpacity>
-            <Text
-              style={{
-                fontSize: 14,
-                fontFamily: "SemiBold",
-                color: colors.primaryColor,
-              }}
-            >
-              Change
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Fee Summary */}
         <View style={styles.feeRow}>
           <Text
@@ -258,7 +227,11 @@ const WithdrawEarnings = () => {
               },
             ]}
           >
-            $0.00
+            {isLoading ? (
+              <ActivityIndicator />
+            ) : (
+              formatPrice(data?.data.transaction_fee, true)
+            )}
           </Text>
         </View>
 
@@ -288,7 +261,7 @@ const WithdrawEarnings = () => {
               color: colors.primaryColor,
             }}
           >
-            ${amount}
+            {formatPrice(data?.data.net_amount, true)}
           </Text>
         </View>
       </View>
@@ -298,8 +271,9 @@ const WithdrawEarnings = () => {
         <Buttons
           title="Withdraw Now"
           onPress={() => {
-            withdrawRef.current?.open();
+            handleWithdrawalSubmit();
           }}
+          loading={isPending}
         />
       </View>
 
