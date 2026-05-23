@@ -269,7 +269,14 @@ const ContactSupport = () => {
               width: "100%",
             }}
           >
-            <Buttons title="Emergency Support" onPress={() => {}} />
+            <Buttons
+              title="Emergency Support"
+              onPress={() => {
+                navigation.navigate("RiderProfileContentsStack", {
+                  screen: "LiveChatScreen",
+                });
+              }}
+            />
           </View>
         </View>
       </ScrollView>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -9,7 +9,6 @@ import {
   Switch,
 } from "react-native";
 import {
-  ChevronLeft,
   Bell,
   MapPin,
   MessageSquare,
@@ -31,15 +30,73 @@ import { UpdateNotificationsPayload } from "../../../types/user.types";
 import { useUpdateNotifications } from "../../../hooks/mutations/useUser";
 import { NotificationsSettingsSkeleton } from "../../../components/skelentonAnimation/notificationSettingsSkelenton";
 
+// ← Move OUTSIDE the parent component so it never remounts on re-render
+const NotificationRow = ({
+  icon,
+  title,
+  sub,
+  value,
+  onToggle,
+  iconBg,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  sub: string;
+  value: boolean;
+  onToggle: (val: boolean) => void;
+  iconBg: string;
+}) => {
+  const { colors } = useTheme();
+  const commonStyling = commonStyles(colors);
+
+  // ← Local optimistic state so toggle feels instant
+  const [localValue, setLocalValue] = useState(value);
+
+  // Sync with server data when it changes
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  const handleChange = (val: boolean) => {
+    setLocalValue(val); // instant UI update
+    onToggle(val); // then call API
+  };
+
+  return (
+    <View
+      style={[
+        styles.settingRow,
+        { borderColor: colors.lightPrimaryBlueBorder },
+      ]}
+    >
+      <View style={[styles.iconBox, { backgroundColor: iconBg }]}>{icon}</View>
+      <View style={styles.rowContent}>
+        <Text
+          style={[commonStyling.title, { fontSize: 15, fontFamily: "Bold" }]}
+        >
+          {title}
+        </Text>
+        <Text style={[styles.rowSub, commonStyling.subtitle, { fontSize: 12 }]}>
+          {sub}
+        </Text>
+      </View>
+      <Switch
+        trackColor={{ false: "#E2E8F0", true: "#3B82F6" }}
+        thumbColor="#FFF"
+        onValueChange={handleChange}
+        value={localValue}
+      />
+    </View>
+  );
+};
+
 const NotificationsScreen = () => {
   const { colors, theme } = useTheme();
   const commonStyling = commonStyles(colors);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
 
-  // 1. Fetch data
   const { data, isLoading } = useDriverSettings();
-  const settings = data?.data; // This is your "live" data
-
+  const settings = data?.data;
   const { mutate: updateNotify } = useUpdateNotifications();
 
   if (isLoading) {
@@ -50,96 +107,27 @@ const NotificationsScreen = () => {
     key: keyof UpdateNotificationsPayload,
     value: boolean,
   ) => {
-    // 2. We send the update to the server.
-    // Your mutation's 'onSuccess' invalidates the query,
-    // which causes this component to re-render with new data.
     updateNotify({ [key]: value });
-  };
-
-  const NotificationRow = ({
-    icon,
-    title,
-    sub,
-    value,
-    onToggle,
-    iconBg,
-  }: any) => {
-    const { colors, theme } = useTheme();
-    const commonStyling = commonStyles(colors);
-    return (
-      <View
-        style={[
-          styles.settingRow,
-          {
-            borderColor: colors.lightPrimaryBlueBorder,
-          },
-        ]}
-      >
-        <View style={[styles.iconBox, { backgroundColor: iconBg }]}>
-          {icon}
-        </View>
-        <View style={styles.rowContent}>
-          <Text
-            style={[
-              commonStyling.title,
-              {
-                fontSize: 15,
-                fontFamily: "Bold",
-              },
-            ]}
-          >
-            {title}
-          </Text>
-          <Text
-            style={[
-              styles.rowSub,
-              commonStyling.subtitle,
-              {
-                fontSize: 12,
-              },
-            ]}
-          >
-            {sub}
-          </Text>
-        </View>
-        <Switch
-          trackColor={{ false: "#E2E8F0", true: "#3B82F6" }}
-          thumbColor="#FFF"
-          onValueChange={onToggle}
-          value={value}
-        />
-      </View>
-    );
   };
 
   return (
     <SafeAreaView
-      style={[
-        styles.container,
-        {
-          backgroundColor: colors.surfacePrimary,
-        },
-      ]}
+      style={[styles.container, { backgroundColor: colors.surfacePrimary }]}
     >
       <StatusBar
         barStyle={theme === "light" ? "dark-content" : "light-content"}
       />
-
       <Header title="Notifications" />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Section: Ride Notifications */}
         <Text
           style={[
             styles.sectionLabel,
             commonStyling.title,
-            {
-              fontSize: 18,
-              fontFamily: "Bold",
-            },
+            { fontSize: 18, fontFamily: "Bold" },
           ]}
         >
           Ride Notifications
@@ -150,7 +138,7 @@ const NotificationsScreen = () => {
           title="Ride Requests"
           sub="New ride requests in your area"
           value={!!settings?.push_ride_requests}
-          onToggle={(val: boolean) => handleToggle("push_ride_requests", val)}
+          onToggle={(val) => handleToggle("push_ride_requests", val)}
         />
         <NotificationRow
           icon={<MapPin size={20} color="#3B82F6" />}
@@ -158,7 +146,7 @@ const NotificationsScreen = () => {
           title="Ride Updates"
           sub="Trip changes and cancellations"
           value={!!settings?.push_ride_updates}
-          onToggle={(val: boolean) => handleToggle("push_ride_updates", val)}
+          onToggle={(val) => handleToggle("push_ride_updates", val)}
         />
         <NotificationRow
           icon={<MessageSquare size={20} color="#3B82F6" />}
@@ -166,18 +154,14 @@ const NotificationsScreen = () => {
           title="Messages"
           sub="New messages from riders"
           value={!!settings?.push_chat_messages}
-          onToggle={(val: boolean) => handleToggle("push_chat_messages", val)}
+          onToggle={(val) => handleToggle("push_chat_messages", val)}
         />
 
-        {/* Section: Earnings & Performance */}
         <Text
           style={[
             styles.sectionLabel,
             commonStyling.title,
-            {
-              fontSize: 18,
-              fontFamily: "Bold",
-            },
+            { fontSize: 18, fontFamily: "Bold" },
           ]}
         >
           Earnings & Performance
@@ -188,7 +172,7 @@ const NotificationsScreen = () => {
           title="Earnings Updates"
           sub="Weekly summaries and payouts"
           value={!!settings?.push_earnings}
-          onToggle={(val: boolean) => handleToggle("push_earnings", val)}
+          onToggle={(val) => handleToggle("push_earnings", val)}
         />
         <NotificationRow
           icon={<LineChart size={20} color="#F59E0B" />}
@@ -196,18 +180,14 @@ const NotificationsScreen = () => {
           title="Promotions & Bonuses"
           sub="Surge pricing and bonus opportunities"
           value={!!settings?.push_promotions}
-          onToggle={(val: boolean) => handleToggle("push_promotions", val)}
+          onToggle={(val) => handleToggle("push_promotions", val)}
         />
 
-        {/* Section: Safety & Support */}
         <Text
           style={[
             styles.sectionLabel,
             commonStyling.title,
-            {
-              fontSize: 18,
-              fontFamily: "Bold",
-            },
+            { fontSize: 18, fontFamily: "Bold" },
           ]}
         >
           Safety & Support
@@ -218,7 +198,7 @@ const NotificationsScreen = () => {
           title="Safety Alerts"
           sub="Important safety updates"
           value={!!settings?.safety_alerts}
-          onToggle={(val: boolean) => handleToggle("safety_alerts", val)}
+          onToggle={(val) => handleToggle("safety_alerts", val)}
         />
         <NotificationRow
           icon={<Bell size={20} color="#3B82F6" />}
@@ -226,18 +206,14 @@ const NotificationsScreen = () => {
           title="App Updates"
           sub="New features and improvements"
           value={!!settings?.app_updates}
-          onToggle={(val: boolean) => handleToggle("app_updates", val)}
+          onToggle={(val) => handleToggle("app_updates", val)}
         />
 
-        {/* Section: Notification Channels */}
         <Text
           style={[
             styles.sectionLabel,
             commonStyling.title,
-            {
-              fontSize: 18,
-              fontFamily: "Bold",
-            },
+            { fontSize: 18, fontFamily: "Bold" },
           ]}
         >
           Notification Channels
@@ -248,7 +224,7 @@ const NotificationsScreen = () => {
           title="Push Notifications"
           sub="Receive alerts on this device"
           value={!!settings?.push_notifications}
-          onToggle={(val: boolean) => handleToggle("push_notifications", val)}
+          onToggle={(val) => handleToggle("push_notifications", val)}
         />
         <NotificationRow
           icon={<Mail size={20} color="#3B82F6" />}
@@ -256,7 +232,7 @@ const NotificationsScreen = () => {
           title="Email Notifications"
           sub="Receive updates via email"
           value={!!settings?.email_weekly_summary}
-          onToggle={(val: boolean) => handleToggle("email_weekly_summary", val)}
+          onToggle={(val) => handleToggle("email_weekly_summary", val)}
         />
         <NotificationRow
           icon={<MessageCircle size={20} color="#3B82F6" />}
@@ -264,7 +240,7 @@ const NotificationsScreen = () => {
           title="SMS Notifications"
           sub="Receive text message alerts"
           value={!!settings?.sms_ride_updates}
-          onToggle={(val: boolean) => handleToggle("sms_ride_updates", val)}
+          onToggle={(val) => handleToggle("sms_ride_updates", val)}
         />
 
         <View style={{ height: 40 }} />
@@ -275,29 +251,11 @@ const NotificationsScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    height: 60,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#F8FAFC",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  headerTitle: { fontSize: 18, fontWeight: "800", color: "#1E293B" },
-
   scrollContent: { padding: 20 },
   sectionLabel: {
     marginTop: 8,
     marginBottom: 20,
   },
-
   settingRow: {
     flexDirection: "row",
     alignItems: "center",

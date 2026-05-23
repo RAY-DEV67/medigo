@@ -18,6 +18,7 @@ import {
   Zap,
   ChevronRight,
 } from "lucide-react-native";
+import Constants from "expo-constants";
 import { SafeAreaView } from "react-native-safe-area-context";
 import useTheme from "../../../hooks/useThemes";
 import { commonStyles } from "../../../styles/commonStyles";
@@ -233,7 +234,7 @@ const AppSettings = () => {
             onValueChange={() => {
               toggleTheme();
             }}
-            value={settings.darkMode}
+            value={!isLight}
           />
         </View>
         <View
@@ -444,21 +445,8 @@ const AppSettings = () => {
               },
             ]}
           >
-            Version 2.4.1
+            Version {Constants.expoConfig?.version}
           </Text>
-          <TouchableOpacity>
-            <Text
-              style={[
-                {
-                  fontSize: 12,
-                  fontFamily: "SemiBold",
-                  color: colors.primaryColor,
-                },
-              ]}
-            >
-              Check for Updates
-            </Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

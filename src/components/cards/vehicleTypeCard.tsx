@@ -241,17 +241,6 @@ const VehicleTypeCard = ({
               },
             ]}
           >
-            $
-          </Text>
-          <Text
-            style={[
-              commonStyling.title,
-              {
-                fontSize: 20,
-                fontFamily: "Bold",
-              },
-            ]}
-          >
             {formatPrice(fare)}
           </Text>
           <Text

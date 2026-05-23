@@ -265,7 +265,14 @@ const SafetyCenter = () => {
               width: "100%",
             }}
           >
-            <Buttons title="Contact Safety Team" onPress={() => {}} />
+            <Buttons
+              title="Contact Safety Team"
+              onPress={() => {
+                navigation.navigate("RiderProfileContentsStack", {
+                  screen: "LiveChatScreen",
+                });
+              }}
+            />
           </View>
         </View>
       </ScrollView>

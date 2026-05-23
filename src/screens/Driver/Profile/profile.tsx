@@ -8,6 +8,7 @@ import {
   StatusBar,
   Dimensions,
 } from "react-native";
+import Constants from "expo-constants";
 import {
   User,
   Star,
@@ -241,7 +242,7 @@ export default function DriverProfileScreen() {
               }}
             />
           </View>
-          <Text
+          {/* <Text
             style={[
               styles.sectTitle,
               commonStyling.subtitle,
@@ -252,8 +253,8 @@ export default function DriverProfileScreen() {
             ]}
           >
             PAYMENTS
-          </Text>
-          <View
+          </Text> */}
+          {/* <View
             style={[
               styles.card,
               {
@@ -272,7 +273,7 @@ export default function DriverProfileScreen() {
                 });
               }}
             />
-          </View>
+          </View> */}
           <Text
             style={[
               styles.sectTitle,
@@ -393,7 +394,9 @@ export default function DriverProfileScreen() {
             <Text style={styles.logoutText}>Log Out</Text>
           </TouchableOpacity>
 
-          <Text style={styles.versionText}>MediGo v1.0.0</Text>
+          <Text style={styles.versionText}>
+            MediGo v{Constants.expoConfig?.version}
+          </Text>
           <Text style={styles.copyrightText}>
             © 2026 MediGo. All rights reserved.
           </Text>

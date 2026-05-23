@@ -107,18 +107,16 @@ const NotificationsScreen = () => {
                 unread={!item.is_read}
                 onPress={() => {
                   // Handle navigation based on item.data or type
-                  if (item.data.screen === "ride_detail")
-                    navigation.navigate(
-                      user.data.role === "driver"
-                        ? "DriverRideDetailsStack"
-                        : "RiderRideDetailsStack",
-                      {
-                        screen: "RideDetails",
-                        params: {
-                          id: item.data.ride_id,
-                        },
+                  if (
+                    item.data.screen === "ride_detail" &&
+                    user.data.role === "rider"
+                  )
+                    navigation.navigate("RiderRideDetailsStack", {
+                      screen: "RideDetails",
+                      params: {
+                        id: item.data.ride_id,
                       },
-                    );
+                    });
                 }}
               />
             );

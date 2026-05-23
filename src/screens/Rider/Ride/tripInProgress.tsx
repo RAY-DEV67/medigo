@@ -3,6 +3,7 @@ import {
   Button,
   Dimensions,
   Linking,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -129,9 +130,17 @@ function TripInProgress() {
       <CustomBottomSheet
         backgroundColor={colors.lightGray}
         snapPoints={activeSnapPoints}
-        isScrollable={false}
+        isScrollable={true}
       >
-        <View style={styles.card}>
+        <ScrollView
+          showsVerticalScrollIndicator={true}
+          contentContainerStyle={{
+            paddingBottom: 200,
+            paddingTop: 50,
+            flexGrow: 1,
+            backgroundColor: colors.lightGray,
+          }}
+        >
           <Text
             style={[
               commonStyling.title,
@@ -435,7 +444,7 @@ function TripInProgress() {
           )}
 
           {/* Contact Action */}
-        </View>
+        </ScrollView>
       </CustomBottomSheet>
     </View>
   );

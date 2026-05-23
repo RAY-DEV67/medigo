@@ -29,6 +29,8 @@ const MyTripsScreen = () => {
   const { data: driverUpcomingRides, isLoading } = useDriverUpcomingRides();
   const trips = driverUpcomingRides?.data || [];
 
+  console.log(trips);
+
   return (
     <SafeAreaView
       style={[

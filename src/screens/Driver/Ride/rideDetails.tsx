@@ -231,55 +231,60 @@ const RideDetails = () => {
         </View>
 
         {/* Schedule */}
-        <Text
-          style={[
-            styles.sectionLabel,
-            commonStyling.subtitle,
-            {
-              fontSize: 10,
-              fontFamily: "Medium",
-            },
-          ]}
-        >
-          SCHEDULE
-        </Text>
-        <View
-          style={[
-            styles.card,
-            {
-              borderColor: colors.lightPrimaryBlueBorder,
-            },
-          ]}
-        >
-          <View style={styles.scheduleRow}>
-            <View style={styles.calendarIconBg}>
-              <Calendar size={22} color="#3B82F6" />
-            </View>
-            <View>
-              <Text
-                style={[
-                  commonStyling.title,
-                  {
-                    fontSize: 16,
-                    fontFamily: "Bold",
-                  },
-                ]}
-              >
-                {formatHumanReadableDate(data?.data.appointment_time)}
-              </Text>
-              <Text
-                style={[
-                  commonStyling.subtitle,
-                  {
-                    fontSize: 12,
-                  },
-                ]}
-              >
-                Pickup time
-              </Text>
+
+        {data?.data.appointment_time && (
+          <View>
+            <Text
+              style={[
+                styles.sectionLabel,
+                commonStyling.subtitle,
+                {
+                  fontSize: 10,
+                  fontFamily: "Medium",
+                },
+              ]}
+            >
+              SCHEDULE
+            </Text>
+            <View
+              style={[
+                styles.card,
+                {
+                  borderColor: colors.lightPrimaryBlueBorder,
+                },
+              ]}
+            >
+              <View style={styles.scheduleRow}>
+                <View style={styles.calendarIconBg}>
+                  <Calendar size={22} color="#3B82F6" />
+                </View>
+                <View>
+                  <Text
+                    style={[
+                      commonStyling.title,
+                      {
+                        fontSize: 16,
+                        fontFamily: "Bold",
+                      },
+                    ]}
+                  >
+                    {formatHumanReadableDate(data?.data.appointment_time)}
+                  </Text>
+                  <Text
+                    style={[
+                      commonStyling.subtitle,
+                      {
+                        fontSize: 12,
+                      },
+                    ]}
+                  >
+                    Pickup time
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
-        </View>
+        )}
 
         {/* Route */}
         <Text
